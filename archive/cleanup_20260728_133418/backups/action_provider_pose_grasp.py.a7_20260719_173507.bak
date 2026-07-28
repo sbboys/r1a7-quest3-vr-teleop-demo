@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from __future__ import annotations
+
+import time
+from typing import Optional
+
+import torch
+
+from action_provider.action_base import ActionProvider
+from isaaclab.controllers import (
+    DifferentialIKController,
+    DifferentialIKControllerCfg,
+)
+from isaaclab.utils.math import subtract_frame_transforms
+
+
+class PoseGraspActionProvider(ActionProvider):
+    """左臂差分 IK 稳定性验证。"""
+
+    ARM_JOINT_NAMES = [
+        "left_shoulder_pitch_joint",
+        "left_shoulder_roll_joint",
+        "left_shoulder_yaw_joint",
+        "left_elbow_joint",
+        "left_wrist_roll_joint",
+        "left_wrist_pitch_joint",
+        "left_wrist_yaw_joint",
+    ]
+    EE_BODY_NAME = "left_hand_palm_link"
+
+    DLS_LAMBDA = 0.05
+    MAX_JOINT_STEP = 0.008
+    NULLSPACE_GAIN = 0.08
+    TEST_Z_OFFSET = 0.03
+
+    def __init__(self, env, args_cli):
+        super().__init__(name="PoseGraspLeftIKTest")
+        self.env = env
+        self.args_cli = args_cli
+        self.robot = env.scene["robot"]
+        self.object = env.scene["object"]
+        self.num_envs = env.num_envs
+
+        if self.num_envs != 1:
+            raise RuntimeError(
+                f"当前验证只支持 num_envs=1，实际为 {self.num_envs}"
+            )
+
+        joint_names = list(self.robot.joint_names)
+        body_names = list(self.robot.body_names)
+
+        self.arm_joint_ids = [
+            joint_names.index(name) for name in self.ARM_JOINT_NAMES
+        ]
+        self.ee_body_id = body_names.index(self.EE_BODY_NAME)
+        self.ee_jacobian_id = (
+            self.ee_body_id - 1
+            if self.robot.is_fixed_base
+            else self.ee_body_id
+        )
+
+        action_dim = int(self.env.action_manager.total_action_dim)
+        if action_dim != int(self.robot.num_joints):
+            raise RuntimeError(
+                f"action_dim={action_dim}, num_joints={self.robot.num_joints}"
+            )
+
+        ik_cfg = DifferentialIKControllerCfg(
+            command_type="pose",
+            use_relative_mode=False,
+            ik_method="dls",
+            ik_params={"lambda_val": self.DLS_LAMBDA},
+        )
+        self.ik = DifferentialIKController(
+            ik_cfg,
+            num_envs=self.num_envs,
+            device=env.device,
+        )
+
+        self.initial_joint_pos = self.robot.data.joint_pos.clone()
+        self.default_joint_pos = self.robot.data.default_joint_pos.clone()
+        self.nominal_arm_q = self.initial_joint_pos[
+            :, self.arm_joint_ids
+        ].clone()
+
+        ee_pos_b, ee_quat_b = self._get_ee_pose_b()
+        self.initial_pose_b = torch.cat(
+            (ee_pos_b.clone(), ee_quat_b.clone()), dim=-1
+        )
+        self.up_pose_b = self.initial_pose_b.clone()
+        self.up_pose_b[:, 2] += self.TEST_Z_OFFSET
+
+        self.target_pose_b = self.initial_pose_b.clone()
+        self.ik.reset()
+        self.ik.set_command(self.target_pose_b)
+
+        self.state = "WAIT"
+        self.state_start = time.monotonic()
+        self.stable_steps = 0
+        self.last_print = 0.0
+        self.done_printed = False
+
+        object_pos_b = self._get_object_pos_b()
+
+        print("\n" + "=" * 78)
+        print("[POSE_GRASP] LEFT IK test initialized")
+        print(f"[POSE_GRASP] left arm joint ids: {self.arm_joint_ids}")
+        print(
+            f"[POSE_GRASP] EE={self.EE_BODY_NAME}, "
+            f"body_id={self.ee_body_id}, "
+            f"jacobian_id={self.ee_jacobian_id}"
+        )
+        print(
+            "[POSE_GRASP] object position in robot base:",
+            object_pos_b[0].detach().cpu().numpy(),
+        )
+        print(
+            "[POSE_GRASP] initial left palm pose in robot base:",
+            self.initial_pose_b[0].detach().cpu().numpy(),
+        )
+        print(
+            f"[POSE_GRASP] target: base Z +{self.TEST_Z_OFFSET:.3f} m"
+        )
+        print(
+            f"[POSE_GRASP] DLS lambda={self.DLS_LAMBDA}, "
+            f"max_step={self.MAX_JOINT_STEP} rad"
+        )
+        print("=" * 78 + "\n")
+
+    def _root_pose_w(self):
+        data = self.robot.data
+        if hasattr(data, "root_link_pose_w"):
+            return data.root_link_pose_w
+        if hasattr(data, "root_pose_w"):
+            return data.root_pose_w
+        return data.root_state_w[:, 0:7]
+
+    def _body_pose_w(self):
+        data = self.robot.data
+        if hasattr(data, "body_link_pose_w"):
+            return data.body_link_pose_w
+        if hasattr(data, "body_pose_w"):
+            return data.body_pose_w
+        return data.body_state_w[:, :, 0:7]
+
+    def _object_pose_w(self):
+        data = self.object.data
+        if hasattr(data, "root_link_pose_w"):
+            return data.root_link_pose_w
+        if hasattr(data, "root_pose_w"):
+            return data.root_pose_w
+        return data.root_state_w[:, 0:7]
+
+    def _get_ee_pose_b(self):
+        root = self._root_pose_w()
+        ee = self._body_pose_w()[:, self.ee_body_id, :]
+        return subtract_frame_transforms(
+            root[:, 0:3],
+            root[:, 3:7],
+            ee[:, 0:3],
+            ee[:, 3:7],
+        )
+
+    def _get_object_pos_b(self):
+        root = self._root_pose_w()
+        obj = self._object_pose_w()
+        pos_b, _ = subtract_frame_transforms(
+            root[:, 0:3],
+            root[:, 3:7],
+            obj[:, 0:3],
+            obj[:, 3:7],
+        )
+        return pos_b
+
+    def _jacobian(self):
+        view = (
+            self.robot.root_view
+            if hasattr(self.robot, "root_view")
+            else self.robot.root_physx_view
+        )
+        return view.get_jacobians()[
+            :,
+            self.ee_jacobian_id,
+            :,
+            self.arm_joint_ids,
+        ]
+
+    def _nullspace_correction(self, jacobian, current_q):
+        batch = jacobian.shape[0]
+        dtype = jacobian.dtype
+        device = jacobian.device
+
+        j_t = jacobian.transpose(-1, -2)
+        eye6 = torch.eye(
+            6, dtype=dtype, device=device
+        ).unsqueeze(0).expand(batch, -1, -1)
+        eye7 = torch.eye(
+            7, dtype=dtype, device=device
+        ).unsqueeze(0).expand(batch, -1, -1)
+
+        regularized = (
+            jacobian @ j_t
+            + (self.DLS_LAMBDA ** 2) * eye6
+        )
+        j_pinv = j_t @ torch.linalg.solve(regularized, eye6)
+        projector = eye7 - j_pinv @ jacobian
+
+        posture_error = (
+            self.nominal_arm_q - current_q
+        ).unsqueeze(-1)
+        return (projector @ posture_error).squeeze(-1)
+
+    def _set_state(self, state, target_pose):
+        self.state = state
+        self.state_start = time.monotonic()
+        self.stable_steps = 0
+        self.target_pose_b = target_pose.clone()
+        self.ik.reset()
+        self.ik.set_command(self.target_pose_b)
+        print(f"\n[POSE_GRASP] >>> state={state}")
+
+    def _update_state(self, pos_error):
+        elapsed = time.monotonic() - self.state_start
+
+        self.stable_steps = (
+            self.stable_steps + 1 if pos_error < 0.008 else 0
+        )
+
+        if self.state == "WAIT" and elapsed >= 2.0:
+            self._set_state("UP", self.up_pose_b)
+        elif self.state == "UP":
+            if self.stable_steps >= 15 or elapsed >= 10.0:
+                self._set_state("HOLD", self.up_pose_b)
+        elif self.state == "HOLD" and elapsed >= 2.0:
+            self._set_state("RETURN", self.initial_pose_b)
+        elif self.state == "RETURN":
+            if self.stable_steps >= 15 or elapsed >= 10.0:
+                self._set_state("DONE", self.initial_pose_b)
+
+    def get_action(self, env) -> Optional[torch.Tensor]:
+        ee_pos_b, ee_quat_b = self._get_ee_pose_b()
+        jacobian = self._jacobian()
+
+        current_joint_pos = self.robot.data.joint_pos
+        current_arm_q = current_joint_pos[:, self.arm_joint_ids]
+
+        desired_arm_q = self.ik.compute(
+            ee_pos_b,
+            ee_quat_b,
+            jacobian,
+            current_arm_q,
+        )
+        desired_arm_q = (
+            desired_arm_q
+            + self.NULLSPACE_GAIN
+            * self._nullspace_correction(jacobian, current_arm_q)
+        )
+
+        delta_q = torch.clamp(
+            desired_arm_q - current_arm_q,
+            min=-self.MAX_JOINT_STEP,
+            max=self.MAX_JOINT_STEP,
+        )
+        desired_arm_q = current_arm_q + delta_q
+
+        limits = getattr(
+            self.robot.data, "soft_joint_pos_limits", None
+        )
+        if limits is not None:
+            arm_limits = limits[:, self.arm_joint_ids, :]
+            desired_arm_q = torch.maximum(
+                desired_arm_q,
+                arm_limits[..., 0] + 0.02,
+            )
+            desired_arm_q = torch.minimum(
+                desired_arm_q,
+                arm_limits[..., 1] - 0.02,
+            )
+
+        if not torch.isfinite(desired_arm_q).all():
+            raise RuntimeError("IK 输出包含 NaN 或 Inf")
+
+        desired_joint_pos = self.initial_joint_pos.clone()
+        desired_joint_pos[:, self.arm_joint_ids] = desired_arm_q
+        action = desired_joint_pos - self.default_joint_pos
+
+        pos_error = float(
+            torch.linalg.norm(
+                self.target_pose_b[:, 0:3] - ee_pos_b,
+                dim=-1,
+            )[0].item()
+        )
+
+        now = time.monotonic()
+        if now - self.last_print >= 0.5:
+            self.last_print = now
+            obj_b = self._get_object_pos_b()
+            print(
+                f"[POSE_GRASP] state={self.state:<6} "
+                f"pos_err={pos_error:.4f} m "
+                f"ee_b=({ee_pos_b[0,0]:+.3f},"
+                f"{ee_pos_b[0,1]:+.3f},"
+                f"{ee_pos_b[0,2]:+.3f}) "
+                f"obj_b=({obj_b[0,0]:+.3f},"
+                f"{obj_b[0,1]:+.3f},"
+                f"{obj_b[0,2]:+.3f})"
+            )
+
+        self._update_state(pos_error)
+
+        if self.state == "DONE" and not self.done_printed:
+            self.done_printed = True
+            print("\n[POSE_GRASP] LEFT_IK_TEST_DONE")
+
+        return action
+
+    def cleanup(self):
+        print("[POSE_GRASP] cleanup")

@@ -1,0 +1,299 @@
+# -*- coding: utf-8 -*-
+"""R1-A7 cylinder scene configuration.
+
+本文件将 A7 根节点位置绑定到桌面位置，而不是使用固定世界坐标。
+
+放置关系：
+    A7 根节点 XY = 桌面根节点 XY + 水平偏移
+    A7 根节点 Z  = 桌面上表面 Z - A7 底盘最低点局部 Z
+
+说明：
+- 桌面上表面高度优先通过圆柱初始位置和圆柱高度推算；
+- 如果无法读取圆柱高度，则使用 TABLE_TOP_Z_FALLBACK；
+- A7_BASE_BOTTOM_Z_LOCAL 用于补偿 A7 根节点与底盘最低面的高度差；
+- 所有位置调整只作用于当前 A7 圆柱任务，不修改 A7.usd/A7.urdf。
+"""
+
+import torch
+import isaaclab.envs.mdp as base_mdp
+
+from isaaclab.assets import ArticulationCfg
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.managers import EventTermCfg
+from isaaclab.managers import ObservationGroupCfg as ObsGroup
+from isaaclab.managers import ObservationTermCfg as ObsTerm
+from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
+from isaaclab.utils import configclass
+
+from robots.a7_dex1 import A7_DEX1_CFG
+from tasks.common_config.camera_configs import CameraBaseCfg
+from tasks.common_event.event_manager import (
+    SimpleEvent,
+    SimpleEventManager,
+)
+from tasks.common_observations.camera_state import get_camera_image
+from tasks.common_rewards.base_reward_pickplace_cylindercfg import (
+    compute_reward,
+)
+from tasks.common_scene.base_scene_pickplace_cylindercfg import (
+    TableCylinderSceneCfg,
+)
+from tasks.common_termination.base_termination_pick_place_cylinder import (
+    reset_object_estimate,
+)
+
+
+# ======================================================================
+# A7 相对于 packing_table 根节点的水平偏移
+#
+# 0.0, 0.0 表示先把 A7 根节点放到桌面根节点正上方。
+# 后续根据视口微调：
+#   X 增大/减小：沿世界 X 方向移动
+#   Y 增大/减小：沿世界 Y 方向移动
+# ======================================================================
+A7_TABLE_OFFSET_X = 0.0
+A7_TABLE_OFFSET_Y = -0.3
+
+# ======================================================================
+# A7 根节点到“底盘最低面”的局部 Z 高度补偿，单位 m。
+#
+# 初始先设为 0.0：
+#   底盘悬空 -> 增大此值，例如 0.05、0.10
+#   底盘穿入桌面 -> 减小此值，例如 -0.03、-0.05
+# ======================================================================
+A7_BASE_BOTTOM_Z_LOCAL = -0.18
+
+
+# ======================================================================
+# 当无法读取圆柱高度时使用的桌面上表面高度回退值。
+# 当前公共圆柱场景的桌面上表面约为 0.665 m。
+# ======================================================================
+TABLE_TOP_Z_FALLBACK = 0.665
+
+
+# 保留当前模型已经验证过的朝向，四元数顺序为 (w, x, y, z)。
+A7_TASK_ROOT_ROT = (0.7071, 0.0, 0.0, 0.7071)
+
+
+def _read_cylinder_height(scene_cfg) -> float:
+    """从场景配置读取圆柱高度，失败时返回 NaN。"""
+    try:
+        height = getattr(scene_cfg.object.spawn, "height")
+        return float(height)
+    except (AttributeError, TypeError, ValueError):
+        return float("nan")
+
+
+def _calculate_table_top_z(scene_cfg) -> float:
+    """利用圆柱初始中心高度和圆柱高度推算桌面上表面。"""
+    object_pos = scene_cfg.object.init_state.pos
+    cylinder_height = _read_cylinder_height(scene_cfg)
+
+    if cylinder_height == cylinder_height and cylinder_height > 0.0:
+        return float(object_pos[2]) - 0.5 * cylinder_height
+
+    return TABLE_TOP_Z_FALLBACK
+
+
+@configclass
+class A7TableCylinderSceneCfg(TableCylinderSceneCfg):
+    # 为当前任务复制一份机器人配置。
+    # 不直接修改 robots/a7.py 中的通用 A7_CFG。
+    robot: ArticulationCfg = A7_DEX1_CFG.replace(
+        prim_path="{ENV_REGEX_NS}/Robot"
+    )
+
+    front_camera = CameraBaseCfg.get_camera_config(
+        prim_path=(
+            "/World/envs/env_.*/Robot/"
+            "head_yaw_link/front_camera"
+        ),
+        update_period=0.04,
+        height=480,
+        width=640,
+        focal_length=12.0,
+        focus_distance=400.0,
+        horizontal_aperture=20.0,
+        clipping_range=(0.05, 100.0),
+        pos_offset=(0.08, 0.0, 0.02),
+        rot_offset=(0.5, -0.5, 0.5, -0.5),
+    )
+
+
+@configclass
+class ActionsCfg:
+    joint_pos = base_mdp.JointPositionActionCfg(
+        asset_name="robot",
+        joint_names=[".*"],
+        scale=1.0,
+        use_default_offset=True,
+    )
+
+
+@configclass
+class ObservationsCfg:
+    @configclass
+    class PolicyCfg(ObsGroup):
+        joint_pos = ObsTerm(func=base_mdp.joint_pos_rel)
+        joint_vel = ObsTerm(func=base_mdp.joint_vel_rel)
+        camera_image = ObsTerm(func=get_camera_image)
+
+        def __post_init__(self):
+            self.enable_corruption = False
+            self.concatenate_terms = False
+
+    policy: PolicyCfg = PolicyCfg()
+
+
+@configclass
+class TerminationsCfg:
+    success = DoneTerm(func=reset_object_estimate)
+
+
+@configclass
+class RewardsCfg:
+    reward = RewTerm(func=compute_reward, weight=1.0)
+
+
+@configclass
+class EventCfg:
+    reset_object = EventTermCfg(
+        func=base_mdp.reset_root_state_uniform,
+        mode="reset",
+        params={
+            "pose_range": {
+                "x": [-0.05, 0.05],
+                "y": [-0.05, 0.05],
+            },
+            "velocity_range": {},
+            "asset_cfg": SceneEntityCfg("object"),
+        },
+    )
+
+
+@configclass
+class PickPlaceCylinderA7JointEnvCfg(ManagerBasedRLEnvCfg):
+    scene: A7TableCylinderSceneCfg = A7TableCylinderSceneCfg(
+        num_envs=1,
+        env_spacing=2.5,
+        replicate_physics=True,
+    )
+
+    observations: ObservationsCfg = ObservationsCfg()
+    actions: ActionsCfg = ActionsCfg()
+    terminations: TerminationsCfg = TerminationsCfg()
+    events: EventCfg = EventCfg()
+    commands = None
+    rewards: RewardsCfg = RewardsCfg()
+    curriculum = None
+
+    def __post_init__(self):
+        # --------------------------------------------------------------
+        # 根据桌面与圆柱的任务配置计算 A7 根节点位置。
+        # --------------------------------------------------------------
+        table_pos = self.scene.packing_table.init_state.pos
+        object_pos = self.scene.object.init_state.pos
+        cylinder_height = _read_cylinder_height(self.scene)
+        table_top_z = _calculate_table_top_z(self.scene)
+
+        robot_root_x = (
+            float(table_pos[0]) + A7_TABLE_OFFSET_X
+        )
+        robot_root_y = (
+            float(table_pos[1]) + A7_TABLE_OFFSET_Y
+        )
+        robot_root_z = (
+            table_top_z - A7_BASE_BOTTOM_Z_LOCAL
+        )
+
+        self.scene.robot.init_state.pos = (
+            robot_root_x,
+            robot_root_y,
+            robot_root_z,
+        )
+        self.scene.robot.init_state.rot = A7_TASK_ROOT_ROT
+
+        print("\n" + "=" * 76)
+        print("[A7 TASK POSITION]")
+        print(
+            "packing_table root pos:",
+            tuple(float(value) for value in table_pos),
+        )
+        print(
+            "cylinder initial pos:",
+            tuple(float(value) for value in object_pos),
+        )
+        print("cylinder height:", cylinder_height)
+        print("estimated table top z:", table_top_z)
+        print(
+            "A7 table offset XY:",
+            (A7_TABLE_OFFSET_X, A7_TABLE_OFFSET_Y),
+        )
+        print(
+            "A7 base bottom local z:",
+            A7_BASE_BOTTOM_Z_LOCAL,
+        )
+        print(
+            "calculated A7 root pos:",
+            self.scene.robot.init_state.pos,
+        )
+        print(
+            "A7 root rot:",
+            self.scene.robot.init_state.rot,
+        )
+        print("=" * 76 + "\n")
+
+        # --------------------------------------------------------------
+        # 仿真参数
+        # --------------------------------------------------------------
+        self.decimation = 2
+        self.episode_length_s = 120.0
+        self.sim.dt = 0.005
+        self.sim.render_interval = self.decimation
+        self.sim.physx.bounce_threshold_velocity = 0.01
+        self.sim.physx.gpu_found_lost_aggregate_pairs_capacity = (
+            1024 * 1024 * 4
+        )
+        self.sim.physx.gpu_total_aggregate_pairs_capacity = (
+            16 * 1024
+        )
+        self.sim.physx.friction_correlation_distance = 0.00625
+
+        # --------------------------------------------------------------
+        # 自定义事件
+        # --------------------------------------------------------------
+        self.event_manager = SimpleEventManager()
+
+        self.event_manager.register(
+            "reset_object_self",
+            SimpleEvent(
+                func=lambda env: base_mdp.reset_root_state_uniform(
+                    env,
+                    torch.arange(
+                        env.num_envs,
+                        device=env.device,
+                    ),
+                    pose_range={
+                        "x": [-0.05, 0.05],
+                        "y": [0.0, 0.05],
+                    },
+                    velocity_range={},
+                    asset_cfg=SceneEntityCfg("object"),
+                )
+            ),
+        )
+
+        self.event_manager.register(
+            "reset_all_self",
+            SimpleEvent(
+                func=lambda env: base_mdp.reset_scene_to_default(
+                    env,
+                    torch.arange(
+                        env.num_envs,
+                        device=env.device,
+                    ),
+                )
+            ),
+        )

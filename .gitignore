@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Logs and runtime output
+*.log
+*.log.*
+logs/
+run_logs/
+outputs/
+
+# Local environments
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# Build artifacts
+build/
+dist/
+*.so
+*.o
+*.a
+
+# Large third-party SDK packages should be kept outside git.
+doc/orbbec_gemini_336l/
+OrbbecSDK*/
+OrbbecViewer*/
+*.tar.gz
+*.zip
+
+# Editor
+.vscode/
+.idea/
+*~
