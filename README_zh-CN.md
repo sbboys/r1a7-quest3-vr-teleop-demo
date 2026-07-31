@@ -10,6 +10,7 @@
 </div>
 
 ## 重要事情提前说
+- R1-A7 真实机器人 Gemini 相机控制右臂与 Dex1_1 夹爪的完整操作、换电脑接回通信、夹爪/手臂故障恢复流程见：[R1-A7 Gemini 相机控制右臂与 Dex1_1 夹爪操作手册](docs/r1a7_camera_arm_gripper_runbook_zh.md)
 - 请使用[官方推荐](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html)的硬件资源进行部署使用
 - 仿真器在第一次启动的时候由于其自身需要加载资源可能会等待一段时间，具体等待时间与硬件性能以及网络环境有关
 - 仿真器运行起来以后会发送/接收和真实机器人一样的DDS话题(如果同一网路中有真实机器人运行请注意区分)，DDS的使用具体可参考[G1控制](https://github.com/unitreerobotics/unitree_sdk2_python/tree/master/example/g1)、[Dex3灵巧手控制](https://github.com/unitreerobotics/unitree_sdk2/blob/main/example/g1/dex3/g1_dex3_example.cpp)
@@ -375,6 +376,35 @@ __all__ = ["pick_place_cylinder_g1_29dof_dex3", "pick_place_cylinder_g1_29dof_de
 
 - ⬜ 持续添加新的任务场景
 - ⬜ 持续进行代码优化
+
+## Gemini 相机人体动作跟随
+
+该工程已支持通过 Gemini/Orbbec RGB-D 相机识别人体手臂动作，并用 `camera_pose` action provider 驱动 R1-A7 仿真机械臂跟随。
+
+先单独确认相机、`pyorbbecsdk`、OpenCV 和 MediaPipe 可用：
+
+```bash
+python3 tools/test_gemini_pose.py --hand right --show
+```
+
+能持续看到 `wrist_rel_m` 和 `grip` 输出后，再启动仿真跟随：
+
+```bash
+python3 sim_main.py \
+  --device cuda:0 \
+  --enable_cameras \
+  --task Isaac-PickPlace-Cylinder-A7-Joint \
+  --robot_type a7 \
+  --action_source camera_pose \
+  --camera_pose_robot_arm left \
+  --camera_pose_human_hand right \
+  --camera_pose_show \
+  --camera_pose_planar_only \
+  --camera_pose_lock_wrist \
+  --camera_pose_torso_safe
+```
+
+站到相机前后，程序会先把当前手腕相对肩部的位置标定为零点；之后手腕左右、上下移动会映射到机器人手臂目标。若希望右机械臂跟随左手，改为 `--camera_pose_robot_arm right --camera_pose_human_hand left`。
 
 ## 🙏 鸣谢
 该代码基于以下开源代码库构建。请访问以下链接查看各自的许可证：

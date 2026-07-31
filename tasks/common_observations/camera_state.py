@@ -37,6 +37,7 @@ _camera_cache = {
     'last_scene_id': None,
     'frame_step': 0,
     'write_interval_steps': 2,
+    'debug_count': 0,
 }
 
 
@@ -89,15 +90,21 @@ def get_camera_image(
         _camera_cache['camera_keys'] = list(env.scene.keys())
         _camera_cache['available_cameras'] = [name for name in _camera_cache['camera_keys'] if "camera" in name.lower()]
         _camera_cache['last_scene_id'] = scene_id
+        print(f"[camera_state] scene camera keys: {_camera_cache['available_cameras']}")
 
 
     if _camera_cache['frame_step'] == 0:
+        try:
+            env.sim.render()
+        except Exception as e:
+            if _camera_cache.get('debug_count', 0) < 5:
+                print(f"[camera_state] render failed before camera read: {e}")
         try:
             dt = getattr(env, 'physics_dt', 0.02)
             if hasattr(env.scene, 'sensors') and env.scene.sensors:
                 for sensor in env.scene.sensors.values():
                     try:
-                        sensor.update(dt, force_recompute=False)
+                        sensor.update(dt, force_recompute=True)
                     except Exception:
                         pass
         except Exception:
@@ -160,6 +167,9 @@ def get_camera_image(
     
 
     if images and _camera_cache['frame_step'] == 0:
+        _camera_cache['debug_count'] += 1
+        if _camera_cache['debug_count'] <= 5 or _camera_cache['debug_count'] % 50 == 0:
+            print(f"[camera_state] writing images: {[(k, tuple(v.shape), str(v.dtype)) for k, v in images.items()]}")
         _ensure_async_started()
         try:
             
@@ -172,4 +182,3 @@ def get_camera_image(
         print("[camera_state] No camera images found in the environment")
     
     return _return_placeholder
-

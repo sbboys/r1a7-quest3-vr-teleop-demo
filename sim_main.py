@@ -17,6 +17,10 @@ import torch
 import gymnasium as gym
 from pathlib import Path
 
+teleimager_src = os.path.join(project_root, "teleimager", "src")
+if os.path.isdir(teleimager_src) and teleimager_src not in sys.path:
+    sys.path.insert(0, teleimager_src)
+
 # Isaac Lab AppLauncher
 from isaaclab.app import AppLauncher
 
@@ -26,7 +30,8 @@ from dds.dds_create import create_dds_objects,create_dds_objects_replay
 parser = argparse.ArgumentParser(description="Unitree Simulation")
 parser.add_argument("--task", type=str, default="Isaac-PickPlace-G129-Head-Waist-Fix", help="task name")
 parser.add_argument("--action_source", type=str, default="dds", 
-                   choices=["dds", "file", "trajectory", "policy", "replay","dds_wholebody"], 
+                   choices=["dds", "file", "trajectory", "policy", "replay","dds_wholebody",
+        "pose_grasp", "camera_pose", "vr_ik",], 
                    help="Action source")
 
 
@@ -73,12 +78,89 @@ parser.add_argument("--camera_jpeg_quality", type=int, default=85, help="JPEG qu
 parser.add_argument("--physx_substeps", type=int, default=None, help="physx substeps per step")
 parser.add_argument("--camera_include", type=str, default="front_camera,left_wrist_camera,right_wrist_camera", help="comma-separated camera names to enable")
 parser.add_argument("--camera_exclude", type=str, default="world_camera", help="comma-separated camera names to disable")
+parser.add_argument("--hide_task_object", action="store_true", default=False, help="temporarily hide the task object such as the cylinder")
 
 parser.add_argument("--env_reward_interval", type=int, default=5, help="environment reward compute interval (steps)")
 parser.add_argument("--seed", type=int, default=42, help="environment seed")
+parser.add_argument("--camera_pose_robot_arm", type=str, default="left", choices=["left", "right"], help="R1-A7 arm controlled by camera_pose")
+parser.add_argument("--camera_pose_human_hand", type=str, default="right", choices=["left", "right"], help="human hand tracked by camera_pose")
+parser.add_argument("--camera_pose_scale", type=float, default=0.45, help="meters of robot tool motion per meter of human wrist-relative motion")
+parser.add_argument("--camera_pose_workspace", type=str, default="0.20,0.55,0.05,0.35,0.02,0.35", help="camera_pose workspace xmin,xmax,ymin,ymax,zmin,zmax in robot base frame")
+parser.add_argument("--camera_pose_max_age", type=float, default=0.35, help="maximum age in seconds for camera pose targets")
+parser.add_argument("--camera_pose_filter_alpha", type=float, default=0.25, help="Gemini pose low-pass alpha")
+parser.add_argument("--camera_pose_target_alpha", type=float, default=0.65, help="robot target low-pass alpha; larger follows camera faster")
+parser.add_argument("--camera_pose_cartesian_step", type=float, default=0.018, help="max robot tool translation per control step in meters")
+parser.add_argument("--camera_pose_joint_step", type=float, default=0.035, help="max arm joint delta per control step in radians")
+parser.add_argument("--camera_pose_joint_speed", type=float, default=1.2, help="max arm joint speed in radians per second")
+parser.add_argument("--camera_pose_command_lead", type=float, default=0.14, help="max joint command lead over measured joint position in radians")
+parser.add_argument("--camera_pose_joint_limit_margin", type=float, default=0.03, help="joint-limit safety margin in radians/meters for camera_pose")
+parser.add_argument("--camera_pose_singularity_threshold", type=float, default=0.035, help="minimum Jacobian singular value before camera_pose slows down")
+parser.add_argument("--camera_pose_joint_correction", action="store_true", default=False, help="blend camera shoulder/elbow/wrist features into arm joint commands")
+parser.add_argument("--camera_pose_joint_correction_gain", type=float, default=0.35, help="blend gain for camera_pose human joint correction")
+parser.add_argument("--camera_pose_joint_correction_max_step", type=float, default=0.012, help="max correction step per controlled arm joint in radians")
+parser.add_argument("--camera_pose_wrist_orientation", action="store_true", default=False, help="map detected palm orientation to robot wrist roll/pitch/yaw")
+parser.add_argument("--camera_pose_wrist_orientation_gain", type=float, default=0.55, help="gain for camera_pose palm-to-wrist orientation mapping")
+parser.add_argument("--camera_pose_wrist_orientation_max_step", type=float, default=0.018, help="max wrist orientation correction per step in radians")
+parser.add_argument("--camera_pose_planar_only", action="store_true", default=False, help="map only camera left/right and up/down motion; ignore depth motion")
+parser.add_argument("--camera_pose_lock_wrist", action="store_true", default=False, help="keep robot wrist roll/pitch/yaw fixed at the initialized pose")
+parser.add_argument("--camera_pose_elbow_assist", action="store_true", default=False, help="blend camera vertical motion into elbow motion while wrist is locked")
+parser.add_argument("--camera_pose_elbow_assist_gain", type=float, default=0.8, help="elbow assist radians per meter of camera vertical wrist motion")
+parser.add_argument("--camera_pose_elbow_assist_max_step", type=float, default=0.012, help="max elbow assist step per control step in radians")
+parser.add_argument("--camera_pose_elbow_assist_sign", type=float, default=-1.0, help="sign for elbow assist vertical mapping")
+parser.add_argument("--camera_pose_torso_safe", action="store_true", default=False, help="apply conservative shoulder/elbow ranges to reduce torso interference")
+parser.add_argument("--camera_pose_direct_planar", action="store_true", default=False, help="directly map camera left/right and up/down motion to shoulder/elbow joints")
+parser.add_argument("--camera_pose_direct_roll_gain", type=float, default=2.2, help="direct planar shoulder-roll gain in radians per meter")
+parser.add_argument("--camera_pose_direct_pitch_gain", type=float, default=1.6, help="direct planar shoulder-pitch gain in radians per meter")
+parser.add_argument("--camera_pose_direct_yaw_gain", type=float, default=1.4, help="direct planar shoulder-yaw gain in radians per meter")
+parser.add_argument("--camera_pose_direct_elbow_gain", type=float, default=1.0, help="direct planar elbow gain in radians per meter")
+parser.add_argument("--camera_pose_direct_depth_gain", type=float, default=1.4, help="direct depth gain for forward/back arm extension")
+parser.add_argument("--camera_pose_direct_depth_sign", type=float, default=-1.0, help="sign for direct camera depth motion; default makes hand-toward-camera a positive reach")
+parser.add_argument("--camera_pose_direct_pitch_depth_ratio", type=float, default=0.35, help="signed shoulder-pitch contribution from direct depth motion")
+parser.add_argument("--camera_pose_direct_elbow_depth_ratio", type=float, default=-0.85, help="signed elbow contribution from direct depth motion; negative extends the elbow on positive reach")
+parser.add_argument("--camera_pose_direct_vertical_sign", type=float, default=1.0, help="sign for direct planar camera vertical motion; use -1 if up/down is inverted")
+parser.add_argument("--camera_pose_direct_elbow_vertical_ratio", type=float, default=0.25, help="fraction of direct vertical motion also sent to the elbow")
+parser.add_argument("--camera_pose_direct_skeleton_lift_gain", type=float, default=1.10, help="A7 retarget gain from human upper-arm lift to shoulder pitch")
+parser.add_argument("--camera_pose_direct_skeleton_side_roll_gain", type=float, default=0.95, help="A7 retarget gain from human upper-arm side motion to shoulder roll")
+parser.add_argument("--camera_pose_direct_skeleton_side_yaw_gain", type=float, default=0.45, help="A7 retarget gain from human upper-arm side motion to shoulder yaw")
+parser.add_argument("--camera_pose_direct_skeleton_reach_pitch_gain", type=float, default=0.25, help="A7 retarget gain from human upper-arm reach to shoulder pitch")
+parser.add_argument("--camera_pose_direct_skeleton_reach_yaw_gain", type=float, default=0.35, help="A7 retarget gain from human upper-arm reach to shoulder yaw")
+parser.add_argument("--camera_pose_direct_skeleton_elbow_gain", type=float, default=0.85, help="A7 retarget gain from human elbow bend to robot elbow")
+parser.add_argument("--camera_pose_direct_skeleton_lift_elbow_gain", type=float, default=0.20, help="A7 retarget gain from human upper-arm lift to robot elbow")
+parser.add_argument("--camera_pose_direct_max_step", type=float, default=0.030, help="max direct planar joint step per control step in radians")
+parser.add_argument("--camera_pose_direct_view_vertical", action="store_true", default=False, help="use image-normalized wrist height for direct planar vertical motion")
+parser.add_argument("--camera_pose_direct_view_horizontal", action="store_true", default=False, help="use image-normalized wrist x position for direct planar horizontal motion")
+parser.add_argument("--camera_pose_direct_pitch_min", type=float, default=-0.8, help="direct planar minimum shoulder-pitch target in radians")
+parser.add_argument("--camera_pose_direct_pitch_max", type=float, default=1.2, help="direct planar maximum shoulder-pitch target in radians")
+parser.add_argument("--camera_pose_direct_elbow_min", type=float, default=0.05, help="direct planar minimum elbow target in radians")
+parser.add_argument("--camera_pose_direct_elbow_max", type=float, default=1.5, help="direct planar maximum elbow target in radians")
+parser.add_argument("--camera_pose_lost_hold_s", type=float, default=0.55, help="seconds to hold the last arm command after camera target loss")
+parser.add_argument("--camera_pose_lost_return_s", type=float, default=1.40, help="seconds to smoothly return the arm toward home after camera target loss")
+parser.add_argument("--camera_pose_binary_grip", action="store_true", default=False, help="convert hand grip score into immediate open/close command")
+parser.add_argument("--camera_pose_grip_threshold", type=float, default=0.55, help="grip score threshold used when --camera_pose_binary_grip is enabled")
+parser.add_argument("--camera_pose_show", action="store_true", default=False, help="show Gemini pose debug window")
+parser.add_argument("--camera_pose_mirror_view", action="store_true", default=False, help="mirror only the Gemini debug window horizontally")
+parser.add_argument("--camera_pose_mirror_input", action="store_true", default=False, help="mirror camera x motion before mapping it to the robot")
+parser.add_argument("--camera_pose_debug", action="store_true", default=False, help="print Gemini pose rejection reasons")
+parser.add_argument("--camera_pose_min_visibility", type=float, default=0.35, help="minimum MediaPipe wrist/shoulder visibility for camera_pose")
+parser.add_argument("--camera_pose_min_wrist_shoulder_m", type=float, default=0.035, help="minimum accepted wrist-shoulder distance in meters")
+parser.add_argument("--vr_ik_input_mode", type=str, default="hand", choices=["hand", "controller"], help="XR input source for IsaacLab R1-A7 VR IK")
+parser.add_argument("--vr_ik_display_mode", type=str, default="pass-through", choices=["immersive", "ego", "pass-through"], help="XR display mode for IsaacLab R1-A7 VR IK")
+parser.add_argument("--vr_ik_preview_only", action="store_true", default=False, help="read XR and solve IK but keep simulated arms at default pose")
+parser.add_argument("--vr_ik_scale", type=float, default=0.18, help="meters of simulated wrist motion per meter of XR wrist motion")
+parser.add_argument("--vr_ik_max_delta_m", type=float, default=0.12, help="max XR-driven wrist displacement from calibrated home")
+parser.add_argument("--vr_ik_cartesian_step", type=float, default=0.010, help="max IK Cartesian correction per sim control step")
+parser.add_argument("--vr_ik_joint_step", type=float, default=0.018, help="max IK joint correction per sim control step")
+parser.add_argument("--vr_ik_joint_speed", type=float, default=0.55, help="max IK joint speed in rad/s")
+parser.add_argument("--vr_ik_command_lead", type=float, default=0.08, help="max commanded arm lead over measured sim joints in radians")
+parser.add_argument("--vr_ik_damping", type=float, default=0.08, help="DLS damping for VR IK")
+parser.add_argument("--vr_ik_filter_alpha", type=float, default=0.55, help="joint command low-pass alpha for VR IK")
+parser.add_argument("--vr_ik_orientation", action="store_true", default=False, help="also preserve initial wrist orientation in VR IK")
+parser.add_argument("--vr_ik_orientation_gain", type=float, default=0.15, help="orientation gain when --vr_ik_orientation is enabled")
+parser.add_argument("--vr_ik_print_period", type=float, default=0.4, help="VR IK status print period")
 # add AppLauncher parameters
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
+os.environ["UNITREE_HIDE_TASK_OBJECT"] = "1" if args_cli.hide_task_object else "0"
 if args_cli.no_render:
     os.environ["LIVESTREAM"] = str(args_cli.livestream_type)
     os.environ["PUBLIC_IP"] = args_cli.public_ip
@@ -147,6 +229,10 @@ def main():
     # profiler.enable()
     import os
     import atexit
+    env = None
+    controller = None
+    image_server = None
+    dds_manager = None
     try:
         os.setpgrp()
         current_pgid = os.getpgrp()
@@ -358,6 +444,7 @@ def main():
         )
     env.sim.reset()
     env.reset()
+
     
     # create simplified control configuration
     try:    
@@ -581,9 +668,21 @@ def main():
     finally:
         # clean up resources
         print("\nclean up resources...")
-        controller.cleanup()
-        image_server.stop()
-        env.close()
+        if controller is not None:
+            try:
+                controller.cleanup()
+            except Exception as e:
+                print(f"Failed to cleanup controller: {e}")
+        if image_server is not None:
+            try:
+                image_server.stop()
+            except Exception as e:
+                print(f"Failed to stop image server: {e}")
+        if env is not None:
+            try:
+                env.close()
+            except Exception as e:
+                print(f"Failed to close env: {e}")
         print("cleanup completed")
     # profiler.disable()
     # s = io.StringIO()
