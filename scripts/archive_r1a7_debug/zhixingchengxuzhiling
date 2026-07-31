@@ -1,0 +1,66 @@
+
+
+主要看这几个文件就够了：
+核心脚本
+[scripts/run_r1a7_camera_real_control_one_terminal.sh](/home/robot/unitree_sim_isaaclab/scripts/run_r1a7_camera_real_control_one_terminal.sh)
+一终端总入口。自动启动 Dex1_1 夹爪服务、检查夹爪 DDS、再启动相机控制。
+
+[scripts/run_r1a7_camera_real_control.sh](/home/robot/unitree_sim_isaaclab/scripts/run_r1a7_camera_real_control.sh)
+真正启动相机遥操作的参数脚本。你以后主要改这里的环境变量和参数。
+
+[tools/r1a7_camera_real_teleop.py](/home/robot/unitree_sim_isaaclab/tools/r1a7_camera_real_teleop.py)
+核心控制程序。负责：
+读取相机识别结果；
+映射到 R1-A7 右臂 7 个关节；
+发布 rt/lowcmd；
+发布 Dex1_1 夹爪命令。
+
+[action_provider/gemini_pose_source.py](/home/robot/unitree_sim_isaaclab/action_provider/gemini_pose_source.py)
+相机识别源。负责 Orbbec Gemini 336L、MediaPipe 人体/手部识别、输出手腕位置和 grip 夹爪开合值。
+
+夹爪相关
+5. [scripts/run_dex1_1_service.sh](/home/robot/unitree_sim_isaaclab/scripts/run_dex1_1_service.sh)
+   启动 Dex1_1 服务，把串口夹爪转换成 DDS topic。
+[tools/dex1_1_gripper_dds.py](/home/robot/unitree_sim_isaaclab/tools/dex1_1_gripper_dds.py)
+Python 夹爪 DDS 控制工具。
+
+[scripts/cycle_dex1_1_right_gripper_official.sh](/home/robot/unitree_sim_isaaclab/scripts/cycle_dex1_1_right_gripper_official.sh)
+官方右夹爪测试。夹爪不动时先跑它。
+
+示教数据
+8. [data/r1a7_teach/latest_profile.json](/home/robot/unitree_sim_isaaclab/data/r1a7_teach/latest_profile.json)
+   当前使用的示教轨迹配置。
+[tools/r1a7_build_teach_profile.py](/home/robot/unitree_sim_isaaclab/tools/r1a7_build_teach_profile.py)
+从示教数据生成 latest_profile.json。
+你需要记住的运行命令
+正常一终端运行：
+cd /home/robot/unitree_sim_isaaclab
+CONTROL_CHANNEL=lowcmd ENABLE_DEX1=1 ./scripts/run_r1a7_camera_real_control_one_terminal.sh --show
+只控制手臂，不控制夹爪：
+CONTROL_CHANNEL=lowcmd ENABLE_DEX1=0 ./scripts/run_r1a7_camera_real_control_one_terminal.sh --show
+测试右夹爪：
+./scripts/cycle_dex1_1_right_gripper_official.sh
+强制松开右夹爪：
+./scripts/open_dex1_1_right_gripper.sh
+你需要理解的关键参数
+CONTROL_CHANNEL=lowcmd：真实机器人右臂现在用这个通道才会动。
+ENABLE_DEX1=1：开启夹爪控制。
+DEX1_SIDE=right/left：选择控制哪侧夹爪。
+LOWCMD_HOLD_INDICES=22,23,24,25,26,27,28：只控制/保持右臂 7 个关节，避免腰部乱动。
+TEACH_PROFILE_BLEND：示教数据参与程度。
+HORIZONTAL_AMPLITUDE_SCALE：左右摆动幅度。
+TEACH_HORIZONTAL_YAW_WEIGHT：大臂扭转参与左右摆动的强度。
+DEX1_GRIP_OPEN_THRESHOLD / DEX1_GRIP_CLOSE_THRESHOLD：夹爪张开/夹紧阈值。
+排错顺序
+机器人手臂不动：先确认命令里有 CONTROL_CHANNEL=lowcmd。
+夹爪不动：先跑：
+./scripts/cycle_dex1_1_right_gripper_official.sh
+官方测试不动：断电重启机器人/夹爪，再测。
+官方测试能动，相机控制不动：看日志里的 grip、dex1_cmd、dex1_state。
+腰部/底座乱动：确认日志里是：
+lowcmd hold indices: [22, 23, 24, 25, 26, 27, 28]
+
+
+
+cd /home/robot/unitree_sim_isaaclab
+CONTROL_CHANNEL=lowcmd ENABLE_DEX1=1 ./scripts/run_r1a7_camera_real_control_one_terminal.sh --show

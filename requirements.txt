@@ -1,0 +1,14 @@
+rerun-sdk==0.20.1
+pyzmq==27.0.0
+logging_mp==0.1.5
+onnxruntime==1.22.1
+onnx
+pynput==1.8.1
+aiortc
+aiohttp
+numpy==1.26.4
+opencv-contrib-python==4.10.0.84
+mediapipe==0.10.14
+protobuf==4.25.3
+# Install a Linux-compatible Orbbec SDK v2 Python binding separately.
+# The current official PyPI pyorbbecsdk wheel may not match Linux/Python 3.10.
