@@ -114,6 +114,8 @@ class R1A7VRDualArmG1IKReal:
         self.last_pose_update_time: Optional[float] = None
         self.prev_motion_ready = False
         self.teleop_active = False
+        self.last_arm_enable = False
+        self.arm_hold_q: Optional[np.ndarray] = None
         self.rearm_until: Optional[float] = None
         self.publisher = None
         self.subscriber = None
@@ -138,6 +140,11 @@ class R1A7VRDualArmG1IKReal:
         self.lowcmd_gripper_cmd_q: Optional[np.ndarray] = None
         self.lowcmd_gripper_target_q: Optional[np.ndarray] = None
         self.lowcmd_gripper_ready = False
+        self.lowcmd_gripper_contact_q = np.full(2, np.nan, dtype=float)
+        self.lowcmd_gripper_contact_hold = np.zeros(2, dtype=bool)
+        self.lowcmd_gripper_stall_since: list[Optional[float]] = [None, None]
+        self.lowcmd_gripper_prev_state_q: Optional[np.ndarray] = None
+        self.lowcmd_gripper_prev_state_time: Optional[float] = None
 
     @staticmethod
     def _parse_indices(text: str) -> list[int]:
@@ -201,6 +208,11 @@ class R1A7VRDualArmG1IKReal:
         print("[R1-A7 VR G1IK REAL] command topic:", self.args.command_topic)
         print("[R1-A7 VR G1IK REAL] left arm indices:", self.left_indices)
         print("[R1-A7 VR G1IK REAL] right arm indices:", self.right_indices)
+        if self.args.arm_enable_button != "none":
+            print(
+                "[R1-A7 VR G1IK REAL] arm/gripper enable gate: hold "
+                f"{self.args.arm_enable_button}"
+            )
         if self.args.enable_gripper:
             if self.args.gripper_mode == "lowcmd":
                 print("[R1-A7 VR G1IK REAL] lowcmd gripper trigger control: ENABLED")
@@ -379,11 +391,14 @@ class R1A7VRDualArmG1IKReal:
             self.lowcmd_gripper_ready = False
             self.last_gripper_error = "lowstate unavailable for lowcmd gripper motors"
             return
+        now = time.monotonic()
 
         if self.lowcmd_gripper_home_q is None:
             self.lowcmd_gripper_home_q = current_q.copy()
             self.lowcmd_gripper_cmd_q = current_q.copy()
             self.lowcmd_gripper_target_q = current_q.copy()
+            self.lowcmd_gripper_prev_state_q = current_q.copy()
+            self.lowcmd_gripper_prev_state_time = now
             print(
                 "[R1-A7 VR G1IK REAL] calibrated lowcmd gripper q:",
                 np.round(current_q, 3).tolist(),
@@ -393,11 +408,13 @@ class R1A7VRDualArmG1IKReal:
         if not active or tele is None:
             self.lowcmd_gripper_target_q = current_q.copy()
             self.lowcmd_gripper_cmd_q = current_q.copy()
+            self._reset_lowcmd_gripper_contact_hold()
             return
 
         if not hasattr(tele, "left_ctrl_triggerValue") or not hasattr(tele, "right_ctrl_triggerValue"):
             self.last_gripper_error = "TeleVuer data has no controller trigger fields"
             self.lowcmd_gripper_target_q = current_q.copy()
+            self._reset_lowcmd_gripper_contact_hold()
             return
 
         left_value = float(np.clip(float(tele.left_ctrl_triggerValue), 0.0, 10.0))
@@ -416,8 +433,76 @@ class R1A7VRDualArmG1IKReal:
         )
         low = np.minimum(open_q, close_q) - abs(self.args.lowcmd_gripper_extra_margin)
         high = np.maximum(open_q, close_q) + abs(self.args.lowcmd_gripper_extra_margin)
-        self.lowcmd_gripper_target_q = np.clip(target, low, high)
+        trigger_alpha = np.array([left_alpha, right_alpha], dtype=float)
+        self.lowcmd_gripper_target_q = self._apply_lowcmd_gripper_contact_hold(
+            current_q=current_q,
+            requested_target_q=np.clip(target, low, high),
+            open_q=open_q,
+            close_q=close_q,
+            low=low,
+            high=high,
+            trigger_alpha=trigger_alpha,
+            now=now,
+        )
+        self.lowcmd_gripper_prev_state_q = current_q.copy()
+        self.lowcmd_gripper_prev_state_time = now
         self.last_gripper_error = None
+
+    def _reset_lowcmd_gripper_contact_hold(self) -> None:
+        self.lowcmd_gripper_contact_q[:] = np.nan
+        self.lowcmd_gripper_contact_hold[:] = False
+        self.lowcmd_gripper_stall_since = [None, None]
+
+    def _apply_lowcmd_gripper_contact_hold(
+        self,
+        current_q: np.ndarray,
+        requested_target_q: np.ndarray,
+        open_q: np.ndarray,
+        close_q: np.ndarray,
+        low: np.ndarray,
+        high: np.ndarray,
+        trigger_alpha: np.ndarray,
+        now: float,
+    ) -> np.ndarray:
+        if not self.args.lowcmd_gripper_contact_hold:
+            return requested_target_q
+
+        target_q = requested_target_q.copy()
+        close_dir = np.sign(close_q - open_q)
+        prev_q = self.lowcmd_gripper_prev_state_q
+
+        for i in range(2):
+            pulled = trigger_alpha[i] >= self.args.lowcmd_gripper_contact_trigger_alpha
+            if not pulled:
+                self.lowcmd_gripper_contact_hold[i] = False
+                self.lowcmd_gripper_contact_q[i] = np.nan
+                self.lowcmd_gripper_stall_since[i] = None
+                continue
+
+            target_error = abs(requested_target_q[i] - current_q[i])
+            state_delta = abs(current_q[i] - prev_q[i]) if prev_q is not None else float("inf")
+            still_blocked = target_error >= self.args.lowcmd_gripper_contact_error
+            barely_moving = state_delta <= self.args.lowcmd_gripper_contact_stall_eps
+
+            if self.lowcmd_gripper_contact_hold[i]:
+                contact_q = self.lowcmd_gripper_contact_q[i]
+            elif still_blocked and barely_moving:
+                if self.lowcmd_gripper_stall_since[i] is None:
+                    self.lowcmd_gripper_stall_since[i] = now
+                contact_q = current_q[i]
+                if now - self.lowcmd_gripper_stall_since[i] >= self.args.lowcmd_gripper_contact_stall_time:
+                    self.lowcmd_gripper_contact_hold[i] = True
+                    self.lowcmd_gripper_contact_q[i] = current_q[i]
+                    contact_q = current_q[i]
+            else:
+                self.lowcmd_gripper_stall_since[i] = None
+                contact_q = current_q[i]
+
+            if self.lowcmd_gripper_contact_hold[i]:
+                bias = abs(self.args.lowcmd_gripper_contact_hold_bias)
+                target_q[i] = np.clip(contact_q + close_dir[i] * bias, low[i], high[i])
+
+        return target_q
 
     def _step_lowcmd_gripper(self, state_q: np.ndarray, dt: float) -> Optional[np.ndarray]:
         if not self.args.enable_gripper or self.args.gripper_mode != "lowcmd":
@@ -608,6 +693,8 @@ class R1A7VRDualArmG1IKReal:
             [
                 float(getattr(tele, "left_ctrl_triggerValue", 10.0)),
                 float(getattr(tele, "right_ctrl_triggerValue", 10.0)),
+                float(bool(getattr(tele, "left_ctrl_aButton", False))),
+                float(bool(getattr(tele, "right_ctrl_aButton", False))),
             ],
             dtype=float,
         )
@@ -666,10 +753,31 @@ class R1A7VRDualArmG1IKReal:
             return False
         return unchanged_age <= self.args.stale_pose_timeout
 
+    def _arm_enable_pressed(self, tele) -> bool:
+        button = self.args.arm_enable_button
+        if button == "none":
+            return True
+        return bool(getattr(tele, button, False))
+
     def _pose_age_text(self, now: float) -> str:
         if self.last_pose_update_time is None:
             return "n/a"
         return f"{max(0.0, now - self.last_pose_update_time):.3f}s"
+
+    def _hold_current_after_enable_release(self, state_q: np.ndarray) -> tuple[np.ndarray, str]:
+        if self.teleop_active or self.prev_motion_ready or self.last_arm_enable:
+            print("[R1-A7 VR G1IK REAL] arm enable button released; holding current arm q")
+        if self.arm_hold_q is None:
+            self.arm_hold_q = state_q.copy()
+        self.teleop_active = False
+        self.prev_motion_ready = False
+        self.last_arm_enable = False
+        self.ik_zero_q = None
+        self.home_q = self.arm_hold_q.copy()
+        self.command_q = self.arm_hold_q.copy()
+        self.rearm_until = None
+        self.pose_frozen_reported = False
+        return self.arm_hold_q.copy(), "enable_released_hold"
 
     def _hold_current_after_stale(self, state_q: np.ndarray) -> tuple[np.ndarray, str]:
         if self.teleop_active:
@@ -682,10 +790,31 @@ class R1A7VRDualArmG1IKReal:
         self.pose_frozen_reported = False
         return state_q.copy(), "stale_hold"
 
+    def _hold_current_after_vr_exit(self, state_q: np.ndarray, reason: str) -> tuple[np.ndarray, str]:
+        """Freeze the arms at measured lowstate q whenever VR tracking drops.
+
+        This is intentionally based on measured robot state, not the previous
+        command target. It prevents the arms from drifting back toward the
+        startup pose after leaving VR, and makes the next VR entry rebase from
+        the current physical posture.
+        """
+        if self.teleop_active or self.prev_motion_ready:
+            print(f"[R1-A7 VR G1IK REAL] VR tracking unavailable ({reason}); holding current arm q")
+        self.teleop_active = False
+        self.prev_motion_ready = False
+        self.ik_zero_q = None
+        self.home_q = state_q.copy()
+        self.command_q = state_q.copy()
+        self.rearm_until = None
+        self.pose_frozen_reported = False
+        return state_q.copy(), f"{reason}_hold"
+
     def _begin_rearm(self, state_q: np.ndarray, now: float) -> None:
         self.home_q = state_q.copy()
         self.command_q = state_q.copy()
         self.ik_zero_q = None
+        if self.arm_ik is not None and hasattr(self.arm_ik, "reset_target_calibration"):
+            self.arm_ik.reset_target_calibration(state_q)
         self.teleop_active = True
         self.rearm_until = now + max(0.0, self.args.rearm_hold_time)
         print("[R1-A7 VR G1IK REAL] fresh Quest poses; rearm holding current q:", np.round(state_q, 3).tolist())
@@ -730,26 +859,28 @@ class R1A7VRDualArmG1IKReal:
                 tele_fresh = False
                 target_q: Optional[np.ndarray] = None
                 info = "waiting_quest_pose"
+                arm_enable = False
 
                 try:
                     tele = self.tv.get_tele_data()
                     motion_ready = bool(tele.motion_data_ready)
                     tele_fresh = self._teleop_data_fresh(tele, now)
+                    arm_enable = self._arm_enable_pressed(tele)
                     self.last_tele_error = None
                 except Exception as exc:
                     self.last_tele_error = f"{type(exc).__name__}: {exc}"
-                    info = "tele_data_error_hold"
-                    target_q = state_q.copy()
+                    target_q, info = self._hold_current_after_vr_exit(state_q, "tele_data_error")
 
                 if tele is not None and self.last_tele_error is None:
                     if not motion_ready:
-                        if self.prev_motion_ready or self.teleop_active:
-                            target_q, info = self._hold_current_after_stale(state_q)
-                        self.prev_motion_ready = False
+                        target_q, info = self._hold_current_after_vr_exit(state_q, "waiting_quest_pose")
                     elif motion_ready and not tele_fresh:
-                        target_q, info = self._hold_current_after_stale(state_q)
-                        self.prev_motion_ready = True
+                        target_q, info = self._hold_current_after_vr_exit(state_q, "stale")
+                    elif not arm_enable:
+                        target_q, info = self._hold_current_after_enable_release(state_q)
                     elif tele_fresh:
+                        self.arm_hold_q = None
+                        self.last_arm_enable = True
                         if not self.teleop_active:
                             self._begin_rearm(state_q, now)
                         self.prev_motion_ready = True
@@ -787,7 +918,13 @@ class R1A7VRDualArmG1IKReal:
                 # measured gripper positions instead of applying a new target.
                 self._update_gripper_inputs(
                     tele,
-                    active=bool(tele is not None and motion_ready and tele_fresh and self.last_tele_error is None),
+                    active=bool(
+                        tele is not None
+                        and motion_ready
+                        and tele_fresh
+                        and arm_enable
+                        and self.last_tele_error is None
+                    ),
                 )
 
                 dt = now - last_loop
@@ -818,7 +955,7 @@ class R1A7VRDualArmG1IKReal:
                     print(
                         f"[R1-A7 VR G1IK REAL] {info} "
                         f"lowstate_count={self.lowstate_count} lowstate_age={lowstate_age:.3f}s "
-                        f"motion_ready={motion_ready} tele_fresh={tele_fresh} "
+                        f"motion_ready={motion_ready} tele_fresh={tele_fresh} arm_enable={arm_enable} "
                         f"pose_delta={self.last_pose_delta:.6f} pose_age={self._pose_age_text(now)} "
                         f"cmd_err={cmd_err:.3f} tgt_err={tgt_err:.3f}"
                     )
@@ -838,7 +975,9 @@ class R1A7VRDualArmG1IKReal:
                             f"connected={gripper_connected} ready={gripper_ready} "
                             f"trigger_L={self.last_left_trigger:.3f} trigger_R={self.last_right_trigger:.3f} "
                             f"state_L={left_grip_q:.3f} state_R={right_grip_q:.3f} "
-                            f"cmd_L={left_grip_cmd:.3f} cmd_R={right_grip_cmd:.3f}"
+                            f"cmd_L={left_grip_cmd:.3f} cmd_R={right_grip_cmd:.3f} "
+                            f"contact_hold_L={bool(self.lowcmd_gripper_contact_hold[0])} "
+                            f"contact_hold_R={bool(self.lowcmd_gripper_contact_hold[1])}"
                         )
                         if self.last_gripper_error:
                             print(f"  grip_error: {self.last_gripper_error}")
@@ -855,11 +994,11 @@ class R1A7VRDualArmG1IKReal:
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Real R1-A7 dual-arm Quest/Vuer control through G1_29 IK")
-    parser.add_argument("--interface", default="enx9c69d37d0967")
+    parser.add_argument("--interface", default="enp6s0")
     parser.add_argument("--domain_id", type=int, default=0)
     parser.add_argument("--state_topic", default="rt/lowstate")
     parser.add_argument("--command_topic", default="rt/lowcmd")
-    parser.add_argument("--host_ip", default=os.getenv("HOST_IP", "192.168.1.127"))
+    parser.add_argument("--host_ip", default=os.getenv("HOST_IP", "192.168.1.103"))
     parser.add_argument("--left_arm_indices", default="15,16,17,18,19,20,21")
     parser.add_argument("--right_arm_indices", default="22,23,24,25,26,27,28")
     parser.add_argument("--lowcmd_hold_indices", default="13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30")
@@ -890,9 +1029,45 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lowcmd_gripper_right_open_q", type=float, default=0.0)
     parser.add_argument("--lowcmd_gripper_right_close_q", type=float, default=0.30)
     parser.add_argument("--lowcmd_gripper_extra_margin", type=float, default=0.03)
-    parser.add_argument("--lowcmd_gripper_velocity_limit", type=float, default=0.8)
-    parser.add_argument("--lowcmd_gripper_kp", type=float, default=20.0)
-    parser.add_argument("--lowcmd_gripper_kd", type=float, default=1.0)
+    parser.add_argument("--lowcmd_gripper_velocity_limit", type=float, default=1.5)
+    parser.add_argument("--lowcmd_gripper_kp", type=float, default=8.0)
+    parser.add_argument("--lowcmd_gripper_kd", type=float, default=1.5)
+    parser.add_argument(
+        "--lowcmd_gripper_contact_hold",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="lock each lowcmd gripper near the contact position after a stalled full trigger pull",
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_contact_trigger_alpha",
+        type=float,
+        default=0.85,
+        help="trigger close ratio above which contact hold can engage",
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_contact_error",
+        type=float,
+        default=0.08,
+        help="minimum target-state q error treated as object blockage",
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_contact_stall_eps",
+        type=float,
+        default=0.004,
+        help="maximum q change per control frame treated as stalled gripper motion",
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_contact_stall_time",
+        type=float,
+        default=0.25,
+        help="seconds of stalled motion before contact hold engages",
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_contact_hold_bias",
+        type=float,
+        default=0.035,
+        help="small extra closing q offset from the detected contact position to keep a soft grip",
+    )
     parser.add_argument(
         "--lowcmd_gripper_test_only",
         action="store_true",
@@ -913,6 +1088,22 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--duration", type=float, default=20.0)
     parser.add_argument("--hz", type=float, default=40.0)
     parser.add_argument("--print_period", type=float, default=0.25)
+    parser.add_argument(
+        "--arm_enable_button",
+        choices=(
+            "none",
+            "left_ctrl_aButton",
+            "left_ctrl_bButton",
+            "left_ctrl_squeeze",
+            "left_ctrl_thumbstick",
+            "right_ctrl_aButton",
+            "right_ctrl_bButton",
+            "right_ctrl_squeeze",
+            "right_ctrl_thumbstick",
+        ),
+        default="right_ctrl_aButton",
+        help="controller button that must be held for arm and gripper commands; use none to disable the gate",
+    )
     parser.add_argument("--kp", type=float, default=12.0)
     parser.add_argument("--kd", type=float, default=0.8)
     parser.add_argument("--kp_low", type=float, default=80.0)

@@ -1,0 +1,13 @@
+search_mode: none
+search_step_mm: 0.5
+search_range_mm: 3.0
+approach_speed_mm_s: 2.0
+search_speed_mm_s: 1.0
+contact_timeout_s: 10.0
+contact_detection_priority:
+  - six_axis_force_sensor
+  - joint_estimated_torque
+  - joint_current
+  - gripper_current
+  - end_effector_position_error
+  - fixed_time_and_position

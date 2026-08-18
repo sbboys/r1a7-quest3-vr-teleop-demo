@@ -1,0 +1,4 @@
+keyframes: {}
+notes:
+  - Capture with scripts/capture_keyframe.py after dry-run/mock tests pass.
+  - Required names: HOME, LEFT_SAFE, PRE_GRASP, GRASP, LIFT, TRANSFER_SAFE, PRE_NUT, CONTACT_START, ROTATE_START, ROTATE_END, RETRACT, PRE_PLACE, PLACE.

@@ -1,0 +1,22 @@
+robot: Unitree R1-A7
+backend_default: mock
+interface: enx9c69d37d0967
+domain_id: 0
+state_topic: rt/lowstate
+command_topic: rt/lowcmd
+control_frequency_hz: 100
+left_arm_indices: [15, 16, 17, 18, 19, 20, 21]
+right_arm_indices: [22, 23, 24, 25, 26, 27, 28]
+left_gripper_index: 31
+right_gripper_index: 33
+left_gripper_open_q: 4.86
+left_gripper_close_q: -0.08
+right_gripper_open_q: 4.80
+right_gripper_close_q: -0.20
+confirmed_from:
+  - tools/r1a7_vr_dual_arm_g1ik_real.py
+  - docs/r1a7_quest3_vr_handoff_2026-07-31_zh.md
+todo_confirm_with_unitree:
+  - Firmware version
+  - Official torque/current units for lowstate motor_state
+  - Safe torque/current thresholds for wrench contact

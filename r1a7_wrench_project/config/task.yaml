@@ -1,0 +1,20 @@
+mode: dry_run
+backend: mock
+right_arm_only_first: true
+left_arm_safe_keyframe: LEFT_SAFE
+timeouts_s:
+  CHECK_SYSTEM: 5.0
+  MOVE_HOME: 10.0
+  MOVE_TO_PRE_GRASP: 10.0
+  MOVE_TO_GRASP: 10.0
+  CLOSE_GRIPPER: 5.0
+  VERIFY_GRASP: 3.0
+  LIFT_WRENCH: 10.0
+  MOVE_TO_PRE_NUT: 15.0
+  APPROACH_NUT: 10.0
+  SEAT_WRENCH: 10.0
+  TIGHTEN: 5.0
+  LOOSEN: 5.0
+  RETRACT: 10.0
+  PLACE_WRENCH: 10.0
+  RETURN_HOME: 10.0
