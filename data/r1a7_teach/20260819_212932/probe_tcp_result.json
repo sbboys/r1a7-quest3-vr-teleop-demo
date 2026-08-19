@@ -1,0 +1,99 @@
+{
+  "source_waypoints": "/home/robot/unitree_sim_isaaclab/data/r1a7_teach/20260819_212932/waypoints.jsonl",
+  "urdf": "/home/robot/IsaacLab/bolt_nut_assembly/R1_A7_official/A7.urdf",
+  "frame": "right_wrist_yaw_link",
+  "sample_count": 5,
+  "probe_tcp_in_frame_m": [
+    0.25404225123057017,
+    0.015300657043617716,
+    0.02698814714161999
+  ],
+  "fixed_contact_point_in_model_base_m": [
+    0.5220318622423007,
+    -0.07600052464101983,
+    0.07240609453141279
+  ],
+  "residuals_m": [
+    [
+      0.0005632714367727054,
+      -0.0006394051378550009,
+      -0.002168794177048891
+    ],
+    [
+      0.0032964706893113815,
+      -0.0026862325200679438,
+      -0.0004309485900763632
+    ],
+    [
+      1.457454149778048e-05,
+      0.0019176773837881467,
+      -0.0013456817939672405
+    ],
+    [
+      -0.001662468646760451,
+      8.390536919894442e-05,
+      0.0013877621591471684
+    ],
+    [
+      -0.0022118480208207503,
+      0.0013240549049371303,
+      0.002557662401945812
+    ]
+  ],
+  "residual_norms_m": [
+    0.0023301892249773487,
+    0.004274140948149515,
+    0.002342767264618343,
+    0.002167193097719432,
+    0.0036313950516053697
+  ],
+  "residual_mean_m": 0.0029491371174140014,
+  "residual_max_m": 0.004274140948149515,
+  "right_arm_joint_samples": [
+    {
+      "right_shoulder_pitch": -0.33359289169311523,
+      "right_shoulder_roll": -0.24792365729808807,
+      "right_shoulder_yaw": 0.31252336502075195,
+      "right_elbow": 0.3685489892959595,
+      "right_wrist_roll": 0.4211534261703491,
+      "right_wrist_pitch": -0.39295077323913574,
+      "right_wrist_yaw": -0.10449045896530151
+    },
+    {
+      "right_shoulder_pitch": -0.35167109966278076,
+      "right_shoulder_roll": -0.46797800064086914,
+      "right_shoulder_yaw": 0.22961270809173584,
+      "right_elbow": -0.12239047139883041,
+      "right_wrist_roll": 0.5231984853744507,
+      "right_wrist_pitch": 0.35021501779556274,
+      "right_wrist_yaw": -0.14373880624771118
+    },
+    {
+      "right_shoulder_pitch": -0.4175603687763214,
+      "right_shoulder_roll": -0.5454620122909546,
+      "right_shoulder_yaw": 0.33276283740997314,
+      "right_elbow": 0.37979647517204285,
+      "right_wrist_roll": 0.6234118342399597,
+      "right_wrist_pitch": -0.26661306619644165,
+      "right_wrist_yaw": 0.2699686586856842
+    },
+    {
+      "right_shoulder_pitch": -0.2795620262622833,
+      "right_shoulder_roll": -0.2612501084804535,
+      "right_shoulder_yaw": 0.24812643229961395,
+      "right_elbow": -0.06002204492688179,
+      "right_wrist_roll": 0.4182620644569397,
+      "right_wrist_pitch": 0.14432603120803833,
+      "right_wrist_yaw": -0.2593865692615509
+    },
+    {
+      "right_shoulder_pitch": -0.3999016284942627,
+      "right_shoulder_roll": -0.6557228565216064,
+      "right_shoulder_yaw": 0.2401033192873001,
+      "right_elbow": -0.03442373871803284,
+      "right_wrist_roll": 0.7275459170341492,
+      "right_wrist_pitch": 0.29904237389564514,
+      "right_wrist_yaw": 0.07316369563341141
+    }
+  ]
+}

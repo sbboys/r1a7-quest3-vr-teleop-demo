@@ -107,6 +107,8 @@ class R1A7VRDualArmG1IKReal:
         if len(self.lowcmd_gripper_indices) != 2:
             raise ValueError("lowcmd_gripper_indices must contain exactly 2 indices: left,right")
         self.hold_indices = self._parse_indices(args.lowcmd_hold_indices)
+        self.fixed_hold_indices = self._parse_indices(args.fixed_hold_indices)
+        self.fixed_hold_q: dict[int, float] = {}
         self.command_q: Optional[np.ndarray] = None
         self.home_q: Optional[np.ndarray] = None
         self.ik_zero_q: Optional[np.ndarray] = None
@@ -556,13 +558,17 @@ class R1A7VRDualArmG1IKReal:
             if hasattr(self.low_cmd, "mode_machine") and hasattr(self.low_state, "mode_machine"):
                 self.low_cmd.mode_machine = self.low_state.mode_machine
             count = min(len(self.low_cmd.motor_cmd), len(self.low_state.motor_state))
+            if not self.fixed_hold_q:
+                for i in self.fixed_hold_indices:
+                    if i < count:
+                        self.fixed_hold_q[i] = float(self.low_state.motor_state[i].q)
             for i in self.hold_indices:
                 if i >= count:
                     continue
                 motor = self.low_cmd.motor_cmd[i]
                 motor.mode = 1
                 motor.tau = 0.0
-                motor.q = float(self.low_state.motor_state[i].q)
+                motor.q = self.fixed_hold_q.get(i, float(self.low_state.motor_state[i].q))
                 motor.dq = 0.0
                 motor.kp = self.args.hold_kp
                 motor.kd = self.args.hold_kd
@@ -1002,6 +1008,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--left_arm_indices", default="15,16,17,18,19,20,21")
     parser.add_argument("--right_arm_indices", default="22,23,24,25,26,27,28")
     parser.add_argument("--lowcmd_hold_indices", default="13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30")
+    parser.add_argument(
+        "--fixed_hold_indices",
+        default="13",
+        help="motor indices held at their startup lowstate q instead of following current q; 13 is waist on R1-A7",
+    )
     parser.add_argument(
         "--enable_gripper",
         action="store_true",

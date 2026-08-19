@@ -173,8 +173,9 @@ class R1A7RightArmDDS:
             target = list(self.hold_start)
             amp = math.radians(self.args.test_amplitude_deg)
             freq = max(0.01, self.args.test_frequency_hz)
-            # Small right shoulder pitch movement only. Other joints hold.
-            target[0] = self.hold_start[0] + amp * math.sin(2.0 * math.pi * freq * elapsed)
+            joint_idx = max(0, min(6, self.args.test_joint_index - 1))
+            # Small single-joint movement only. Other joints hold.
+            target[joint_idx] = self.hold_start[joint_idx] + amp * math.sin(2.0 * math.pi * freq * elapsed)
             return target
 
         if self.args.mode == "lift":
@@ -379,6 +380,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max_speed_rad_s", type=float, default=0.20, help="right arm command rate limit")
     parser.add_argument("--test_amplitude_deg", type=float, default=3.0, help="test shoulder-pitch amplitude")
     parser.add_argument("--test_frequency_hz", type=float, default=0.10, help="test shoulder-pitch frequency")
+    parser.add_argument(
+        "--test_joint_index",
+        type=int,
+        default=1,
+        help="1-based right-arm joint index used in test mode; 7 is right_wrist_yaw",
+    )
     parser.add_argument("--lift_offset_deg", type=float, default=35.0, help="positive shoulder-pitch lift target")
     parser.add_argument("--lift_ramp_s", type=float, default=6.0, help="seconds to ramp into lift target")
     parser.add_argument("--no_motion_command_error", type=float, default=0.03)

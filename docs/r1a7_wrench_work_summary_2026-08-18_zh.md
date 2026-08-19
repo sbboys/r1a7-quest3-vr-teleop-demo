@@ -92,3 +92,11 @@
 2. 先做右夹爪抓扳手、保持、轻微移动和放下。
 3. 记录 `rt/lowstate`，并标注 `PRE_GRASP`、`GRASP`、`LIFT`、`TRANSFER_SAFE`、`PRE_NUT`。
 4. 在确认夹持稳定后，再进入螺母对准和套入阶段。
+
+## 6. 2026-08-20 相机标定与视觉控制更新
+
+已补充深度相机手眼标定、AprilTag 到机器人 base 的转换、探针 TCP、视觉目标控制脚本、`rt/lowcmd` 控制链路恢复和当前实验结论。
+
+详见：
+
+- `docs/r1a7_camera_handeye_visual_servo_summary_2026-08-20_zh.md`
