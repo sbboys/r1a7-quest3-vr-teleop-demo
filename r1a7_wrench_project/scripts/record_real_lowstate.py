@@ -17,7 +17,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Record R1-A7 rt/lowstate while the existing handset teleop script controls the robot"
     )
-    parser.add_argument("--interface", default="enx9c69d37d0967")
+    parser.add_argument("--interface", default="enp6s0")
     parser.add_argument("--domain-id", type=int, default=0)
     parser.add_argument("--state-topic", default="rt/lowstate")
     parser.add_argument("--episode-id", default=f"episode_real_lowstate_{time.strftime('%Y%m%d_%H%M%S')}")

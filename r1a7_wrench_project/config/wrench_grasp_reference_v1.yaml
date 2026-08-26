@@ -1,0 +1,128 @@
+keyframes:
+  RIGHT_SAFE:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_episode_window_medians
+    left_joint_position: &id001
+    - -0.094585501
+    - -0.005776396
+    - 0.183093727
+    - 1.19724679
+    - -0.080064714
+    - -0.892441273
+    - -0.177546293
+    right_joint_position:
+    - -0.09578092396259308
+    - -0.05751829035580158
+    - 0.11065855249762535
+    - -0.02463704312685877
+    - 0.02673365268856287
+    - 0.3075062334537506
+    - 0.12259263172745705
+    left_gripper_position: null
+    right_gripper_position: 4.8
+    right_trigger: 10.0
+    description: 'V1 right-arm wrench grasp reference keyframe: RIGHT_SAFE'
+  PRE_GRASP_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_episode_window_medians
+    left_joint_position: *id001
+    right_joint_position:
+    - -0.17155268788337708
+    - 0.0015894078824203461
+    - 0.07663975097239017
+    - 0.46343378722667694
+    - -0.029019486159086227
+    - 0.41142745316028595
+    - 0.13161675818264484
+    left_gripper_position: null
+    right_gripper_position: 4.8
+    right_trigger: 10.0
+    description: 'V1 right-arm wrench grasp reference keyframe: PRE_GRASP_R'
+  GRASP_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_episode_window_medians
+    left_joint_position: *id001
+    right_joint_position:
+    - -0.731606975197792
+    - 0.004163019824773073
+    - 0.03080954949837178
+    - 0.7829394936561584
+    - 0.007973924744874239
+    - 0.9591424763202667
+    - 0.12038753367960453
+    left_gripper_position: null
+    right_gripper_position: 2.2283392924990038
+    right_trigger: 0.3589743375778198
+    description: 'V1 right-arm wrench grasp reference keyframe: GRASP_R'
+  LIFT_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_episode_window_medians
+    left_joint_position: *id001
+    right_joint_position:
+    - -0.1224338449537754
+    - -0.05416570231318474
+    - 0.17882860079407692
+    - 0.2304074466228485
+    - -0.1466793417930603
+    - -0.14548849686980247
+    - 0.07519502192735672
+    left_gripper_position: null
+    right_gripper_position: 0.5804791712760925
+    right_trigger: 0.0
+    description: 'V1 right-arm wrench grasp reference keyframe: LIFT_R'
+  LIFT_SAFE_R:
+    source_episodes:
+    - live_state_after_grasp_replay_20260826
+    aggregation: conservative_live_state_target
+    left_joint_position: *id001
+    right_joint_position:
+    - 0.08649196773767472
+    - -0.003091930178925395
+    - 0.13442516326904297
+    - 1.0101263523101807
+    - -0.13872434198856354
+    - -0.8128780126571655
+    - -0.04338289424777031
+    left_gripper_position: null
+    right_gripper_position: 0.5804791712760925
+    right_trigger: 0.0
+    description: 'Conservative right-arm hold/lift target from live post-grasp state; keeps elbow flexed and gripper closed.'
+notes:
+- Generated from wrench_grasp_001-008 by extract_wrench_grasp_reference.py.
+- Left arm is fixed to HOME for the first right-arm autonomous baseline.
+- Review with dry-run before any real robot execution.
+- LIFT_SAFE_R replaces the original aggressive LIFT_R in the default wrapper sequence
+  because the live robot could not reliably reach the demonstration median lift target
+  under the current gripper/payload condition.

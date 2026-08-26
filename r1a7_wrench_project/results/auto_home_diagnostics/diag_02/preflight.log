@@ -1,0 +1,43 @@
+
+====================================================================================================
+R1-A7 SEGMENTED AUTO-HOME PRE-FLIGHT
+====================================================================================================
+Lowstate age        : 0.000098s [PASS]
+Max initial |dq|    : 0.024544 rad/s [PASS]
+Current limits      : PASS
+HOME limits         : PASS
+MotionSwitcher      : PASS
+  status            : 0
+  result            : {'form': '0', 'name': ''}
+Recovery plan       : PASS
+
+Arm gains:
+  shoulder pitch    : 100.0/3.5
+  shoulder/elbow    : 80.0/3.0
+  wrist pitch       : 60.0/2.0
+  wrist roll/yaw    : 40.0/1.5
+
+====================================================================================================
+R1-A7 RECOVERY PLAN
+====================================================================================================
+Current -> HOME max delta : 0.702635 rad
+Direct HOME threshold     : 0.350000 rad
+Recovery mode             : SEGMENTED RECOVERY
+Recovery stage max delta  : 0.200000 rad
+Total segments            : 7
+
+01. WRIST_RECOVERY_01_of_04      max_delta=0.175659 rad duration=6.50s
+02. WRIST_RECOVERY_02_of_04      max_delta=0.175659 rad duration=6.50s
+03. WRIST_RECOVERY_03_of_04      max_delta=0.175659 rad duration=6.50s
+04. WRIST_RECOVERY_04_of_04      max_delta=0.175659 rad duration=6.50s
+05. ARM_RECOVERY_01_of_02        max_delta=0.103029 rad duration=5.00s
+06. ARM_RECOVERY_02_of_02        max_delta=0.103029 rad duration=5.00s
+07. FINAL_HOME                   max_delta=0.000000 rad duration=8.00s
+====================================================================================================
+
+PRE_FLIGHT = PASS
+ROBOT_COMMAND_PUBLISHED = FALSE
+====================================================================================================
+
+PRE-FLIGHT ONLY.
+Robot was NOT commanded.

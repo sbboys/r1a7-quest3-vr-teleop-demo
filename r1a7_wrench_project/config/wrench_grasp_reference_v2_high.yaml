@@ -1,0 +1,125 @@
+keyframes:
+  ARM_UP_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_per_episode_highest_open_wrist_pose
+    left_joint_position: &left_home
+    - -0.094585501
+    - -0.005776396
+    - 0.183093727
+    - 1.19724679
+    - -0.080064714
+    - -0.892441273
+    - -0.177546293
+    right_joint_position:
+    - -0.5924701392650604
+    - -0.020558938151225448
+    - 0.04906972637400031
+    - 0.5821078717708588
+    - 0.03786762896925211
+    - 1.0257957577705383
+    - 0.12630175054073334
+    left_gripper_position: null
+    right_gripper_position: 4.8
+    right_trigger: 10.0
+    description: Right arm elevated with gripper open before target approach.
+  PRE_GRASP_HIGH_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_per_episode_high_open_approach_before_close
+    left_joint_position: *left_home
+    right_joint_position:
+    - -0.6255945563316345
+    - -0.016397416009567678
+    - 0.009900230914354324
+    - 0.632305383682251
+    - 0.052309250459074974
+    - 1.0572723150253296
+    - 0.12640361487865448
+    left_gripper_position: null
+    right_gripper_position: 4.8
+    right_trigger: 10.0
+    description: Elevated pre-grasp pose selected from open-gripper high approach.
+  GRASP_NEAR_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_per_episode_first_gripper_below_2p5
+    left_joint_position: *left_home
+    right_joint_position: &grasp_near_q
+    - -0.7283023595809937
+    - -0.005614609457552433
+    - 0.09805619344115257
+    - 0.7991636097431183
+    - 0.004003992857178673
+    - 1.0850697755813599
+    - 0.1531703881919384
+    left_gripper_position: null
+    right_gripper_position: 4.8
+    right_trigger: 10.0
+    description: Near wrench grasp pose, kept open before closing.
+  CLOSE_GRIPPER_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_per_episode_first_gripper_below_2p5_position_with_closed_target
+    left_joint_position: *left_home
+    right_joint_position: *grasp_near_q
+    left_gripper_position: null
+    right_gripper_position: 0.58
+    right_trigger: 0.0
+    description: Close gripper at near-grasp pose.
+  POST_GRASP_HOLD_R:
+    source_episodes:
+    - wrench_grasp_001
+    - wrench_grasp_002
+    - wrench_grasp_003
+    - wrench_grasp_004
+    - wrench_grasp_005
+    - wrench_grasp_006
+    - wrench_grasp_007
+    - wrench_grasp_008
+    aggregation: median_of_per_episode_closed_gripper_post_grasp_highest_pose
+    left_joint_position: *left_home
+    right_joint_position:
+    - -0.7090287208557129
+    - -0.04106694273650646
+    - 0.09436252899467945
+    - 0.7650729417800903
+    - -0.02627951360773295
+    - 0.9290291368961334
+    - 0.1371954157948494
+    left_gripper_position: null
+    right_gripper_position: 0.58
+    right_trigger: 0.0
+    description: Closed-gripper post-grasp hold pose from demonstrated trajectories.
+notes:
+- V2 fixes the low tabletop approach observed in V1 by selecting keyframes from right_wrist_pose height and gripper state.
+- The first two stages keep the gripper open and move the right arm to an elevated approach posture.
+- Closing is split into a separate stage so the arm does not slide while gripper force changes.

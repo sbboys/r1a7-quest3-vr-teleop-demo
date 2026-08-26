@@ -1,0 +1,486 @@
+
+========================================================================================================
+R1-A7 AUTO-HOME V2 ADAPTIVE RECOVERY PRE-FLIGHT
+========================================================================================================
+Lowstate age             : 0.000134s [PASS]
+Max initial |dq|         : 0.009204 rad/s [PASS]
+Current joint limits     : PASS
+HOME joint limits        : PASS
+MotionSwitcher           : PASS
+  status                 : 0
+  result                 : {'form': '0', 'name': ''}
+
+Global HOME error        : 0.584890 rad
+Wrist HOME error         : 0.584890 rad (left_wrist_pitch)
+Arm HOME error           : 0.514343 rad (left_elbow)
+Direct HOME threshold    : 0.350000 rad
+Recovery mode            : ADAPTIVE RECOVERY
+
+Wrist stage delta        : 0.150000 rad
+Arm stage delta          : 0.200000 rad
+Recovery threshold       : 0.050000 rad
+Nominal wrist iterations : 4 / max 8
+Nominal arm iterations   : 3 / max 6
+Iteration budget         : PASS
+
+First-step trajectory preview:
+  WRIST_ITER_01      duration= 5.50s max_delta=0.150000 peak_v=0.051136 peak_a=0.028629 max_step=0.000511
+  ARM_ITER_01        duration= 7.00s max_delta=0.200000 peak_v=0.053571 peak_a=0.023565 max_step=0.000536
+First-step checks        : PASS
+
+Arm gains:
+  shoulder pitch         : kp=100.0, kd=3.5
+  shoulder roll/yaw/elbow: kp=80.0, kd=3.0
+  wrist pitch            : kp=60.0, kd=2.0
+  wrist roll/yaw         : kp=40.0, kd=1.5
+
+PRE_FLIGHT = PASS
+ROBOT_COMMAND_PUBLISHED = FALSE
+========================================================================================================
+
+========================================================================================================
+REAL ROBOT AUTO-HOME V2 ARMED
+========================================================================================================
+Initial global HOME error : 0.584902 rad
+Mode                      : ADAPTIVE RECOVERY
+LowCmd will remain active until completion or abort.
+
+Type RECOVER HOME V2 exactly to continue.
+> 
+Starting in 3 seconds...
+3
+2
+1
+
+========================================================================================================
+LOWCMD ZERO-DISPLACEMENT TAKEOVER TEST
+========================================================================================================
+Takeover max drift : 0.000545 rad
+Final max |dq|     : 0.015501 rad/s
+TAKEOVER_TEST = PASS
+========================================================================================================
+
+POST-TAKEOVER V2 DECISION
+Global HOME error : 0.584878 rad
+Mode              : ADAPTIVE RECOVERY
+
+========================================================================================================
+ADAPTIVE WRIST RECOVERY
+========================================================================================================
+Stage delta       : 0.150000 rad
+HOME threshold    : 0.050000 rad
+Max iterations    : 8
+
+WRIST_ITER_01 BEFORE: HOME error=0.584878 rad (left_wrist_pitch)
+WRIST_ITER_01 TARGET: step=0.150000 rad (right_wrist_pitch), nominal remaining=0.434878 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_01
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_01] t=0.00/5.50s target_err=0.150012 max|dq|=0.012272
+[WRIST_ITER_01] t=0.25/5.50s target_err=0.150012 max|dq|=0.012272
+[WRIST_ITER_01] t=0.51/5.50s target_err=0.150000 max|dq|=0.012272
+[WRIST_ITER_01] t=0.76/5.50s target_err=0.149940 max|dq|=0.024544
+[WRIST_ITER_01] t=1.01/5.50s target_err=0.149676 max|dq|=0.018408
+[WRIST_ITER_01] t=1.27/5.50s target_err=0.149281 max|dq|=0.036816
+[WRIST_ITER_01] t=1.52/5.50s target_err=0.148394 max|dq|=0.067495
+[WRIST_ITER_01] t=1.78/5.50s target_err=0.145074 max|dq|=0.030680
+[WRIST_ITER_01] t=2.03/5.50s target_err=0.140341 max|dq|=0.061359
+[WRIST_ITER_01] t=2.29/5.50s target_err=0.131161 max|dq|=0.069756
+[WRIST_ITER_01] t=2.54/5.50s target_err=0.121681 max|dq|=0.042951
+[WRIST_ITER_01] t=2.80/5.50s target_err=0.112178 max|dq|=0.055223
+[WRIST_ITER_01] t=3.05/5.50s target_err=0.102075 max|dq|=0.085903
+[WRIST_ITER_01] t=3.31/5.50s target_err=0.092080 max|dq|=0.061359
+[WRIST_ITER_01] t=3.57/5.50s target_err=0.087574 max|dq|=0.054254
+[WRIST_ITER_01] t=3.82/5.50s target_err=0.083775 max|dq|=0.042951
+[WRIST_ITER_01] t=4.07/5.50s target_err=0.082685 max|dq|=0.055223
+[WRIST_ITER_01] t=4.33/5.50s target_err=0.081954 max|dq|=0.038753
+[WRIST_ITER_01] t=4.59/5.50s target_err=0.081630 max|dq|=0.024544
+[WRIST_ITER_01] t=4.85/5.50s target_err=0.081234 max|dq|=0.012272
+[WRIST_ITER_01] t=5.10/5.50s target_err=0.080971 max|dq|=0.015501
+[WRIST_ITER_01] t=5.35/5.50s target_err=0.080743 max|dq|=0.012272
+[WRIST_ITER_01_hold] active_home=0.515525 active_target=0.080647 inactive_hold=0.024221 stable=0.00/0.50
+[WRIST_ITER_01_hold] active_home=0.515370 active_target=0.080491 inactive_hold=0.024251 stable=0.00/0.50
+[WRIST_ITER_01_hold] active_home=0.515058 active_target=0.080180 inactive_hold=0.024297 stable=0.00/0.50
+[WRIST_ITER_01_hold] active_home=0.514806 active_target=0.079928 inactive_hold=0.024372 stable=0.00/0.50
+[WRIST_ITER_01_hold] active_home=0.514722 active_target=0.079844 inactive_hold=0.024433 stable=0.00/0.50
+[WRIST_ITER_01_hold] active_home=0.514639 active_target=0.079760 inactive_hold=0.024433 stable=0.00/0.50
+[WRIST_ITER_01_hold] active_home=0.514579 active_target=0.079700 inactive_hold=0.024448 stable=0.00/0.50
+[WRIST_ITER_01_hold] active_home=0.514555 active_target=0.079677 inactive_hold=0.024448 stable=0.00/0.50
+
+WRIST_ITER_01 RESULT
+  HOME error before : 0.584878 rad
+  HOME error after  : 0.514519 rad (left_wrist_pitch, -0.514519)
+  Progress          : +0.070359 rad
+  Micro-target err  : 0.079641 rad (left_wrist_pitch)
+  Inactive hold err : 0.024448 rad (left_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.012272 rad/s
+WRIST_ITER_01 = CONTINUE
+
+WRIST_ITER_02 BEFORE: HOME error=0.514519 rad (left_wrist_pitch)
+WRIST_ITER_02 TARGET: step=0.150000 rad (right_wrist_pitch), nominal remaining=0.364519 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_02
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_02] t=0.00/5.50s target_err=0.150000 max|dq|=0.012272
+[WRIST_ITER_02] t=0.25/5.50s target_err=0.159480 max|dq|=0.012272
+[WRIST_ITER_02] t=0.51/5.50s target_err=0.159539 max|dq|=0.030680
+[WRIST_ITER_02] t=0.76/5.50s target_err=0.159456 max|dq|=0.024544
+[WRIST_ITER_02] t=1.02/5.50s target_err=0.159180 max|dq|=0.012272
+[WRIST_ITER_02] t=1.27/5.50s target_err=0.158832 max|dq|=0.012272
+[WRIST_ITER_02] t=1.52/5.50s target_err=0.157993 max|dq|=0.012272
+[WRIST_ITER_02] t=1.78/5.50s target_err=0.153775 max|dq|=0.036816
+[WRIST_ITER_02] t=2.03/5.50s target_err=0.150779 max|dq|=0.031003
+[WRIST_ITER_02] t=2.28/5.50s target_err=0.146069 max|dq|=0.030680
+[WRIST_ITER_02] t=2.54/5.50s target_err=0.141671 max|dq|=0.030680
+[WRIST_ITER_02] t=2.80/5.50s target_err=0.139406 max|dq|=0.049087
+[WRIST_ITER_02] t=3.05/5.50s target_err=0.137596 max|dq|=0.049087
+[WRIST_ITER_02] t=3.30/5.50s target_err=0.136602 max|dq|=0.036816
+[WRIST_ITER_02] t=3.55/5.50s target_err=0.136110 max|dq|=0.036816
+[WRIST_ITER_02] t=3.81/5.50s target_err=0.135619 max|dq|=0.030680
+[WRIST_ITER_02] t=4.07/5.50s target_err=0.135307 max|dq|=0.030680
+[WRIST_ITER_02] t=4.33/5.50s target_err=0.135104 max|dq|=0.027612
+[WRIST_ITER_02] t=4.58/5.50s target_err=0.134972 max|dq|=0.024544
+[WRIST_ITER_02] t=4.84/5.50s target_err=0.134924 max|dq|=0.007751
+[WRIST_ITER_02] t=5.10/5.50s target_err=0.134864 max|dq|=0.012272
+[WRIST_ITER_02] t=5.36/5.50s target_err=0.134852 max|dq|=0.012272
+[WRIST_ITER_02_hold] active_home=0.499359 active_target=0.134840 inactive_hold=0.033455 stable=0.00/0.50
+[WRIST_ITER_02_hold] active_home=0.499335 active_target=0.134816 inactive_hold=0.033470 stable=0.00/0.50
+[WRIST_ITER_02_hold] active_home=0.499299 active_target=0.134780 inactive_hold=0.033470 stable=0.00/0.50
+[WRIST_ITER_02_hold] active_home=0.499287 active_target=0.134768 inactive_hold=0.033470 stable=0.00/0.50
+[WRIST_ITER_02_hold] active_home=0.499239 active_target=0.134720 inactive_hold=0.033470 stable=0.00/0.50
+[WRIST_ITER_02_hold] active_home=0.499191 active_target=0.134672 inactive_hold=0.033470 stable=0.00/0.50
+[WRIST_ITER_02_hold] active_home=0.499167 active_target=0.134648 inactive_hold=0.033470 stable=0.00/0.50
+[WRIST_ITER_02_hold] active_home=0.499143 active_target=0.134624 inactive_hold=0.033485 stable=0.00/0.50
+
+WRIST_ITER_02 RESULT
+  HOME error before : 0.514519 rad
+  HOME error after  : 0.499131 rad (left_wrist_pitch, -0.499131)
+  Progress          : +0.015388 rad
+  Micro-target err  : 0.134612 rad (left_wrist_pitch)
+  Inactive hold err : 0.033485 rad (right_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.006136 rad/s
+WRIST_ITER_02 = CONTINUE
+
+WRIST_ITER_03 BEFORE: HOME error=0.499131 rad (left_wrist_pitch)
+WRIST_ITER_03 TARGET: step=0.150000 rad (left_wrist_pitch), nominal remaining=0.349131 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_03
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_03] t=0.00/5.50s target_err=0.150000 max|dq|=0.007751
+[WRIST_ITER_03] t=0.25/5.50s target_err=0.161121 max|dq|=0.018408
+[WRIST_ITER_03] t=0.50/5.50s target_err=0.161121 max|dq|=0.012272
+[WRIST_ITER_03] t=0.75/5.50s target_err=0.161001 max|dq|=0.012272
+[WRIST_ITER_03] t=1.01/5.50s target_err=0.160690 max|dq|=0.018408
+[WRIST_ITER_03] t=1.26/5.50s target_err=0.159396 max|dq|=0.042951
+[WRIST_ITER_03] t=1.52/5.50s target_err=0.157694 max|dq|=0.018408
+[WRIST_ITER_03] t=1.78/5.50s target_err=0.155980 max|dq|=0.015501
+[WRIST_ITER_03] t=2.03/5.50s target_err=0.152433 max|dq|=0.015501
+[WRIST_ITER_03] t=2.28/5.50s target_err=0.147903 max|dq|=0.030680
+[WRIST_ITER_03] t=2.53/5.50s target_err=0.135990 max|dq|=0.036816
+[WRIST_ITER_03] t=2.78/5.50s target_err=0.131017 max|dq|=0.024544
+[WRIST_ITER_03] t=3.03/5.50s target_err=0.129363 max|dq|=0.030680
+[WRIST_ITER_03] t=3.29/5.50s target_err=0.128620 max|dq|=0.018408
+[WRIST_ITER_03] t=3.54/5.50s target_err=0.127973 max|dq|=0.018408
+[WRIST_ITER_03] t=3.80/5.50s target_err=0.127326 max|dq|=0.024544
+[WRIST_ITER_03] t=4.06/5.50s target_err=0.126786 max|dq|=0.012272
+[WRIST_ITER_03] t=4.32/5.50s target_err=0.126379 max|dq|=0.018408
+[WRIST_ITER_03] t=4.58/5.50s target_err=0.126139 max|dq|=0.018408
+[WRIST_ITER_03] t=4.83/5.50s target_err=0.125948 max|dq|=0.007751
+[WRIST_ITER_03] t=5.08/5.50s target_err=0.125816 max|dq|=0.012272
+[WRIST_ITER_03] t=5.34/5.50s target_err=0.125720 max|dq|=0.007751
+[WRIST_ITER_03_hold] active_home=0.474803 active_target=0.125672 inactive_hold=0.031139 stable=0.00/0.50
+[WRIST_ITER_03_hold] active_home=0.474719 active_target=0.125588 inactive_hold=0.031139 stable=0.00/0.50
+[WRIST_ITER_03_hold] active_home=0.474659 active_target=0.125528 inactive_hold=0.031124 stable=0.00/0.50
+[WRIST_ITER_03_hold] active_home=0.474587 active_target=0.125456 inactive_hold=0.031124 stable=0.00/0.50
+[WRIST_ITER_03_hold] active_home=0.474515 active_target=0.125384 inactive_hold=0.031109 stable=0.00/0.50
+[WRIST_ITER_03_hold] active_home=0.474444 active_target=0.125312 inactive_hold=0.031124 stable=0.00/0.50
+[WRIST_ITER_03_hold] active_home=0.474408 active_target=0.125276 inactive_hold=0.031109 stable=0.00/0.50
+[WRIST_ITER_03_hold] active_home=0.474360 active_target=0.125229 inactive_hold=0.031109 stable=0.00/0.50
+
+WRIST_ITER_03 RESULT
+  HOME error before : 0.499131 rad
+  HOME error after  : 0.474336 rad (left_wrist_pitch, -0.474336)
+  Progress          : +0.024795 rad
+  Micro-target err  : 0.125205 rad (left_wrist_pitch)
+  Inactive hold err : 0.031109 rad (right_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.015340 rad/s
+WRIST_ITER_03 = CONTINUE
+
+WRIST_ITER_04 BEFORE: HOME error=0.474336 rad (left_wrist_pitch)
+WRIST_ITER_04 TARGET: step=0.150000 rad (left_wrist_pitch), nominal remaining=0.324336 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_04
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_04] t=0.00/5.50s target_err=0.149988 max|dq|=0.018408
+[WRIST_ITER_04] t=0.25/5.50s target_err=0.160067 max|dq|=0.018408
+[WRIST_ITER_04] t=0.51/5.50s target_err=0.160067 max|dq|=0.018408
+[WRIST_ITER_04] t=0.77/5.50s target_err=0.159959 max|dq|=0.012272
+[WRIST_ITER_04] t=1.03/5.50s target_err=0.159587 max|dq|=0.009204
+[WRIST_ITER_04] t=1.29/5.50s target_err=0.158269 max|dq|=0.030680
+[WRIST_ITER_04] t=1.54/5.50s target_err=0.156256 max|dq|=0.018408
+[WRIST_ITER_04] t=1.80/5.50s target_err=0.154063 max|dq|=0.018408
+[WRIST_ITER_04] t=2.05/5.50s target_err=0.151366 max|dq|=0.012272
+[WRIST_ITER_04] t=2.31/5.50s target_err=0.146213 max|dq|=0.055223
+[WRIST_ITER_04] t=2.56/5.50s target_err=0.141359 max|dq|=0.018408
+[WRIST_ITER_04] t=2.82/5.50s target_err=0.136781 max|dq|=0.042951
+[WRIST_ITER_04] t=3.08/5.50s target_err=0.135415 max|dq|=0.018408
+[WRIST_ITER_04] t=3.33/5.50s target_err=0.134528 max|dq|=0.018408
+[WRIST_ITER_04] t=3.59/5.50s target_err=0.133630 max|dq|=0.018408
+[WRIST_ITER_04] t=3.84/5.50s target_err=0.132863 max|dq|=0.024544
+[WRIST_ITER_04] t=4.09/5.50s target_err=0.132467 max|dq|=0.015340
+[WRIST_ITER_04] t=4.34/5.50s target_err=0.132251 max|dq|=0.012272
+[WRIST_ITER_04] t=4.60/5.50s target_err=0.132072 max|dq|=0.012272
+[WRIST_ITER_04] t=4.86/5.50s target_err=0.131940 max|dq|=0.021476
+[WRIST_ITER_04] t=5.11/5.50s target_err=0.131832 max|dq|=0.018408
+[WRIST_ITER_04] t=5.37/5.50s target_err=0.131712 max|dq|=0.009204
+[WRIST_ITER_04_hold] active_home=0.456000 active_target=0.131664 inactive_hold=0.021753 stable=0.00/0.50
+[WRIST_ITER_04_hold] active_home=0.455904 active_target=0.131568 inactive_hold=0.021753 stable=0.00/0.50
+[WRIST_ITER_04_hold] active_home=0.455868 active_target=0.131532 inactive_hold=0.021768 stable=0.00/0.50
+[WRIST_ITER_04_hold] active_home=0.455784 active_target=0.131448 inactive_hold=0.021784 stable=0.00/0.50
+[WRIST_ITER_04_hold] active_home=0.455748 active_target=0.131412 inactive_hold=0.021799 stable=0.00/0.50
+[WRIST_ITER_04_hold] active_home=0.455712 active_target=0.131377 inactive_hold=0.021799 stable=0.00/0.50
+[WRIST_ITER_04_hold] active_home=0.455664 active_target=0.131329 inactive_hold=0.021829 stable=0.00/0.50
+[WRIST_ITER_04_hold] active_home=0.455628 active_target=0.131293 inactive_hold=0.021829 stable=0.00/0.50
+
+WRIST_ITER_04 RESULT
+  HOME error before : 0.474336 rad
+  HOME error after  : 0.455568 rad (left_wrist_pitch, -0.455568)
+  Progress          : +0.018767 rad
+  Micro-target err  : 0.131233 rad (left_wrist_pitch)
+  Inactive hold err : 0.021859 rad (left_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.015501 rad/s
+WRIST_ITER_04 = CONTINUE
+
+WRIST_ITER_05 BEFORE: HOME error=0.455568 rad (left_wrist_pitch)
+WRIST_ITER_05 TARGET: step=0.150000 rad (left_wrist_pitch), nominal remaining=0.305568 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_05
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_05] t=0.00/5.50s target_err=0.150000 max|dq|=0.012272
+[WRIST_ITER_05] t=0.25/5.50s target_err=0.160582 max|dq|=0.021476
+[WRIST_ITER_05] t=0.51/5.50s target_err=0.160594 max|dq|=0.012272
+[WRIST_ITER_05] t=0.76/5.50s target_err=0.160498 max|dq|=0.012272
+[WRIST_ITER_05] t=1.01/5.50s target_err=0.160127 max|dq|=0.007751
+[WRIST_ITER_05] t=1.27/5.50s target_err=0.158701 max|dq|=0.024544
+[WRIST_ITER_05] t=1.53/5.50s target_err=0.156603 max|dq|=0.030680
+[WRIST_ITER_05] t=1.79/5.50s target_err=0.154326 max|dq|=0.007751
+[WRIST_ITER_05] t=2.05/5.50s target_err=0.151186 max|dq|=0.012272
+[WRIST_ITER_05] t=2.30/5.50s target_err=0.147915 max|dq|=0.015501
+[WRIST_ITER_05] t=2.56/5.50s target_err=0.140437 max|dq|=0.015340
+[WRIST_ITER_05] t=2.82/5.50s target_err=0.136614 max|dq|=0.012272
+[WRIST_ITER_05] t=3.07/5.50s target_err=0.134972 max|dq|=0.015501
+[WRIST_ITER_05] t=3.33/5.50s target_err=0.134337 max|dq|=0.012272
+[WRIST_ITER_05] t=3.59/5.50s target_err=0.133941 max|dq|=0.012272
+[WRIST_ITER_05] t=3.85/5.50s target_err=0.133666 max|dq|=0.030680
+[WRIST_ITER_05] t=4.11/5.50s target_err=0.133438 max|dq|=0.024544
+[WRIST_ITER_05] t=4.37/5.50s target_err=0.133174 max|dq|=0.012272
+[WRIST_ITER_05] t=4.62/5.50s target_err=0.133018 max|dq|=0.012272
+[WRIST_ITER_05] t=4.88/5.50s target_err=0.132791 max|dq|=0.024544
+[WRIST_ITER_05] t=5.14/5.50s target_err=0.132635 max|dq|=0.015501
+[WRIST_ITER_05] t=5.40/5.50s target_err=0.132251 max|dq|=0.012272
+[WRIST_ITER_05_hold] active_home=0.437724 active_target=0.132156 inactive_hold=0.021784 stable=0.00/0.50
+[WRIST_ITER_05_hold] active_home=0.437580 active_target=0.132012 inactive_hold=0.021920 stable=0.00/0.50
+[WRIST_ITER_05_hold] active_home=0.437256 active_target=0.131688 inactive_hold=0.022132 stable=0.00/0.50
+[WRIST_ITER_05_hold] active_home=0.437065 active_target=0.131496 inactive_hold=0.022238 stable=0.00/0.50
+[WRIST_ITER_05_hold] active_home=0.436909 active_target=0.131341 inactive_hold=0.022359 stable=0.00/0.50
+[WRIST_ITER_05_hold] active_home=0.436801 active_target=0.131233 inactive_hold=0.022434 stable=0.00/0.50
+[WRIST_ITER_05_hold] active_home=0.436693 active_target=0.131125 inactive_hold=0.022480 stable=0.00/0.50
+[WRIST_ITER_05_hold] active_home=0.436597 active_target=0.131029 inactive_hold=0.022510 stable=0.00/0.50
+
+WRIST_ITER_05 RESULT
+  HOME error before : 0.455568 rad
+  HOME error after  : 0.436513 rad (left_wrist_pitch, -0.436513)
+  Progress          : +0.019055 rad
+  Micro-target err  : 0.130945 rad (left_wrist_pitch)
+  Inactive hold err : 0.022571 rad (left_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.024544 rad/s
+WRIST_ITER_05 = CONTINUE
+
+WRIST_ITER_06 BEFORE: HOME error=0.436513 rad (left_wrist_pitch)
+WRIST_ITER_06 TARGET: step=0.150000 rad (left_wrist_pitch), nominal remaining=0.286513 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_06
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_06] t=0.00/5.50s target_err=0.150012 max|dq|=0.018408
+[WRIST_ITER_06] t=0.25/5.50s target_err=0.160522 max|dq|=0.024544
+[WRIST_ITER_06] t=0.51/5.50s target_err=0.160486 max|dq|=0.021476
+[WRIST_ITER_06] t=0.76/5.50s target_err=0.160402 max|dq|=0.024544
+[WRIST_ITER_06] t=1.02/5.50s target_err=0.159947 max|dq|=0.007751
+[WRIST_ITER_06] t=1.28/5.50s target_err=0.158497 max|dq|=0.018408
+[WRIST_ITER_06] t=1.53/5.50s target_err=0.156711 max|dq|=0.012272
+[WRIST_ITER_06] t=1.78/5.50s target_err=0.154242 max|dq|=0.009204
+[WRIST_ITER_06] t=2.04/5.50s target_err=0.151953 max|dq|=0.018408
+[WRIST_ITER_06] t=2.30/5.50s target_err=0.147975 max|dq|=0.018408
+[WRIST_ITER_06] t=2.56/5.50s target_err=0.139957 max|dq|=0.055223
+[WRIST_ITER_06] t=2.81/5.50s target_err=0.128117 max|dq|=0.042951
+[WRIST_ITER_06] t=3.07/5.50s target_err=0.121238 max|dq|=0.018408
+[WRIST_ITER_06] t=3.32/5.50s target_err=0.119632 max|dq|=0.012272
+[WRIST_ITER_06] t=3.58/5.50s target_err=0.118434 max|dq|=0.015340
+[WRIST_ITER_06] t=3.83/5.50s target_err=0.116528 max|dq|=0.018408
+[WRIST_ITER_06] t=4.08/5.50s target_err=0.114311 max|dq|=0.024544
+[WRIST_ITER_06] t=4.34/5.50s target_err=0.113544 max|dq|=0.021476
+[WRIST_ITER_06] t=4.59/5.50s target_err=0.112969 max|dq|=0.018408
+[WRIST_ITER_06] t=4.85/5.50s target_err=0.112549 max|dq|=0.024544
+[WRIST_ITER_06] t=5.10/5.50s target_err=0.112214 max|dq|=0.024544
+[WRIST_ITER_06] t=5.35/5.50s target_err=0.111914 max|dq|=0.018408
+[WRIST_ITER_06_hold] active_home=0.398224 active_target=0.111710 inactive_hold=0.027354 stable=0.00/0.50
+[WRIST_ITER_06_hold] active_home=0.397720 active_target=0.111207 inactive_hold=0.027808 stable=0.00/0.50
+[WRIST_ITER_06_hold] active_home=0.397505 active_target=0.110991 inactive_hold=0.027990 stable=0.00/0.50
+[WRIST_ITER_06_hold] active_home=0.397337 active_target=0.110824 inactive_hold=0.028141 stable=0.00/0.50
+[WRIST_ITER_06_hold] active_home=0.397169 active_target=0.110656 inactive_hold=0.028187 stable=0.00/0.50
+[WRIST_ITER_06_hold] active_home=0.397025 active_target=0.110512 inactive_hold=0.028308 stable=0.00/0.50
+[WRIST_ITER_06_hold] active_home=0.396942 active_target=0.110428 inactive_hold=0.028368 stable=0.00/0.50
+[WRIST_ITER_06_hold] active_home=0.396870 active_target=0.110356 inactive_hold=0.028414 stable=0.00/0.50
+
+WRIST_ITER_06 RESULT
+  HOME error before : 0.436513 rad
+  HOME error after  : 0.396810 rad (left_wrist_pitch, -0.396810)
+  Progress          : +0.039704 rad
+  Micro-target err  : 0.110296 rad (left_wrist_pitch)
+  Inactive hold err : 0.028459 rad (left_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.018408 rad/s
+WRIST_ITER_06 = CONTINUE
+
+WRIST_ITER_07 BEFORE: HOME error=0.396810 rad (left_wrist_pitch)
+WRIST_ITER_07 TARGET: step=0.150000 rad (left_wrist_pitch), nominal remaining=0.246810 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_07
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_07] t=0.00/5.50s target_err=0.150000 max|dq|=0.018408
+[WRIST_ITER_07] t=0.25/5.50s target_err=0.160906 max|dq|=0.015501
+[WRIST_ITER_07] t=0.50/5.50s target_err=0.160918 max|dq|=0.015340
+[WRIST_ITER_07] t=0.76/5.50s target_err=0.160858 max|dq|=0.012272
+[WRIST_ITER_07] t=1.01/5.50s target_err=0.160390 max|dq|=0.018408
+[WRIST_ITER_07] t=1.27/5.50s target_err=0.158880 max|dq|=0.036816
+[WRIST_ITER_07] t=1.52/5.50s target_err=0.156064 max|dq|=0.015501
+[WRIST_ITER_07] t=1.77/5.50s target_err=0.153368 max|dq|=0.021476
+[WRIST_ITER_07] t=2.02/5.50s target_err=0.150407 max|dq|=0.030680
+[WRIST_ITER_07] t=2.28/5.50s target_err=0.146908 max|dq|=0.018408
+[WRIST_ITER_07] t=2.53/5.50s target_err=0.141252 max|dq|=0.031003
+[WRIST_ITER_07] t=2.78/5.50s target_err=0.129016 max|dq|=0.067495
+[WRIST_ITER_07] t=3.04/5.50s target_err=0.121909 max|dq|=0.024544
+[WRIST_ITER_07] t=3.30/5.50s target_err=0.120387 max|dq|=0.018408
+[WRIST_ITER_07] t=3.56/5.50s target_err=0.119488 max|dq|=0.030680
+[WRIST_ITER_07] t=3.82/5.50s target_err=0.116888 max|dq|=0.015340
+[WRIST_ITER_07] t=4.07/5.50s target_err=0.114802 max|dq|=0.015340
+[WRIST_ITER_07] t=4.32/5.50s target_err=0.113736 max|dq|=0.012272
+[WRIST_ITER_07] t=4.57/5.50s target_err=0.112957 max|dq|=0.015340
+[WRIST_ITER_07] t=4.83/5.50s target_err=0.112417 max|dq|=0.009204
+[WRIST_ITER_07] t=5.08/5.50s target_err=0.112046 max|dq|=0.015501
+[WRIST_ITER_07] t=5.33/5.50s target_err=0.111758 max|dq|=0.024544
+[WRIST_ITER_07_hold] active_home=0.358412 active_target=0.111603 inactive_hold=0.029080 stable=0.00/0.50
+[WRIST_ITER_07_hold] active_home=0.358209 active_target=0.111399 inactive_hold=0.029141 stable=0.00/0.50
+[WRIST_ITER_07_hold] active_home=0.358065 active_target=0.111255 inactive_hold=0.029171 stable=0.00/0.50
+[WRIST_ITER_07_hold] active_home=0.357933 active_target=0.111123 inactive_hold=0.029246 stable=0.00/0.50
+[WRIST_ITER_07_hold] active_home=0.357777 active_target=0.110967 inactive_hold=0.029307 stable=0.00/0.50
+[WRIST_ITER_07_hold] active_home=0.357681 active_target=0.110871 inactive_hold=0.029322 stable=0.00/0.50
+[WRIST_ITER_07_hold] active_home=0.357645 active_target=0.110836 inactive_hold=0.029368 stable=0.00/0.50
+[WRIST_ITER_07_hold] active_home=0.357585 active_target=0.110776 inactive_hold=0.029368 stable=0.00/0.50
+
+WRIST_ITER_07 RESULT
+  HOME error before : 0.396810 rad
+  HOME error after  : 0.357537 rad (left_wrist_pitch, -0.357537)
+  Progress          : +0.039272 rad
+  Micro-target err  : 0.110728 rad (left_wrist_pitch)
+  Inactive hold err : 0.029383 rad (left_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.018408 rad/s
+WRIST_ITER_07 = CONTINUE
+
+WRIST_ITER_08 BEFORE: HOME error=0.357537 rad (left_wrist_pitch)
+WRIST_ITER_08 TARGET: step=0.150000 rad (left_wrist_pitch), nominal remaining=0.207537 rad (left_wrist_pitch)
+
+========================================================================================================
+TRAJECTORY START: WRIST_ITER_08
+========================================================================================================
+Duration       : 5.500s
+Max joint delta: 0.150000 rad
+Peak velocity  : 0.051136 rad/s
+Peak accel     : 0.028629 rad/s^2
+[WRIST_ITER_08] t=0.00/5.50s target_err=0.150000 max|dq|=0.018408
+[WRIST_ITER_08] t=0.25/5.50s target_err=0.160822 max|dq|=0.007751
+[WRIST_ITER_08] t=0.51/5.50s target_err=0.160822 max|dq|=0.007751
+[WRIST_ITER_08] t=0.76/5.50s target_err=0.160774 max|dq|=0.030680
+[WRIST_ITER_08] t=1.02/5.50s target_err=0.160390 max|dq|=0.012272
+[WRIST_ITER_08] t=1.28/5.50s target_err=0.158928 max|dq|=0.012272
+[WRIST_ITER_08] t=1.54/5.50s target_err=0.156603 max|dq|=0.024544
+[WRIST_ITER_08] t=1.79/5.50s target_err=0.153236 max|dq|=0.024544
+[WRIST_ITER_08] t=2.05/5.50s target_err=0.148981 max|dq|=0.018408
+[WRIST_ITER_08] t=2.30/5.50s target_err=0.144643 max|dq|=0.012272
+[WRIST_ITER_08] t=2.56/5.50s target_err=0.138891 max|dq|=0.024544
+[WRIST_ITER_08] t=2.82/5.50s target_err=0.133977 max|dq|=0.015501
+[WRIST_ITER_08] t=3.08/5.50s target_err=0.124773 max|dq|=0.049087
+[WRIST_ITER_08] t=3.34/5.50s target_err=0.118110 max|dq|=0.015340
+[WRIST_ITER_08] t=3.60/5.50s target_err=0.114970 max|dq|=0.007751
+[WRIST_ITER_08] t=3.86/5.50s target_err=0.114563 max|dq|=0.018408
+[WRIST_ITER_08] t=4.12/5.50s target_err=0.114323 max|dq|=0.012272
+[WRIST_ITER_08] t=4.37/5.50s target_err=0.114191 max|dq|=0.018408
+[WRIST_ITER_08] t=4.62/5.50s target_err=0.114107 max|dq|=0.015340
+[WRIST_ITER_08] t=4.88/5.50s target_err=0.114047 max|dq|=0.012272
+[WRIST_ITER_08] t=5.14/5.50s target_err=0.113999 max|dq|=0.024544
+[WRIST_ITER_08] t=5.39/5.50s target_err=0.113951 max|dq|=0.018408
+[WRIST_ITER_08_hold] active_home=0.321465 active_target=0.113928 inactive_hold=0.025780 stable=0.00/0.50
+[WRIST_ITER_08_hold] active_home=0.321429 active_target=0.113892 inactive_hold=0.025765 stable=0.00/0.50
+[WRIST_ITER_08_hold] active_home=0.321405 active_target=0.113868 inactive_hold=0.025780 stable=0.00/0.50
+[WRIST_ITER_08_hold] active_home=0.321369 active_target=0.113832 inactive_hold=0.025780 stable=0.00/0.50
+[WRIST_ITER_08_hold] active_home=0.321357 active_target=0.113820 inactive_hold=0.025795 stable=0.00/0.50
+[WRIST_ITER_08_hold] active_home=0.321321 active_target=0.113784 inactive_hold=0.025780 stable=0.00/0.50
+[WRIST_ITER_08_hold] active_home=0.321321 active_target=0.113784 inactive_hold=0.025780 stable=0.00/0.50
+[WRIST_ITER_08_hold] active_home=0.321273 active_target=0.113736 inactive_hold=0.025780 stable=0.00/0.50
+
+WRIST_ITER_08 RESULT
+  HOME error before : 0.357537 rad
+  HOME error after  : 0.321285 rad (left_wrist_pitch, -0.321285)
+  Progress          : +0.036252 rad
+  Micro-target err  : 0.113748 rad (left_wrist_pitch)
+  Inactive hold err : 0.025795 rad (left_elbow)
+  Stable at HOME    : False
+  Final max |dq|    : 0.015340 rad/s
+WRIST_ITER_08 = CONTINUE
+
+WRIST_READY = FAIL
+Reason: max iterations reached with HOME error 0.321285 rad (left_wrist_pitch, -0.321285)
+========================================================================================================
+RECOVERY ABORTED: WRIST adaptive recovery failed.
+LowCmd gains released.

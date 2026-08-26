@@ -1,6 +1,6 @@
 robot: Unitree R1-A7
 backend_default: mock
-interface: enx9c69d37d0967
+interface: enp6s0
 domain_id: 0
 state_topic: rt/lowstate
 command_topic: rt/lowcmd

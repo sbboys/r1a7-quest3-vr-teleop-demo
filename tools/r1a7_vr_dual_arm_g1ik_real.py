@@ -14,7 +14,10 @@ still be selected with --gripper_mode dex1_dds.
 from __future__ import annotations
 
 import argparse
+import csv
+import json
 import os
+import re
 import signal
 import sys
 import time
@@ -81,6 +84,168 @@ R1A7_ARM_LIMITS = np.array(
     dtype=float,
 )
 
+R1A7_A7_URDF = "/home/robot/unitree_ros_official_latest/robots/r1_a7_description/r1_a7.urdf"
+
+# R1-A7 internal two-finger grippers on LowCmd/LowState motors 31 and 33.
+# The real robot reports the fully/open end around q ~= 4.8, so use absolute
+# motor-q coordinates here instead of startup-relative offsets. Quest trigger
+# convention remains: released=10 -> OPEN, fully pulled=0 -> CLOSE.
+R1A7_GRIPPER_INDICES = "31,33"
+R1A7_GRIPPER_RELATIVE = False
+R1A7_GRIPPER_LEFT_OPEN_Q = 4.86
+R1A7_GRIPPER_LEFT_CLOSE_Q = -0.08
+R1A7_GRIPPER_RIGHT_OPEN_Q = 4.80
+R1A7_GRIPPER_RIGHT_CLOSE_Q = -0.20
+R1A7_GRIPPER_EXTRA_MARGIN = 0.03
+R1A7_GRIPPER_VELOCITY_LIMIT = 1.5
+R1A7_GRIPPER_KP = 8.0
+R1A7_GRIPPER_KD = 1.5
+R1A7_GRIPPER_CONTACT_HOLD = True
+R1A7_GRIPPER_CONTACT_TRIGGER_ALPHA = 0.85
+R1A7_GRIPPER_CONTACT_ERROR = 0.08
+R1A7_GRIPPER_CONTACT_STALL_EPS = 0.004
+R1A7_GRIPPER_CONTACT_STALL_TIME = 0.25
+R1A7_GRIPPER_CONTACT_HOLD_BIAS = 0.035
+
+R1A7_A7_MODEL_ARM_JOINT_NAMES = [
+    "left_shoulder_pitch_joint",
+    "left_shoulder_roll_joint",
+    "left_shoulder_yaw_joint",
+    "left_elbow_joint",
+    "left_wrist_roll_joint",
+    "left_wrist_pitch_joint",
+    "left_wrist_yaw_joint",
+    "right_shoulder_pitch_joint",
+    "right_shoulder_roll_joint",
+    "right_shoulder_yaw_joint",
+    "right_elbow_joint",
+    "right_wrist_roll_joint",
+    "right_wrist_pitch_joint",
+    "right_wrist_yaw_joint",
+]
+
+
+class R1A7GravityCompensator:
+    def __init__(self, args: argparse.Namespace, arm_indices: list[int]):
+        self.args = args
+        self.arm_indices = arm_indices
+        self.enabled = bool(args.enable_gravity_comp)
+        self.available = False
+        self.last_error: Optional[str] = None
+        self.last_tau = np.zeros(14, dtype=float)
+        self.pin = None
+        self.model = None
+        self.data = None
+        self.arm_v_indices: list[int] = []
+        self.waist_index = args.gravity_model_waist_index
+        self.head_pitch_index = args.gravity_model_head_pitch_index
+        self.head_yaw_index = args.gravity_model_head_yaw_index
+        if self.enabled:
+            self._init_model()
+
+    def _init_model(self) -> None:
+        try:
+            import pinocchio as pin
+
+            self.pin = pin
+            self.model = pin.buildModelFromUrdf(self.args.gravity_model_urdf)
+            self.data = self.model.createData()
+            name_to_joint = {name: i for i, name in enumerate(self.model.names)}
+            self.arm_v_indices = [
+                self.model.joints[name_to_joint[name]].idx_v
+                for name in R1A7_A7_MODEL_ARM_JOINT_NAMES
+            ]
+            self.available = True
+        except Exception as exc:
+            self.last_error = f"{type(exc).__name__}: {exc}"
+            self.available = False
+
+    def compute(self, low_state: Optional[LowState_], arm_q: np.ndarray) -> np.ndarray:
+        self.last_tau = np.zeros(14, dtype=float)
+        if not self.enabled or not self.available or self.model is None or self.data is None:
+            return self.last_tau.copy()
+        try:
+            q = self.pin.neutral(self.model)
+            motor_state = low_state.motor_state if low_state is not None else []
+            if self.waist_index >= 0 and self.waist_index < len(motor_state):
+                q[0] = float(motor_state[self.waist_index].q)
+            if self.head_pitch_index >= 0 and self.head_pitch_index < len(motor_state):
+                q[1] = float(motor_state[self.head_pitch_index].q)
+            if self.head_yaw_index >= 0 and self.head_yaw_index < len(motor_state):
+                q[2] = float(motor_state[self.head_yaw_index].q)
+            q[3:17] = np.asarray(arm_q, dtype=float).reshape(14)
+            gravity = self.pin.computeGeneralizedGravity(self.model, self.data, q)
+            tau = np.asarray([gravity[i] for i in self.arm_v_indices], dtype=float)
+            tau *= float(self.args.gravity_comp_scale)
+            tau_limit = max(0.0, float(self.args.gravity_comp_tau_limit))
+            if tau_limit > 0.0:
+                tau = np.clip(tau, -tau_limit, tau_limit)
+            self.last_tau = tau
+            self.last_error = None
+            return tau.copy()
+        except Exception as exc:
+            self.last_error = f"{type(exc).__name__}: {exc}"
+            self.last_tau = np.zeros(14, dtype=float)
+            return self.last_tau.copy()
+
+
+class R1A7G1StyleArmController:
+    """R1-A7 arm target adapter modeled after Unitree's G1_29_ArmController.
+
+    The official G1 controller clips every publish target from the measured arm
+    q instead of integrating commands blindly. This adapter keeps that behavior
+    but leaves motor-index mapping, hold joints, grippers, and LowCmd publishing
+    in the R1-A7-specific outer controller.
+    """
+
+    def __init__(self, args: argparse.Namespace):
+        self.args = args
+        self.q_target: Optional[np.ndarray] = None
+        self.q_command: Optional[np.ndarray] = None
+        self.tauff_target = np.zeros(14, dtype=float)
+
+    def reset(self, current_q: np.ndarray) -> None:
+        self.q_target = current_q.copy()
+        self.q_command = current_q.copy()
+        self.tauff_target[:] = 0.0
+
+    def set_target(self, target_q: Optional[np.ndarray], current_q: np.ndarray) -> None:
+        if self.q_command is None:
+            self.reset(current_q)
+        self.q_target = current_q.copy() if target_q is None else target_q.copy()
+
+    def clip_arm_q_target(self, current_q: np.ndarray, target_q: np.ndarray, dt: float) -> np.ndarray:
+        del dt
+        control_dt = max(1e-3, float(self.args.g1_control_dt))
+        velocity_limit = max(0.0, float(self.args.arm_velocity_limit))
+        if velocity_limit <= 0.0:
+            return current_q.copy()
+        delta = target_q - current_q
+        motion_scale = float(np.max(np.abs(delta)) / max(velocity_limit * control_dt, 1e-6))
+        return current_q + delta / max(motion_scale, 1.0)
+
+    def _limit_elbow_command_step(self, next_q: np.ndarray) -> np.ndarray:
+        if self.q_command is None:
+            return next_q
+        limit = max(0.0, float(self.args.elbow_command_step_limit))
+        if limit <= 0.0:
+            return next_q
+        limited = next_q.copy()
+        for joint_i in (3, 10):
+            limited[joint_i] = self.q_command[joint_i] + float(
+                np.clip(next_q[joint_i] - self.q_command[joint_i], -limit, limit)
+            )
+        return limited
+
+    def step(self, current_q: np.ndarray, target_q: Optional[np.ndarray], dt: float) -> np.ndarray:
+        self.set_target(target_q, current_q)
+        assert self.q_target is not None
+        next_q = self.clip_arm_q_target(current_q, self.q_target, dt)
+        if self.args.r1a7_extra_elbow_limit:
+            next_q = self._limit_elbow_command_step(next_q)
+        self.q_command = next_q
+        return self.q_command.copy()
+
 
 class R1A7VRDualArmG1IKReal:
     def __init__(self, args: argparse.Namespace):
@@ -97,6 +262,8 @@ class R1A7VRDualArmG1IKReal:
         self.last_tele_error: Optional[str] = None
         self.last_ik_error: Optional[str] = None
         self.last_limit_diag = ""
+        self.last_vr_debug_print = 0.0
+        self.last_arm_tau_cmd = np.zeros(14, dtype=float)
         self.pose_frozen_reported = False
         self.left_indices = self._parse_indices(args.left_arm_indices)
         self.right_indices = self._parse_indices(args.right_arm_indices)
@@ -110,6 +277,8 @@ class R1A7VRDualArmG1IKReal:
         self.fixed_hold_indices = self._parse_indices(args.fixed_hold_indices)
         self.fixed_hold_q: dict[int, float] = {}
         self.command_q: Optional[np.ndarray] = None
+        self.arm_controller = R1A7G1StyleArmController(args)
+        self.gravity_comp = R1A7GravityCompensator(args, self.arm_indices)
         self.home_q: Optional[np.ndarray] = None
         self.ik_zero_q: Optional[np.ndarray] = None
         self.last_pose_signature: Optional[np.ndarray] = None
@@ -117,8 +286,28 @@ class R1A7VRDualArmG1IKReal:
         self.prev_motion_ready = False
         self.teleop_active = False
         self.last_arm_enable = False
+        self.arm_control_enabled = False
+        self.prev_button_state: dict[str, bool] = {}
         self.arm_hold_q: Optional[np.ndarray] = None
+        self.arm_hold_strong = False
+        self.arm_disabled_hold_active = False
+        self.vr_disconnected_uncontrolled = False
+        self.lowcmd_released_for_vr_exit = False
         self.rearm_until: Optional[float] = None
+        self.recording = False
+        self.record_episode_dir: Optional[Path] = None
+        self.record_states_file = None
+        self.record_writer: Optional[csv.writer] = None
+        self.record_samples = 0
+        self.record_start_monotonic: Optional[float] = None
+        self.record_start_system: Optional[float] = None
+        self.d435i_record_process: Optional[subprocess.Popen] = None
+        self.d435i_record_file: Optional[Path] = None
+        self.d435i_record_log_file = None
+        self.d435i_early_exit_reported = False
+        # Right-B does not execute a second HOME controller inside VR.
+        # It requests a clean VR shutdown; the outer launcher owns verified AUTO_HOME V2.
+        self.home_return_requested = False
         self.publisher = None
         self.subscriber = None
         self.tv = None
@@ -210,15 +399,41 @@ class R1A7VRDualArmG1IKReal:
         print("[R1-A7 VR G1IK REAL] command topic:", self.args.command_topic)
         print("[R1-A7 VR G1IK REAL] left arm indices:", self.left_indices)
         print("[R1-A7 VR G1IK REAL] right arm indices:", self.right_indices)
+        if self.args.g1_official_adapter:
+            print(
+                "[R1-A7 VR G1IK REAL] controller: R1-A7 G1-style adapter "
+                f"dt={self.args.g1_control_dt:.4f}s velocity_limit={self.args.arm_velocity_limit:.3f}rad/s"
+            )
+        if self.args.enable_gravity_comp:
+            print(
+                "[R1-A7 VR G1IK REAL] gravity compensation: "
+                f"enabled={self.gravity_comp.available} scale={self.args.gravity_comp_scale:.3f} "
+                f"limit={self.args.gravity_comp_tau_limit:.3f} urdf={self.args.gravity_model_urdf}"
+            )
+            if self.gravity_comp.last_error:
+                print(f"  gravity_error: {self.gravity_comp.last_error}")
         if self.args.arm_enable_button != "none":
             print(
-                "[R1-A7 VR G1IK REAL] arm/gripper enable gate: hold "
-                f"{self.args.arm_enable_button}"
+                "[R1-A7 VR G1IK REAL] arm/gripper enable gate: "
+                f"{self.args.arm_enable_mode} {self.args.arm_enable_button}"
+            )
+        if self.args.record_button != "none":
+            print(
+                "[R1-A7 VR G1IK REAL] one-shot synchronized recording: "
+                f"press {self.args.record_button} -> {self.args.record_duration_s:.1f}s "
+                f"robot CSV + D435i={self.args.record_d435i}"
+            )
+        if self.args.home_button != "none":
+            print(
+                "[R1-A7 VR G1IK REAL] HOME request button: "
+                f"{self.args.home_button} -> stop recording, release LowCmd, exit code 42"
             )
         if self.args.enable_gripper:
             if self.args.gripper_mode == "lowcmd":
                 print("[R1-A7 VR G1IK REAL] lowcmd gripper trigger control: ENABLED")
                 print("  left trigger  -> motor 31 L_HAND; right trigger -> motor 33 R_HAND")
+                mode_text = "relative-to-startup" if self.args.lowcmd_gripper_relative else "absolute motor q"
+                print(f"  coordinate mode: {mode_text}")
                 print(
                     "  q range       : "
                     f"left {self.args.lowcmd_gripper_left_open_q:.3f}->{self.args.lowcmd_gripper_left_close_q:.3f}, "
@@ -541,6 +756,19 @@ class R1A7VRDualArmG1IKReal:
         dq = np.array([motor_state[i].dq for i in self.arm_indices], dtype=float)
         return q, dq
 
+    def _button_pressed(self, tele, button: str) -> bool:
+        if button == "none":
+            return False
+        return bool(getattr(tele, button, False))
+
+    def _button_rising_edge(self, tele, button: str) -> bool:
+        if button == "none":
+            return False
+        pressed = self._button_pressed(tele, button)
+        prev = self.prev_button_state.get(button, False)
+        self.prev_button_state[button] = pressed
+        return pressed and not prev
+
     def _init_low_cmd_stop(self) -> None:
         for motor in self.low_cmd.motor_cmd:
             motor.tau = 0.0
@@ -552,6 +780,14 @@ class R1A7VRDualArmG1IKReal:
     def _publish(self, command_q: np.ndarray, gripper_q: Optional[np.ndarray] = None) -> None:
         assert self.publisher is not None
         self._init_low_cmd_stop()
+        arm_tau = self.gravity_comp.compute(self.low_state, command_q)
+        shoulder_pitch_ff = float(self.args.shoulder_pitch_extra_tau)
+        if shoulder_pitch_ff != 0.0:
+            arm_tau[0] += shoulder_pitch_ff
+            arm_tau[7] += shoulder_pitch_ff
+            tau_limit = max(0.0, float(self.args.total_tau_limit))
+            if tau_limit > 0.0:
+                arm_tau = np.clip(arm_tau, -tau_limit, tau_limit)
         if self.low_state is not None:
             if hasattr(self.low_cmd, "mode_pr"):
                 self.low_cmd.mode_pr = 0
@@ -576,10 +812,14 @@ class R1A7VRDualArmG1IKReal:
         for joint_i, (idx, q) in enumerate(zip(self.arm_indices, command_q)):
             motor = self.low_cmd.motor_cmd[idx]
             motor.mode = 1
-            motor.tau = 0.0
+            motor.tau = float(arm_tau[joint_i])
             motor.q = float(q)
             motor.dq = 0.0
-            motor.kp, motor.kd = self._arm_gain(joint_i)
+            motor.kp, motor.kd = self._arm_gain(
+                joint_i,
+                disabled_hold=self.arm_disabled_hold_active,
+            )
+        self.last_arm_tau_cmd = arm_tau.copy()
 
         if gripper_q is not None and self.args.enable_gripper and self.args.gripper_mode == "lowcmd":
             for idx, q in zip(self.lowcmd_gripper_indices, gripper_q):
@@ -602,7 +842,22 @@ class R1A7VRDualArmG1IKReal:
         self.publisher.Write(self.low_cmd)
         print("[R1-A7 VR G1IK REAL] released lowcmd gains")
 
+    def _release_for_vr_exit_once(self) -> None:
+        if self.lowcmd_released_for_vr_exit:
+            return
+        self._release()
+        self.lowcmd_released_for_vr_exit = True
+        print("[R1-A7 VR G1IK REAL] VR disconnected; LowCmd output released, robot is no longer controlled")
+
+    def _mark_lowcmd_active(self) -> None:
+        self.vr_disconnected_uncontrolled = False
+        self.lowcmd_released_for_vr_exit = False
+
     def _step_command(self, state_q: np.ndarray, target_q: Optional[np.ndarray], dt: float) -> np.ndarray:
+        if self.args.g1_official_adapter:
+            self.command_q = self.arm_controller.step(state_q, target_q, dt)
+            return self.command_q.copy()
+
         if target_q is None:
             if self.command_q is None:
                 self.command_q = state_q.copy()
@@ -612,7 +867,8 @@ class R1A7VRDualArmG1IKReal:
             delta = target_q - state_q
             max_delta = max(0.0, self.args.arm_velocity_limit) * max(dt, 1e-3)
             motion_scale = float(np.max(np.abs(delta)) / max(max_delta, 1e-6))
-            self.command_q = state_q + delta / max(motion_scale, 1.0)
+            next_q = state_q + delta / max(motion_scale, 1.0)
+            self.command_q = self._limit_elbow_command_step(next_q)
             return self.command_q.copy()
 
         if self.command_q is None:
@@ -620,10 +876,25 @@ class R1A7VRDualArmG1IKReal:
         max_delta = max(0.0, self.args.max_speed_rad_s) * max(dt, 1e-3)
         next_q = self.command_q + np.clip(target_q - self.command_q, -max_delta, max_delta)
         lead = np.clip(next_q - state_q, -self.args.max_command_lead, self.args.max_command_lead)
-        self.command_q = state_q + lead
+        self.command_q = self._limit_elbow_command_step(state_q + lead)
         return self.command_q.copy()
 
-    def _arm_gain(self, joint_i: int) -> tuple[float, float]:
+    def _limit_elbow_command_step(self, next_q: np.ndarray) -> np.ndarray:
+        if self.command_q is None:
+            return next_q
+        limit = max(0.0, self.args.elbow_command_step_limit)
+        if limit <= 0.0:
+            return next_q
+        limited = next_q.copy()
+        for joint_i in (3, 10):
+            limited[joint_i] = self.command_q[joint_i] + float(
+                np.clip(next_q[joint_i] - self.command_q[joint_i], -limit, limit)
+            )
+        return limited
+
+    def _arm_gain(self, joint_i: int, disabled_hold: bool = False) -> tuple[float, float]:
+        if disabled_hold and not self.args.strong_hold_after_arm_disable:
+            return self.args.hold_kp, self.args.hold_kd
         # Match Unitree G1_29_ArmController: shoulder/elbow use kp_low/kd_low,
         # wrist roll/pitch/yaw use kp_wrist/kd_wrist.
         local_i = joint_i % 7
@@ -636,6 +907,10 @@ class R1A7VRDualArmG1IKReal:
     def _limited_target(self, sol_q: np.ndarray) -> np.ndarray:
         assert self.home_q is not None
         hard_low, hard_high = self._active_arm_limits()
+        if self.args.official_ik_target:
+            clipped_q = np.clip(sol_q, hard_low, hard_high)
+            self._update_limit_diag(sol_q, clipped_q, hard_low, hard_high)
+            return clipped_q
         low = np.maximum(self.home_q - self.args.max_joint_offset_rad, hard_low)
         high = np.minimum(self.home_q + self.args.max_joint_offset_rad, hard_high)
         clipped_q = np.clip(sol_q, low, high)
@@ -671,6 +946,8 @@ class R1A7VRDualArmG1IKReal:
 
     def _retarget_solution(self, sol_q: np.ndarray) -> tuple[Optional[np.ndarray], str]:
         assert self.home_q is not None
+        if self.args.official_ik_target:
+            return self._limited_target(sol_q), "official_ik_target"
         if self.args.absolute_ik:
             return self._limited_target(sol_q), "absolute_tracking"
 
@@ -759,11 +1036,74 @@ class R1A7VRDualArmG1IKReal:
             return False
         return unchanged_age <= self.args.stale_pose_timeout
 
+    def _home_return_button_rising(self, tele) -> bool:
+        """Return True once when the configured HOME-request button rises.
+
+        The VR process never generates a HOME trajectory here.  A B press only
+        asks this process to stop recording, release LowCmd, and exit with code
+        42.  The outer launcher then starts the separately verified AUTO_HOME V2.
+        """
+        button = self.args.home_button
+        if button == "none" or tele is None:
+            return False
+        if not self._button_rising_edge(tele, button):
+            return False
+        self.home_return_requested = True
+        print(
+            "[R1-A7 VR G1IK REAL] HOME RETURN REQUESTED: "
+            f"button={button}"
+        )
+        return True
+
     def _arm_enable_pressed(self, tele) -> bool:
         button = self.args.arm_enable_button
         if button == "none":
             return True
-        return bool(getattr(tele, button, False))
+        if self.args.arm_enable_mode == "hold":
+            return self._button_pressed(tele, button)
+        if self._button_rising_edge(tele, button):
+            self.arm_control_enabled = not self.arm_control_enabled
+            if self.arm_control_enabled:
+                print("[R1-A7 VR G1IK REAL] arm control toggled ON")
+            else:
+                print("[R1-A7 VR G1IK REAL] arm control toggled OFF; holding current arm q")
+        return self.arm_control_enabled
+
+    def _maybe_print_vr_debug(self, tele, now: float) -> None:
+        if not self.args.debug_vr_data:
+            return
+        if now - self.last_vr_debug_print < max(0.2, self.args.debug_vr_period):
+            return
+        self.last_vr_debug_print = now
+        fields = [
+            "motion_data_ready",
+            "left_ctrl_aButton",
+            "left_ctrl_bButton",
+            "left_ctrl_squeeze",
+            "left_ctrl_thumbstick",
+            "left_ctrl_triggerValue",
+            "right_ctrl_aButton",
+            "right_ctrl_bButton",
+            "right_ctrl_squeeze",
+            "right_ctrl_thumbstick",
+            "right_ctrl_triggerValue",
+        ]
+        values = {name: getattr(tele, name, None) for name in fields}
+        left_pose = getattr(tele, "left_wrist_pose", None)
+        right_pose = getattr(tele, "right_wrist_pose", None)
+        try:
+            left_t = np.asarray(left_pose, dtype=float).reshape(4, 4)[:3, 3].round(4).tolist()
+        except Exception:
+            left_t = None
+        try:
+            right_t = np.asarray(right_pose, dtype=float).reshape(4, 4)[:3, 3].round(4).tolist()
+        except Exception:
+            right_t = None
+        available = [name for name in dir(tele) if "Button" in name or "ctrl" in name or "motion" in name]
+        print(
+            "[R1-A7 VR G1IK REAL] vr_debug "
+            f"values={values} left_t={left_t} right_t={right_t} fields={available}"
+        )
 
     def _pose_age_text(self, now: float) -> str:
         if self.last_pose_update_time is None:
@@ -772,52 +1112,398 @@ class R1A7VRDualArmG1IKReal:
 
     def _hold_current_after_enable_release(self, state_q: np.ndarray) -> tuple[np.ndarray, str]:
         if self.teleop_active or self.prev_motion_ready or self.last_arm_enable:
-            print("[R1-A7 VR G1IK REAL] arm enable button released; holding current arm q")
+            print("[R1-A7 VR G1IK REAL] arm control disabled; holding last commanded arm q")
         if self.arm_hold_q is None:
-            self.arm_hold_q = state_q.copy()
+            if self.command_q is not None:
+                low, high = self._active_arm_limits()
+                self.arm_hold_q = np.clip(self.command_q.copy(), low, high)
+            else:
+                self.arm_hold_q = state_q.copy()
         self.teleop_active = False
         self.prev_motion_ready = False
         self.last_arm_enable = False
         self.ik_zero_q = None
         self.home_q = self.arm_hold_q.copy()
         self.command_q = self.arm_hold_q.copy()
+        self.arm_controller.reset(self.arm_hold_q)
+        self._mark_lowcmd_active()
+        self.arm_hold_strong = self.args.strong_hold_after_arm_disable
+        self.arm_disabled_hold_active = True
         self.rearm_until = None
         self.pose_frozen_reported = False
         return self.arm_hold_q.copy(), "enable_released_hold"
 
+    def _get_next_record_episode_dir(self) -> Path:
+        """Return the next unused episode directory without overwriting data.
+
+        Examples:
+            --record_episode_id right_safe_001
+              -> right_safe_001, right_safe_002, right_safe_003, ...
+
+            --record_episode_id right_safe
+              -> right_safe_001, right_safe_002, right_safe_003, ...
+
+        Existing directories are skipped automatically.
+        """
+        root = Path(self.args.record_root).expanduser().resolve()
+        root.mkdir(parents=True, exist_ok=True)
+
+        requested_id = str(self.args.record_episode_id).strip()
+        if not requested_id:
+            requested_id = "vr_x60_001"
+
+        match = re.match(r"^(.*?)(\d+)$", requested_id)
+        if match:
+            prefix = match.group(1)
+            start_number = int(match.group(2))
+            width = len(match.group(2))
+        else:
+            prefix = requested_id.rstrip("_") + "_"
+            start_number = 1
+            width = 3
+
+        number = start_number
+        while number <= 999999:
+            episode_id = f"{prefix}{number:0{width}d}"
+            episode_dir = root / episode_id
+            if not episode_dir.exists():
+                return episode_dir
+            number += 1
+
+        raise RuntimeError(
+            f"unable to allocate a new recording episode under {root}"
+        )
+
+    def _record_start(self) -> None:
+        if self.recording:
+            return
+
+        episode_dir = self._get_next_record_episode_dir()
+        episode_dir.mkdir(parents=True, exist_ok=False)
+        episode_id = episode_dir.name
+
+        duration_s = max(0.1, float(self.args.record_duration_s))
+        self.record_start_monotonic = time.monotonic()
+        self.record_start_system = time.time()
+        self.d435i_early_exit_reported = False
+
+        metadata = {
+            "robot": "Unitree R1-A7",
+            "task": "vr_dual_arm_x_button_synchronized_record",
+            "episode_id": episode_id,
+            "date": time.strftime("%Y-%m-%d"),
+            "recording_mode": "x_one_shot_robot_csv_plus_d435i_db3",
+            "record_duration_s": duration_s,
+            "record_start_monotonic": self.record_start_monotonic,
+            "record_start_system": self.record_start_system,
+            "interface": self.args.interface,
+            "state_topic": self.args.state_topic,
+            "command_topic": self.args.command_topic,
+            "arm_enable_mode": self.args.arm_enable_mode,
+            "arm_enable_button": self.args.arm_enable_button,
+            "record_button": self.args.record_button,
+            "d435i_record_enabled": bool(self.args.record_d435i),
+            "d435i_filename": self.args.d435i_filename,
+            "note": "X starts both recorders in software; this is near-simultaneous software triggering, not hardware synchronization.",
+        }
+        (episode_dir / "metadata.json").write_text(
+            json.dumps(metadata, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        self.record_states_file = (episode_dir / "states.csv").open(
+            "w", newline="", encoding="utf-8"
+        )
+        self.record_writer = csv.writer(self.record_states_file)
+        self.record_writer.writerow(
+            [
+                "timestamp_monotonic",
+                "timestamp_system",
+                "info",
+                "motion_ready",
+                "tele_fresh",
+                "arm_enable",
+                "arm_control_enabled",
+                "joint_position",
+                "joint_velocity",
+                "command_position",
+                "gravity_tau",
+                "tau_command",
+                "left_wrist_pose",
+                "right_wrist_pose",
+                "left_trigger",
+                "right_trigger",
+                "gripper_command",
+                "record_button",
+                "enable_button",
+            ]
+        )
+        self.record_states_file.flush()
+
+        self.recording = True
+        self.record_episode_dir = episode_dir
+        self.record_samples = 0
+
+        print(f"[R1-A7 VR G1IK REAL] RECORDING START: {episode_dir}")
+        print(f"[R1-A7 VR G1IK REAL] episode_id={episode_id}")
+        print(
+            "[R1-A7 VR G1IK REAL] one-shot recording window: "
+            f"{duration_s:.1f}s"
+        )
+
+        if self.args.record_d435i:
+            self.d435i_record_file = episode_dir / self.args.d435i_filename
+            d435i_log_path = episode_dir / "d435i_record.log"
+            try:
+                self.d435i_record_log_file = d435i_log_path.open(
+                    "w", encoding="utf-8", buffering=1
+                )
+                cmd = [
+                    self.args.rs_record_bin,
+                    "-f",
+                    str(self.d435i_record_file),
+                    "-t",
+                    str(max(1, int(round(duration_s)))),
+                ]
+                self.d435i_record_process = subprocess.Popen(
+                    cmd,
+                    stdout=self.d435i_record_log_file,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                )
+                print(
+                    "[R1-A7 VR G1IK REAL] D435i RECORDING START: "
+                    f"pid={self.d435i_record_process.pid} file={self.d435i_record_file}"
+                )
+            except Exception as exc:
+                self.d435i_record_process = None
+                if self.d435i_record_log_file is not None:
+                    self.d435i_record_log_file.close()
+                    self.d435i_record_log_file = None
+                print(
+                    "[R1-A7 VR G1IK REAL] D435i RECORDING START FAILED: "
+                    f"{type(exc).__name__}: {exc}"
+                )
+
+    def _stop_d435i_recorder(self) -> None:
+        proc = self.d435i_record_process
+        if proc is None:
+            if self.d435i_record_log_file is not None:
+                self.d435i_record_log_file.close()
+                self.d435i_record_log_file = None
+            return
+
+        if proc.poll() is None:
+            # Match the user's normal Ctrl+C shutdown path so rs-record gets a
+            # chance to finalize the SQLite DB3 cleanly.
+            try:
+                proc.send_signal(signal.SIGINT)
+                proc.wait(timeout=8.0)
+            except subprocess.TimeoutExpired:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=3.0)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait(timeout=2.0)
+
+        rc = proc.returncode
+        print(
+            "[R1-A7 VR G1IK REAL] D435i RECORDING STOP: "
+            f"returncode={rc} file={self.d435i_record_file}"
+        )
+        self.d435i_record_process = None
+
+        if self.d435i_record_log_file is not None:
+            self.d435i_record_log_file.flush()
+            self.d435i_record_log_file.close()
+            self.d435i_record_log_file = None
+
+    def _record_stop(self) -> None:
+        if not self.recording:
+            self._stop_d435i_recorder()
+            return
+
+        elapsed = 0.0
+        if self.record_start_monotonic is not None:
+            elapsed = max(0.0, time.monotonic() - self.record_start_monotonic)
+
+        print(
+            "[R1-A7 VR G1IK REAL] RECORDING STOP: "
+            f"{self.record_episode_dir} samples={self.record_samples} "
+            f"elapsed={elapsed:.3f}s"
+        )
+
+        self.recording = False
+        if self.record_states_file is not None:
+            self.record_states_file.flush()
+            self.record_states_file.close()
+        self.record_states_file = None
+        self.record_writer = None
+
+        self._stop_d435i_recorder()
+        self.record_start_monotonic = None
+        self.record_start_system = None
+
+        print(
+            "[R1-A7 VR G1IK REAL] Recording finished. "
+            "VR remains active; press X again to start the next episode."
+        )
+
+    def _maybe_auto_stop_recording(self, now: float) -> None:
+        if not self.recording or self.record_start_monotonic is None:
+            return
+
+        # Report an unexpected camera-recorder exit, but keep robot CSV active
+        # for the full requested window so the episode remains diagnosable.
+        if (
+            self.d435i_record_process is not None
+            and self.d435i_record_process.poll() is not None
+            and not self.d435i_early_exit_reported
+        ):
+            elapsed = max(0.0, now - self.record_start_monotonic)
+            if elapsed + 1.0 < float(self.args.record_duration_s):
+                self.d435i_early_exit_reported = True
+                print(
+                    "[R1-A7 VR G1IK REAL] WARNING: D435i recorder exited early "
+                    f"at {elapsed:.2f}s returncode={self.d435i_record_process.returncode}; "
+                    f"check {self.record_episode_dir / 'd435i_record.log'}"
+                )
+
+        if now - self.record_start_monotonic >= max(
+            0.1, float(self.args.record_duration_s)
+        ):
+            print(
+                "[R1-A7 VR G1IK REAL] recording duration reached; "
+                "stopping robot data and D435i automatically"
+            )
+            self._record_stop()
+
+    def _maybe_toggle_recording(self, tele) -> None:
+        if tele is None or self.args.record_button == "none":
+            return
+        if not self._button_rising_edge(tele, self.args.record_button):
+            return
+
+        if self.recording:
+            elapsed = 0.0
+            if self.record_start_monotonic is not None:
+                elapsed = max(0.0, time.monotonic() - self.record_start_monotonic)
+            remaining = max(0.0, float(self.args.record_duration_s) - elapsed)
+            print(
+                "[R1-A7 VR G1IK REAL] recording already active; "
+                f"X ignored, remaining={remaining:.1f}s"
+            )
+            return
+
+        self._record_start()
+
+    @staticmethod
+    def _json_array(value) -> str:
+        if value is None:
+            return ""
+        return json.dumps(np.asarray(value, dtype=float).tolist())
+
+    def _record_sample(
+        self,
+        tele,
+        state_q: np.ndarray,
+        state_dq: np.ndarray,
+        command_q: np.ndarray,
+        gripper_command_q: Optional[np.ndarray],
+        info: str,
+        motion_ready: bool,
+        tele_fresh: bool,
+        arm_enable: bool,
+    ) -> None:
+        if not self.recording or self.record_writer is None:
+            return
+        self.record_writer.writerow(
+            [
+                f"{time.monotonic():.6f}",
+                f"{time.time():.6f}",
+                info,
+                bool(motion_ready),
+                bool(tele_fresh),
+                bool(arm_enable),
+                bool(self.arm_control_enabled),
+                self._json_array(state_q),
+                self._json_array(state_dq),
+                self._json_array(command_q),
+                self._json_array(self.gravity_comp.last_tau),
+                self._json_array(self.last_arm_tau_cmd),
+                self._json_array(getattr(tele, "left_wrist_pose", None)),
+                self._json_array(getattr(tele, "right_wrist_pose", None)),
+                float(getattr(tele, "left_ctrl_triggerValue", 10.0)) if tele is not None else 10.0,
+                float(getattr(tele, "right_ctrl_triggerValue", 10.0)) if tele is not None else 10.0,
+                self._json_array(gripper_command_q),
+                self._button_pressed(tele, self.args.record_button) if tele is not None else False,
+                self._button_pressed(tele, self.args.arm_enable_button) if tele is not None else False,
+            ]
+        )
+        self.record_samples += 1
+
     def _hold_current_after_stale(self, state_q: np.ndarray) -> tuple[np.ndarray, str]:
         if self.teleop_active:
             print("[R1-A7 VR G1IK REAL] Quest pose stream stale; holding current arm q and waiting for fresh poses")
+        if self.args.arm_enable_mode == "toggle" and self.arm_control_enabled:
+            print("[R1-A7 VR G1IK REAL] Quest stale; arm control toggled OFF for safe re-entry")
+        self.arm_control_enabled = False
+        self.prev_button_state[self.args.arm_enable_button] = False
         self.teleop_active = False
+        self.prev_motion_ready = False
+        self.last_arm_enable = False
         self.ik_zero_q = None
         self.home_q = state_q.copy()
         self.command_q = state_q.copy()
+        self.arm_controller.reset(state_q)
+        self.arm_hold_q = state_q.copy()
+        self.arm_hold_strong = False
+        self.arm_disabled_hold_active = False
         self.rearm_until = None
+        self.last_pose_signature = None
+        self.last_pose_update_time = None
         self.pose_frozen_reported = False
         return state_q.copy(), "stale_hold"
 
     def _hold_current_after_vr_exit(self, state_q: np.ndarray, reason: str) -> tuple[np.ndarray, str]:
-        """Freeze the arms at measured lowstate q whenever VR tracking drops.
+        """Stop commanding the arms whenever VR tracking drops.
 
-        This is intentionally based on measured robot state, not the previous
-        command target. It prevents the arms from drifting back toward the
-        startup pose after leaving VR, and makes the next VR entry rebase from
-        the current physical posture.
+        Pressing A off is the intentional hold-current-position path. A VR
+        browser exit or connection break is treated differently: clear teleop
+        state and release LowCmd so the robot is no longer controlled by stale
+        VR data.
         """
         if self.teleop_active or self.prev_motion_ready:
-            print(f"[R1-A7 VR G1IK REAL] VR tracking unavailable ({reason}); holding current arm q")
+            print(f"[R1-A7 VR G1IK REAL] VR tracking unavailable ({reason}); releasing arm control")
+        if self.args.arm_enable_mode == "toggle" and self.arm_control_enabled:
+            print("[R1-A7 VR G1IK REAL] VR tracking lost; arm control toggled OFF for safe re-entry")
+        self.arm_control_enabled = False
+        self.prev_button_state[self.args.arm_enable_button] = False
         self.teleop_active = False
         self.prev_motion_ready = False
+        self.last_arm_enable = False
         self.ik_zero_q = None
         self.home_q = state_q.copy()
         self.command_q = state_q.copy()
+        self.arm_controller.reset(state_q)
+        self.arm_hold_q = state_q.copy()
+        self.arm_hold_strong = False
+        self.arm_disabled_hold_active = False
         self.rearm_until = None
+        self.last_pose_signature = None
+        self.last_pose_update_time = None
         self.pose_frozen_reported = False
-        return state_q.copy(), f"{reason}_hold"
+        self.vr_disconnected_uncontrolled = True
+        return state_q.copy(), f"{reason}_uncontrolled"
 
     def _begin_rearm(self, state_q: np.ndarray, now: float) -> None:
         self.home_q = state_q.copy()
         self.command_q = state_q.copy()
+        self.arm_controller.reset(state_q)
+        self._mark_lowcmd_active()
+        self.arm_hold_strong = False
+        self.arm_disabled_hold_active = False
         self.ik_zero_q = None
         if self.arm_ik is not None and hasattr(self.arm_ik, "reset_target_calibration"):
             self.arm_ik.reset_target_calibration(state_q)
@@ -837,6 +1523,8 @@ class R1A7VRDualArmG1IKReal:
                 now = time.monotonic()
                 if self.args.duration > 0 and now >= deadline:
                     break
+
+                self._maybe_auto_stop_recording(now)
 
                 state = self._read_arm_qdq()
                 if state is None:
@@ -858,6 +1546,7 @@ class R1A7VRDualArmG1IKReal:
                 if self.home_q is None:
                     self.home_q = state_q.copy()
                     self.command_q = state_q.copy()
+                    self.arm_controller.reset(state_q)
                     print("[R1-A7 VR G1IK REAL] calibrated robot arm q:", np.round(state_q, 3).tolist())
 
                 tele = None
@@ -870,6 +1559,28 @@ class R1A7VRDualArmG1IKReal:
                 try:
                     tele = self.tv.get_tele_data()
                     motion_ready = bool(tele.motion_data_ready)
+                    self._maybe_print_vr_debug(tele, now)
+
+                    # Highest-priority controller command: right B requests HOME.
+                    # It is intentionally handled before X recording and A gating.
+                    if self._home_return_button_rising(tele):
+                        if self.recording:
+                            print(
+                                "[R1-A7 VR G1IK REAL] stopping active recording before HOME return"
+                            )
+                            self._record_stop()
+                        self.arm_control_enabled = False
+                        self.teleop_active = False
+                        self.last_arm_enable = False
+                        self._stop_gripper_controller()
+                        self._release()
+                        print(
+                            "[R1-A7 VR G1IK REAL] LowCmd released; "
+                            "leaving VR for external AUTO_HOME V2"
+                        )
+                        break
+
+                    self._maybe_toggle_recording(tele)
                     tele_fresh = self._teleop_data_fresh(tele, now)
                     arm_enable = self._arm_enable_pressed(tele)
                     self.last_tele_error = None
@@ -882,6 +1593,9 @@ class R1A7VRDualArmG1IKReal:
                         target_q, info = self._hold_current_after_vr_exit(state_q, "waiting_quest_pose")
                     elif motion_ready and not tele_fresh:
                         target_q, info = self._hold_current_after_vr_exit(state_q, "stale")
+                    elif not arm_enable and self.vr_disconnected_uncontrolled:
+                        target_q = state_q.copy()
+                        info = "waiting_arm_enable_uncontrolled"
                     elif not arm_enable:
                         target_q, info = self._hold_current_after_enable_release(state_q)
                     elif tele_fresh:
@@ -901,12 +1615,14 @@ class R1A7VRDualArmG1IKReal:
                             if self.rearm_until is not None and now < self.rearm_until:
                                 self.home_q = state_q.copy()
                                 self.command_q = state_q.copy()
+                                self.arm_controller.reset(state_q)
                                 self.ik_zero_q = sol_q.copy()
                                 target_q = state_q.copy()
                                 info = "rearm_hold"
                             elif self.rearm_until is not None:
                                 self.home_q = state_q.copy()
                                 self.command_q = state_q.copy()
+                                self.arm_controller.reset(state_q)
                                 self.ik_zero_q = sol_q.copy()
                                 self.rearm_until = None
                                 target_q = state_q.copy()
@@ -935,6 +1651,31 @@ class R1A7VRDualArmG1IKReal:
 
                 dt = now - last_loop
                 last_loop = now
+                if self.vr_disconnected_uncontrolled and not arm_enable:
+                    command_q = state_q.copy()
+                    self._release_for_vr_exit_once()
+                    self._record_sample(
+                        tele,
+                        state_q,
+                        state_dq,
+                        command_q,
+                        None,
+                        info,
+                        motion_ready,
+                        tele_fresh,
+                        arm_enable,
+                    )
+                    if now - self.last_print >= self.args.print_period:
+                        self.last_print = now
+                        print(
+                            f"[R1-A7 VR G1IK REAL] {info} "
+                            f"lowstate_count={self.lowstate_count} motion_ready={motion_ready} "
+                            f"tele_fresh={tele_fresh} arm_enable={arm_enable} "
+                            "lowcmd=RELEASED"
+                        )
+                    time.sleep(max(0.0, 1.0 / max(1.0, self.args.hz)))
+                    continue
+
                 command_q = self._step_command(state_q, target_q, dt)
                 gripper_state_q = self._read_lowcmd_gripper_q() if self.args.enable_gripper and self.args.gripper_mode == "lowcmd" else None
                 gripper_command_q = (
@@ -943,6 +1684,17 @@ class R1A7VRDualArmG1IKReal:
                     else None
                 )
                 self._publish(command_q, gripper_command_q)
+                self._record_sample(
+                    tele,
+                    state_q,
+                    state_dq,
+                    command_q,
+                    gripper_command_q,
+                    info,
+                    motion_ready,
+                    tele_fresh,
+                    arm_enable,
+                )
 
                 if now - self.last_print >= self.args.print_period:
                     self.last_print = now
@@ -962,6 +1714,7 @@ class R1A7VRDualArmG1IKReal:
                         f"[R1-A7 VR G1IK REAL] {info} "
                         f"lowstate_count={self.lowstate_count} lowstate_age={lowstate_age:.3f}s "
                         f"motion_ready={motion_ready} tele_fresh={tele_fresh} arm_enable={arm_enable} "
+                        f"arm_toggle={self.arm_control_enabled} recording={self.recording} "
                         f"pose_delta={self.last_pose_delta:.6f} pose_age={self._pose_age_text(now)} "
                         f"cmd_err={cmd_err:.3f} tgt_err={tgt_err:.3f}"
                     )
@@ -971,6 +1724,14 @@ class R1A7VRDualArmG1IKReal:
                         print(f"  ik_error  : {self.last_ik_error}")
                     if self.last_limit_diag:
                         print(f"  arm_limit : {self.last_limit_diag}")
+                    if self.args.enable_gravity_comp:
+                        print(
+                            "  gravity   : "
+                            f"enabled={self.gravity_comp.available} "
+                            f"tau={np.round(self.gravity_comp.last_tau, 3).tolist()}"
+                        )
+                        if self.gravity_comp.last_error:
+                            print(f"  gravity_error: {self.gravity_comp.last_error}")
                     print(f"  left_q    : {left_q}")
                     print(f"  left_cmd  : {left_cmd}")
                     print(f"  right_q   : {right_q}")
@@ -989,12 +1750,19 @@ class R1A7VRDualArmG1IKReal:
                             print(f"  grip_error: {self.last_gripper_error}")
                 time.sleep(max(0.0, 1.0 / max(1.0, self.args.hz)))
         finally:
+            self._record_stop()
             self._stop_gripper_controller()
             self._release()
             try:
                 self.tv.close()
             except Exception:
                 pass
+        if self.home_return_requested:
+            print(
+                "[R1-A7 VR G1IK REAL] VR cleanup complete; "
+                "requesting verified external AUTO_HOME V2 (exit code 42)"
+            )
+            return 42
         return 0
 
 
@@ -1026,57 +1794,92 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--lowcmd_gripper_indices",
-        default="31,33",
+        default=R1A7_GRIPPER_INDICES,
         help="left,right internal gripper motor indices in LowCmd/LowState",
     )
     parser.add_argument(
         "--lowcmd_gripper_relative",
         action=argparse.BooleanOptionalAction,
-        default=True,
-        help="interpret lowcmd gripper open/close q values as offsets from startup gripper q",
+        default=R1A7_GRIPPER_RELATIVE,
+        help=(
+            "interpret lowcmd gripper open/close q values as offsets from startup gripper q; "
+            "R1-A7 internal grippers default to absolute motor-q coordinates"
+        ),
     )
-    parser.add_argument("--lowcmd_gripper_left_open_q", type=float, default=0.0)
-    parser.add_argument("--lowcmd_gripper_left_close_q", type=float, default=0.30)
-    parser.add_argument("--lowcmd_gripper_right_open_q", type=float, default=0.0)
-    parser.add_argument("--lowcmd_gripper_right_close_q", type=float, default=0.30)
-    parser.add_argument("--lowcmd_gripper_extra_margin", type=float, default=0.03)
-    parser.add_argument("--lowcmd_gripper_velocity_limit", type=float, default=1.5)
-    parser.add_argument("--lowcmd_gripper_kp", type=float, default=8.0)
-    parser.add_argument("--lowcmd_gripper_kd", type=float, default=1.5)
+    parser.add_argument(
+        "--lowcmd_gripper_left_open_q",
+        type=float,
+        default=R1A7_GRIPPER_LEFT_OPEN_Q,
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_left_close_q",
+        type=float,
+        default=R1A7_GRIPPER_LEFT_CLOSE_Q,
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_right_open_q",
+        type=float,
+        default=R1A7_GRIPPER_RIGHT_OPEN_Q,
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_right_close_q",
+        type=float,
+        default=R1A7_GRIPPER_RIGHT_CLOSE_Q,
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_extra_margin",
+        type=float,
+        default=R1A7_GRIPPER_EXTRA_MARGIN,
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_velocity_limit",
+        type=float,
+        default=R1A7_GRIPPER_VELOCITY_LIMIT,
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_kp",
+        type=float,
+        default=R1A7_GRIPPER_KP,
+    )
+    parser.add_argument(
+        "--lowcmd_gripper_kd",
+        type=float,
+        default=R1A7_GRIPPER_KD,
+    )
     parser.add_argument(
         "--lowcmd_gripper_contact_hold",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=R1A7_GRIPPER_CONTACT_HOLD,
         help="lock each lowcmd gripper near the contact position after a stalled full trigger pull",
     )
     parser.add_argument(
         "--lowcmd_gripper_contact_trigger_alpha",
         type=float,
-        default=0.85,
+        default=R1A7_GRIPPER_CONTACT_TRIGGER_ALPHA,
         help="trigger close ratio above which contact hold can engage",
     )
     parser.add_argument(
         "--lowcmd_gripper_contact_error",
         type=float,
-        default=0.08,
+        default=R1A7_GRIPPER_CONTACT_ERROR,
         help="minimum target-state q error treated as object blockage",
     )
     parser.add_argument(
         "--lowcmd_gripper_contact_stall_eps",
         type=float,
-        default=0.004,
+        default=R1A7_GRIPPER_CONTACT_STALL_EPS,
         help="maximum q change per control frame treated as stalled gripper motion",
     )
     parser.add_argument(
         "--lowcmd_gripper_contact_stall_time",
         type=float,
-        default=0.25,
+        default=R1A7_GRIPPER_CONTACT_STALL_TIME,
         help="seconds of stalled motion before contact hold engages",
     )
     parser.add_argument(
         "--lowcmd_gripper_contact_hold_bias",
         type=float,
-        default=0.035,
+        default=R1A7_GRIPPER_CONTACT_HOLD_BIAS,
         help="small extra closing q offset from the detected contact position to keep a soft grip",
     )
     parser.add_argument(
@@ -1097,7 +1900,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--enter_debug_mode", action="store_true")
     parser.add_argument("--duration", type=float, default=20.0)
-    parser.add_argument("--hz", type=float, default=40.0)
+    parser.add_argument("--hz", type=float, default=250.0)
     parser.add_argument("--print_period", type=float, default=0.25)
     parser.add_argument(
         "--arm_enable_button",
@@ -1113,7 +1916,80 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "right_ctrl_thumbstick",
         ),
         default="right_ctrl_aButton",
-        help="controller button that must be held for arm and gripper commands; use none to disable the gate",
+        help="controller button used for arm and gripper command gating; use none to disable the gate",
+    )
+    parser.add_argument(
+        "--arm_enable_mode",
+        choices=("toggle", "hold"),
+        default="toggle",
+        help="toggle means one press enables control and the next press holds; hold keeps the old hold-to-run behavior",
+    )
+    parser.add_argument(
+        "--home_button",
+        choices=(
+            "none",
+            "left_ctrl_aButton",
+            "left_ctrl_bButton",
+            "left_ctrl_squeeze",
+            "left_ctrl_thumbstick",
+            "right_ctrl_aButton",
+            "right_ctrl_bButton",
+            "right_ctrl_squeeze",
+            "right_ctrl_thumbstick",
+        ),
+        default="right_ctrl_bButton",
+        help=(
+            "Quest button that requests verified external AUTO_HOME V2; "
+            "default right_ctrl_bButton is right B"
+        ),
+    )
+    parser.add_argument(
+        "--record_button",
+        choices=(
+            "none",
+            "left_ctrl_aButton",
+            "left_ctrl_bButton",
+            "left_ctrl_squeeze",
+            "left_ctrl_thumbstick",
+            "right_ctrl_aButton",
+            "right_ctrl_bButton",
+            "right_ctrl_squeeze",
+            "right_ctrl_thumbstick",
+        ),
+        default="left_ctrl_aButton",
+        help="controller button used to toggle CSV recording; left_ctrl_aButton is Quest left X",
+    )
+    parser.add_argument(
+        "--record_root",
+        default="data/episodes",
+        help="directory where VR button-toggle recordings are written",
+    )
+    parser.add_argument(
+        "--record_episode_id",
+        default="",
+        help="episode base/start id; trailing number auto-increments on each X recording (e.g. right_safe_001 -> _002 -> _003)",
+    )
+    parser.add_argument(
+        "--record_duration_s",
+        type=float,
+        default=60.0,
+        help="one-shot recording duration after X; default 60 seconds",
+    )
+    parser.add_argument(
+        "--record_d435i",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="start rs-record together with robot CSV when X is pressed",
+    )
+    parser.add_argument(
+        "--rs_record_bin",
+        default="rs-record",
+        help="rs-record executable used for D435i DB3 capture",
+    )
+    parser.add_argument(
+        "--d435i_filename",
+        default="d435i.db3",
+        help="D435i DB3 filename inside each episode directory",
     )
     parser.add_argument("--kp", type=float, default=12.0)
     parser.add_argument("--kd", type=float, default=0.8)
@@ -1123,15 +1999,74 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--kd_wrist", type=float, default=1.5)
     parser.add_argument("--hold_kp", type=float, default=8.0)
     parser.add_argument("--hold_kd", type=float, default=0.6)
+    parser.add_argument(
+        "--strong_hold_after_arm_disable",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="after A toggles arm control off, hold arm motors with movement gains instead of hold_kp/hold_kd",
+    )
+    parser.add_argument(
+        "--enable_gravity_comp",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="add limited Pinocchio gravity feedforward from the R1-A7 A7 URDF inertial model into arm motor tau",
+    )
+    parser.add_argument(
+        "--gravity_model_urdf",
+        default=R1A7_A7_URDF,
+        help="R1-A7/A7 URDF used for Pinocchio gravity compensation",
+    )
+    parser.add_argument(
+        "--gravity_comp_scale",
+        type=float,
+        default=0.20,
+        help="scale applied to model gravity torque; start small and increase only after safe validation",
+    )
+    parser.add_argument(
+        "--gravity_comp_tau_limit",
+        type=float,
+        default=3.0,
+        help="absolute per-joint tau feedforward limit in LowCmd units/Nm-equivalent",
+    )
+    parser.add_argument("--gravity_model_waist_index", type=int, default=13)
+    parser.add_argument("--gravity_model_head_pitch_index", type=int, default=29)
+    parser.add_argument("--gravity_model_head_yaw_index", type=int, default=30)
+    parser.add_argument(
+        "--shoulder_pitch_extra_tau",
+        type=float,
+        default=0.0,
+        help=(
+            "extra feedforward tau added to both shoulder_pitch joints after gravity compensation; "
+            "use small values such as -0.3 first, 0 disables it"
+        ),
+    )
+    parser.add_argument(
+        "--total_tau_limit",
+        type=float,
+        default=4.0,
+        help="absolute final arm tau limit after gravity compensation and shoulder_pitch_extra_tau; 0 disables clipping",
+    )
     parser.add_argument("--max_speed_rad_s", type=float, default=0.06)
     parser.add_argument("--max_command_lead", type=float, default=0.06)
     parser.add_argument(
+        "--elbow_command_step_limit",
+        type=float,
+        default=0.008,
+        help="maximum command-position change per control frame for left/right elbow; 0 disables this extra clamp",
+    )
+    parser.add_argument(
+        "--r1a7_extra_elbow_limit",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="optional non-official R1-A7 elbow command step limiter; disabled by default for official-style control",
+    )
+    parser.add_argument(
         "--arm_velocity_limit",
         type=float,
-        default=3.0,
+        default=20.0,
         help="G1-style velocity clip in rad/s; official G1 uses much higher values",
     )
-    parser.add_argument("--max_joint_offset_rad", type=float, default=0.18)
+    parser.add_argument("--max_joint_offset_rad", type=float, default=1.40)
     parser.add_argument(
         "--joint_limit_margin_rad",
         type=float,
@@ -1144,10 +2079,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=0.0,
         help="extra soft margin above both shoulder_pitch lower limits to avoid high-lift saturation",
     )
-    parser.add_argument("--ik_delta_scale", type=float, default=0.6)
+    parser.add_argument("--ik_delta_scale", type=float, default=1.0)
     parser.add_argument(
         "--ik_joint_scales",
-        default="1,1,1,1,1,1,1,1,1,1,1,1,1,1",
+        default="0.95,0.80,0.60,0.40,0.70,0.95,0.75,0.95,0.80,0.60,0.40,0.70,0.95,0.65",
         help=(
             "14 comma-separated per-joint multipliers for relative G1 IK deltas. "
             "Order matches left 7 arm joints then right 7 arm joints."
@@ -1183,8 +2118,38 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=False,
         help="keep solving IK whenever TeleVuer reports motion_data_ready, even if pose matrices do not change",
     )
+    parser.add_argument(
+        "--debug_vr_data",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="print TeleVuer motion/button fields for diagnosing Quest WebXR input",
+    )
+    parser.add_argument("--debug_vr_period", type=float, default=1.0)
     parser.add_argument("--limit_diag_eps", type=float, default=1e-3)
-    parser.add_argument("--g1_style_gains", action="store_true")
+    parser.add_argument(
+        "--g1_official_adapter",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="use the R1-A7 adapter modeled after Unitree G1_29_ArmController target clipping",
+    )
+    parser.add_argument(
+        "--official_ik_target",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="send official G1_29 IK q target directly through the R1-A7 joint mapping, only clipping to R1-A7 limits",
+    )
+    parser.add_argument(
+        "--g1_control_dt",
+        type=float,
+        default=1.0 / 250.0,
+        help="minimum control dt used by the G1-style velocity clip",
+    )
+    parser.add_argument(
+        "--g1_style_gains",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="use Unitree G1-style low/wrist gains for arm joints",
+    )
     parser.add_argument("--g1_style_velocity_clip", action="store_true")
     parser.add_argument(
         "--absolute_ik",
@@ -1227,7 +2192,7 @@ def main() -> int:
     args = build_arg_parser().parse_args()
     print("WARNING: This will publish rt/lowcmd commands to the real R1-A7 dual arms.")
     if args.enable_gripper:
-        print("WARNING: Quest index triggers will also command both real Dex1-1 grippers.")
+        print("WARNING: Quest index triggers will also command both real R1-A7 grippers.")
         print("At the first fresh controller frame, released triggers command the grippers OPEN.")
     print("Keep the emergency stop ready and keep both arm workspaces clear.")
     print("Initial limits are conservative: low gains, low speed, and joint offset clamp.")
@@ -1247,7 +2212,30 @@ def main() -> int:
 
     signal.signal(signal.SIGINT, _handle_signal)
     signal.signal(signal.SIGTERM, _handle_signal)
-    return node.run()
+
+    rc = node.run()
+
+    # B-HOME safety cleanup has already completed inside node.run():
+    #   - active recording stopped
+    #   - D435i recorder stopped
+    #   - gripper controller stopped
+    #   - LowCmd gains released
+    #   - TeleVuer close requested
+    #
+    # TeleVuer/Vuer background threads can keep the Python interpreter alive
+    # even after run() returns.  For the dedicated HOME-request path only,
+    # terminate the VR process immediately so the outer launcher receives
+    # exit code 42 and can hand control to the verified AUTO_HOME V2 process.
+    if rc == 42:
+        print(
+            "[R1-A7 VR G1IK REAL] HOME cleanup finished; "
+            "forcing VR process exit with code 42 for launcher handoff"
+        )
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(42)
+
+    return rc
 
 
 if __name__ == "__main__":

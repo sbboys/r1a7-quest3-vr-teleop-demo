@@ -1,0 +1,175 @@
+
+========================================================================================================
+R1-A7 AUTO-HOME V2.1 ADAPTIVE RECOVERY PRE-FLIGHT
+========================================================================================================
+Lowstate age             : 0.000351s [PASS]
+Max initial |dq|         : 0.007751 rad/s [PASS]
+Current joint limits     : PASS
+HOME joint limits        : PASS
+MotionSwitcher           : PASS
+  status                 : 0
+  result                 : {'form': '0', 'name': ''}
+
+Global HOME error        : 0.283787 rad
+Wrist HOME error         : 0.283787 rad (left_wrist_pitch)
+Arm HOME error           : 0.143205 rad (left_elbow)
+Direct HOME threshold    : 0.350000 rad
+Recovery mode            : DIRECT HOME
+
+
+First-step trajectory preview:
+  FINAL_HOME         duration=10.00s max_delta=0.283787 peak_v=0.053210 peak_a=0.016384 max_step=0.000532
+First-step checks        : PASS
+
+Arm gains:
+  shoulder pitch         : kp=100.0, kd=3.5
+  shoulder roll/yaw/elbow: kp=80.0, kd=3.0
+  wrist pitch            : kp=65.0, kd=2.0
+  wrist roll/yaw         : kp=40.0, kd=1.5
+
+PRE_FLIGHT = PASS
+ROBOT_COMMAND_PUBLISHED = FALSE
+========================================================================================================
+
+========================================================================================================
+REAL ROBOT AUTO-HOME V2.1 ARMED
+========================================================================================================
+Initial global HOME error : 0.283738 rad
+Mode                      : DIRECT HOME
+LowCmd will remain active until completion or abort.
+
+Type RECOVER HOME V2.1 exactly to continue.
+> 
+Starting in 3 seconds...
+3
+2
+1
+
+========================================================================================================
+LOWCMD ZERO-DISPLACEMENT TAKEOVER TEST
+========================================================================================================
+Takeover max drift : 0.001031 rad
+Final max |dq|     : 0.015501 rad/s
+TAKEOVER_TEST = PASS
+========================================================================================================
+
+POST-TAKEOVER V2.1 DECISION
+Global HOME error : 0.283822 rad
+Mode              : DIRECT HOME
+
+========================================================================================================
+TRAJECTORY START: FINAL_HOME
+========================================================================================================
+Duration       : 10.000s
+Max joint delta: 0.283822 rad
+Peak velocity  : 0.053217 rad/s
+Peak accel     : 0.016386 rad/s^2
+[FINAL_HOME] t=0.00/10.00s target_err=0.283822 max|dq|=0.015501
+[FINAL_HOME] t=0.25/10.00s target_err=0.283810 max|dq|=0.015340
+[FINAL_HOME] t=0.50/10.00s target_err=0.283798 max|dq|=0.012272
+[FINAL_HOME] t=0.76/10.00s target_err=0.283607 max|dq|=0.018408
+[FINAL_HOME] t=1.02/10.00s target_err=0.283163 max|dq|=0.030680
+[FINAL_HOME] t=1.28/10.00s target_err=0.282540 max|dq|=0.018408
+[FINAL_HOME] t=1.53/10.00s target_err=0.281569 max|dq|=0.018408
+[FINAL_HOME] t=1.78/10.00s target_err=0.280035 max|dq|=0.015501
+[FINAL_HOME] t=2.03/10.00s target_err=0.278010 max|dq|=0.098175
+[FINAL_HOME] t=2.28/10.00s target_err=0.270688 max|dq|=0.036816
+[FINAL_HOME] t=2.54/10.00s target_err=0.264444 max|dq|=0.031003
+[FINAL_HOME] t=2.79/10.00s target_err=0.256966 max|dq|=0.024544
+[FINAL_HOME] t=3.04/10.00s target_err=0.249056 max|dq|=0.036816
+[FINAL_HOME] t=3.29/10.00s target_err=0.242788 max|dq|=0.036816
+[FINAL_HOME] t=3.55/10.00s target_err=0.235574 max|dq|=0.038753
+[FINAL_HOME] t=3.80/10.00s target_err=0.221840 max|dq|=0.067495
+[FINAL_HOME] t=4.06/10.00s target_err=0.210455 max|dq|=0.061359
+[FINAL_HOME] t=4.31/10.00s target_err=0.193605 max|dq|=0.031003
+[FINAL_HOME] t=4.57/10.00s target_err=0.181897 max|dq|=0.073631
+[FINAL_HOME] t=4.82/10.00s target_err=0.168319 max|dq|=0.055223
+[FINAL_HOME] t=5.08/10.00s target_err=0.155747 max|dq|=0.055223
+[FINAL_HOME] t=5.33/10.00s target_err=0.145441 max|dq|=0.085903
+[FINAL_HOME] t=5.58/10.00s target_err=0.128902 max|dq|=0.079767
+[FINAL_HOME] t=5.84/10.00s target_err=0.112700 max|dq|=0.042951
+[FINAL_HOME] t=6.09/10.00s target_err=0.102909 max|dq|=0.061359
+[FINAL_HOME] t=6.35/10.00s target_err=0.089834 max|dq|=0.036816
+[FINAL_HOME] t=6.60/10.00s target_err=0.080642 max|dq|=0.049087
+[FINAL_HOME] t=6.86/10.00s target_err=0.067555 max|dq|=0.073631
+[FINAL_HOME] t=7.12/10.00s target_err=0.059154 max|dq|=0.067495
+[FINAL_HOME] t=7.38/10.00s target_err=0.046403 max|dq|=0.036816
+[FINAL_HOME] t=7.64/10.00s target_err=0.041465 max|dq|=0.061359
+[FINAL_HOME] t=7.90/10.00s target_err=0.036624 max|dq|=0.030680
+[FINAL_HOME] t=8.15/10.00s target_err=0.034455 max|dq|=0.049087
+[FINAL_HOME] t=8.41/10.00s target_err=0.030524 max|dq|=0.023252
+[FINAL_HOME] t=8.66/10.00s target_err=0.027588 max|dq|=0.042951
+[FINAL_HOME] t=8.91/10.00s target_err=0.026761 max|dq|=0.058291
+[FINAL_HOME] t=9.17/10.00s target_err=0.025994 max|dq|=0.018408
+[FINAL_HOME] t=9.43/10.00s target_err=0.025490 max|dq|=0.024544
+[FINAL_HOME] t=9.68/10.00s target_err=0.025215 max|dq|=0.007751
+[FINAL_HOME] t=9.94/10.00s target_err=0.025083 max|dq|=0.015501
+[FINAL_HOME_hold] max_err=0.025071 best=0.025071 stable=0.00/1.00
+[FINAL_HOME_hold] max_err=0.024999 best=0.024999 stable=0.25/1.00
+[FINAL_HOME_hold] max_err=0.024975 best=0.024975 stable=0.51/1.00
+[FINAL_HOME_hold] max_err=0.024939 best=0.024939 stable=0.76/1.00
+[FINAL_HOME_hold] max_err=0.024927 best=0.024915 stable=1.02/1.00
+[FINAL_HOME_hold] max_err=0.024927 best=0.024915 stable=1.27/1.00
+[FINAL_HOME_hold] max_err=0.024915 best=0.024903 stable=1.53/1.00
+[FINAL_HOME_hold] max_err=0.024915 best=0.024903 stable=1.79/1.00
+[FINAL_HOME_hold] max_err=0.024879 best=0.024879 stable=2.04/1.00
+[FINAL_HOME_hold] max_err=0.024891 best=0.024867 stable=2.29/1.00
+[FINAL_HOME_hold] max_err=0.024891 best=0.024867 stable=2.54/1.00
+[FINAL_HOME_hold] max_err=0.024867 best=0.024867 stable=2.80/1.00
+[FINAL_HOME_hold] max_err=0.024879 best=0.024867 stable=3.05/1.00
+[FINAL_HOME_hold] max_err=0.024879 best=0.024843 stable=3.31/1.00
+[FINAL_HOME_hold] max_err=0.024867 best=0.024843 stable=3.57/1.00
+[FINAL_HOME_hold] max_err=0.024855 best=0.024843 stable=3.82/1.00
+[FINAL_HOME_hold] max_err=0.024867 best=0.024843 stable=4.07/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024831 stable=4.33/1.00
+[FINAL_HOME_hold] max_err=0.024843 best=0.024831 stable=4.59/1.00
+[FINAL_HOME_hold] max_err=0.024843 best=0.024819 stable=4.85/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024819 stable=5.10/1.00
+[FINAL_HOME_hold] max_err=0.024819 best=0.024819 stable=5.35/1.00
+[FINAL_HOME_hold] max_err=0.024843 best=0.024819 stable=5.60/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=5.86/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=6.11/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=6.37/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=6.63/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=6.89/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=7.14/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=7.39/1.00
+[FINAL_HOME_hold] max_err=0.024819 best=0.024795 stable=7.65/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=7.91/1.00
+[FINAL_HOME_hold] max_err=0.024819 best=0.024795 stable=8.16/1.00
+[FINAL_HOME_hold] max_err=0.024819 best=0.024795 stable=8.42/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=8.68/1.00
+[FINAL_HOME_hold] max_err=0.024831 best=0.024795 stable=8.94/1.00
+[FINAL_HOME_hold] max_err=0.024819 best=0.024795 stable=9.20/1.00
+[FINAL_HOME_hold] max_err=0.024807 best=0.024795 stable=9.46/1.00
+[FINAL_HOME_hold] max_err=0.024807 best=0.024795 stable=9.71/1.00
+[FINAL_HOME_hold] max_err=0.024807 best=0.024795 stable=9.97/1.00
+
+========================================================================================================
+FINAL_HOME RESULT
+========================================================================================================
+MAX error      : 0.024807 rad (1.421 deg)
+Worst          : right_wrist_pitch
+Best hold error: 0.024795 rad
+Stable reached : True
+Final max |dq| : 0.007751 rad/s
+
+left_shoulder_pitch          target=-0.094586 final=-0.080402 error=+0.014183
+left_shoulder_roll           target=-0.005776 final=-0.011792 error=-0.006016
+left_shoulder_yaw            target=+0.183094 final=+0.183275 error=+0.000182
+left_elbow                   target=+1.197247 final=+1.195839 error=-0.001408
+left_wrist_roll              target=-0.080065 final=-0.076053 error=+0.004012
+left_wrist_pitch             target=-0.892441 final=-0.905959 error=-0.013518
+left_wrist_yaw               target=-0.177546 final=-0.174862 error=+0.002684
+right_shoulder_pitch         target=-0.161583 final=-0.143913 error=+0.017671
+right_shoulder_roll          target=+0.034586 final=+0.014657 error=-0.019930
+right_shoulder_yaw           target=-0.180944 final=-0.187120 error=-0.006176
+right_elbow                  target=+1.037027 final=+1.032485 error=-0.004541
+right_wrist_roll             target=+0.003240 final=+0.005359 error=+0.002119
+right_wrist_pitch            target=-0.529775 final=-0.554582 error=-0.024807
+right_wrist_yaw              target=+0.114893 final=+0.109907 error=-0.004985
+
+FINAL_HOME = PASS
+AUTO_HOME_READY = PASS
+========================================================================================================
+LowCmd gains released.

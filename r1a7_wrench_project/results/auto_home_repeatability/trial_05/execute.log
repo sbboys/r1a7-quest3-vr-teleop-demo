@@ -1,0 +1,305 @@
+
+====================================================================================================
+R1-A7 SEGMENTED AUTO-HOME PRE-FLIGHT
+====================================================================================================
+Lowstate age        : 0.000637s [PASS]
+Max initial |dq|    : 0.012272 rad/s [PASS]
+Current limits      : PASS
+HOME limits         : PASS
+MotionSwitcher      : PASS
+  status            : 0
+  result            : {'form': '0', 'name': ''}
+Recovery plan       : PASS
+
+Arm gains:
+  shoulder pitch    : 100.0/3.5
+  shoulder/elbow    : 80.0/3.0
+  wrist pitch       : 60.0/2.0
+  wrist roll/yaw    : 40.0/1.5
+
+====================================================================================================
+R1-A7 RECOVERY PLAN
+====================================================================================================
+Current -> HOME max delta : 0.671069 rad
+Direct HOME threshold     : 0.350000 rad
+Recovery mode             : SEGMENTED RECOVERY
+Recovery stage max delta  : 0.200000 rad
+Total segments            : 7
+
+01. WRIST_RECOVERY_01_of_04      max_delta=0.167767 rad duration=6.00s
+02. WRIST_RECOVERY_02_of_04      max_delta=0.167767 rad duration=6.00s
+03. WRIST_RECOVERY_03_of_04      max_delta=0.167767 rad duration=6.00s
+04. WRIST_RECOVERY_04_of_04      max_delta=0.167767 rad duration=6.00s
+05. ARM_RECOVERY_01_of_02        max_delta=0.141222 rad duration=5.00s
+06. ARM_RECOVERY_02_of_02        max_delta=0.141222 rad duration=5.00s
+07. FINAL_HOME                   max_delta=0.000000 rad duration=8.00s
+====================================================================================================
+
+PRE_FLIGHT = PASS
+ROBOT_COMMAND_PUBLISHED = FALSE
+====================================================================================================
+
+====================================================================================================
+R1-A7 RECOVERY PLAN
+====================================================================================================
+Current -> HOME max delta : 0.671057 rad
+Direct HOME threshold     : 0.350000 rad
+Recovery mode             : SEGMENTED RECOVERY
+Recovery stage max delta  : 0.200000 rad
+Total segments            : 7
+
+01. WRIST_RECOVERY_01_of_04      max_delta=0.167764 rad duration=6.00s
+02. WRIST_RECOVERY_02_of_04      max_delta=0.167764 rad duration=6.00s
+03. WRIST_RECOVERY_03_of_04      max_delta=0.167764 rad duration=6.00s
+04. WRIST_RECOVERY_04_of_04      max_delta=0.167764 rad duration=6.00s
+05. ARM_RECOVERY_01_of_02        max_delta=0.141222 rad duration=5.00s
+06. ARM_RECOVERY_02_of_02        max_delta=0.141222 rad duration=5.00s
+07. FINAL_HOME                   max_delta=0.000000 rad duration=8.00s
+====================================================================================================
+
+====================================================================================================
+REAL ROBOT SEGMENTED AUTO-HOME ARMED
+====================================================================================================
+Segments : 7
+LowCmd will remain active across all recovery segments.
+
+Type RECOVER HOME exactly to continue.
+> 
+Starting in 3 seconds...
+3
+2
+1
+
+====================================================================================================
+LOWCMD ZERO-DISPLACEMENT TAKEOVER TEST
+====================================================================================================
+Takeover max drift : 0.000659 rad
+Final max |dq|     : 0.012272
+TAKEOVER_TEST = PASS
+====================================================================================================
+
+POST-TAKEOVER RECOVERY PLAN
+
+====================================================================================================
+R1-A7 RECOVERY PLAN
+====================================================================================================
+Current -> HOME max delta : 0.671320 rad
+Direct HOME threshold     : 0.350000 rad
+Recovery mode             : SEGMENTED RECOVERY
+Recovery stage max delta  : 0.200000 rad
+Total segments            : 7
+
+01. WRIST_RECOVERY_01_of_04      max_delta=0.167830 rad duration=6.00s
+02. WRIST_RECOVERY_02_of_04      max_delta=0.167830 rad duration=6.00s
+03. WRIST_RECOVERY_03_of_04      max_delta=0.167830 rad duration=6.00s
+04. WRIST_RECOVERY_04_of_04      max_delta=0.167830 rad duration=6.00s
+05. ARM_RECOVERY_01_of_02        max_delta=0.141215 rad duration=5.00s
+06. ARM_RECOVERY_02_of_02        max_delta=0.141215 rad duration=5.00s
+07. FINAL_HOME                   max_delta=0.000000 rad duration=8.00s
+====================================================================================================
+
+Executing segment 1/7: WRIST_RECOVERY_01_of_04
+
+====================================================================================================
+SEGMENT START: WRIST_RECOVERY_01_of_04
+====================================================================================================
+Duration       : 6.000s
+Max joint delta: 0.167830 rad
+Peak velocity  : 0.052447 rad/s
+[WRIST_RECOVERY_01_of_04] t=0.00/6.00s target_err=0.167830 max|dq|=0.012272
+[WRIST_RECOVERY_01_of_04] t=0.25/6.00s target_err=0.167878 max|dq|=0.012272
+[WRIST_RECOVERY_01_of_04] t=0.50/6.00s target_err=0.167782 max|dq|=0.015501
+[WRIST_RECOVERY_01_of_04] t=0.76/6.00s target_err=0.167459 max|dq|=0.015340
+[WRIST_RECOVERY_01_of_04] t=1.02/6.00s target_err=0.166704 max|dq|=0.024544
+[WRIST_RECOVERY_01_of_04] t=1.28/6.00s target_err=0.165134 max|dq|=0.021476
+[WRIST_RECOVERY_01_of_04] t=1.54/6.00s target_err=0.160436 max|dq|=0.036816
+[WRIST_RECOVERY_01_of_04] t=1.79/6.00s target_err=0.150597 max|dq|=0.042951
+[WRIST_RECOVERY_01_of_04] t=2.04/6.00s target_err=0.144713 max|dq|=0.018408
+[WRIST_RECOVERY_01_of_04] t=2.30/6.00s target_err=0.135557 max|dq|=0.085903
+[WRIST_RECOVERY_01_of_04] t=2.56/6.00s target_err=0.125897 max|dq|=0.042951
+[WRIST_RECOVERY_01_of_04] t=2.81/6.00s target_err=0.114189 max|dq|=0.128854
+[WRIST_RECOVERY_01_of_04] t=3.07/6.00s target_err=0.102097 max|dq|=0.024544
+[WRIST_RECOVERY_01_of_04] t=3.32/6.00s target_err=0.091443 max|dq|=0.079767
+[WRIST_RECOVERY_01_of_04] t=3.58/6.00s target_err=0.080789 max|dq|=0.036816
+[WRIST_RECOVERY_01_of_04] t=3.84/6.00s target_err=0.064179 max|dq|=0.049087
+[WRIST_RECOVERY_01_of_04] t=4.09/6.00s target_err=0.057252 max|dq|=0.024544
+[WRIST_RECOVERY_01_of_04] t=4.35/6.00s target_err=0.047005 max|dq|=0.024544
+[WRIST_RECOVERY_01_of_04] t=4.61/6.00s target_err=0.039311 max|dq|=0.024544
+[WRIST_RECOVERY_01_of_04] t=4.86/6.00s target_err=0.031611 max|dq|=0.049087
+[WRIST_RECOVERY_01_of_04] t=5.11/6.00s target_err=0.030952 max|dq|=0.024544
+[WRIST_RECOVERY_01_of_04] t=5.36/6.00s target_err=0.030161 max|dq|=0.015340
+[WRIST_RECOVERY_01_of_04] t=5.61/6.00s target_err=0.029478 max|dq|=0.018408
+[WRIST_RECOVERY_01_of_04] t=5.87/6.00s target_err=0.028987 max|dq|=0.012272
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028819 best=0.028819 stable=0.00/0.50
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028591 best=0.028591 stable=0.25/0.50
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028460 best=0.028460 stable=0.50/0.50
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028376 best=0.028364 stable=0.76/0.50
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028304 best=0.028292 stable=1.01/0.50
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028220 best=0.028208 stable=1.26/0.50
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028160 best=0.028160 stable=1.52/0.50
+[WRIST_RECOVERY_01_of_04_hold] max_err=0.028124 best=0.028112 stable=1.78/0.50
+
+WRIST_RECOVERY_01_of_04 RESULT
+Final error   : 0.028076 rad
+Best error    : 0.028076 rad
+Stable reached: True
+WRIST_RECOVERY_01_of_04 = PASS
+====================================================================================================
+
+Executing segment 2/7: WRIST_RECOVERY_02_of_04
+
+====================================================================================================
+SEGMENT START: WRIST_RECOVERY_02_of_04
+====================================================================================================
+Duration       : 6.500s
+Max joint delta: 0.186469 rad
+Peak velocity  : 0.053789 rad/s
+[WRIST_RECOVERY_02_of_04] t=0.00/6.50s target_err=0.186457 max|dq|=0.012272
+[WRIST_RECOVERY_02_of_04] t=0.25/6.50s target_err=0.188770 max|dq|=0.030680
+[WRIST_RECOVERY_02_of_04] t=0.50/6.50s target_err=0.188782 max|dq|=0.018408
+[WRIST_RECOVERY_02_of_04] t=0.75/6.50s target_err=0.188698 max|dq|=0.024544
+[WRIST_RECOVERY_02_of_04] t=1.01/6.50s target_err=0.188050 max|dq|=0.018408
+[WRIST_RECOVERY_02_of_04] t=1.26/6.50s target_err=0.186828 max|dq|=0.018408
+[WRIST_RECOVERY_02_of_04] t=1.51/6.50s target_err=0.184551 max|dq|=0.012272
+[WRIST_RECOVERY_02_of_04] t=1.77/6.50s target_err=0.181196 max|dq|=0.024544
+[WRIST_RECOVERY_02_of_04] t=2.02/6.50s target_err=0.174185 max|dq|=0.098175
+[WRIST_RECOVERY_02_of_04] t=2.27/6.50s target_err=0.164501 max|dq|=0.024544
+[WRIST_RECOVERY_02_of_04] t=2.53/6.50s target_err=0.156220 max|dq|=0.073631
+[WRIST_RECOVERY_02_of_04] t=2.79/6.50s target_err=0.142415 max|dq|=0.042951
+[WRIST_RECOVERY_02_of_04] t=3.05/6.50s target_err=0.133654 max|dq|=0.085903
+[WRIST_RECOVERY_02_of_04] t=3.31/6.50s target_err=0.116229 max|dq|=0.042951
+[WRIST_RECOVERY_02_of_04] t=3.56/6.50s target_err=0.104281 max|dq|=0.061359
+[WRIST_RECOVERY_02_of_04] t=3.82/6.50s target_err=0.095868 max|dq|=0.024544
+[WRIST_RECOVERY_02_of_04] t=4.07/6.50s target_err=0.080804 max|dq|=0.110447
+[WRIST_RECOVERY_02_of_04] t=4.32/6.50s target_err=0.071863 max|dq|=0.030680
+[WRIST_RECOVERY_02_of_04] t=4.58/6.50s target_err=0.060478 max|dq|=0.049087
+[WRIST_RECOVERY_02_of_04] t=4.83/6.50s target_err=0.054522 max|dq|=0.024544
+[WRIST_RECOVERY_02_of_04] t=5.09/6.50s target_err=0.048926 max|dq|=0.018408
+[WRIST_RECOVERY_02_of_04] t=5.35/6.50s target_err=0.043005 max|dq|=0.024544
+[WRIST_RECOVERY_02_of_04] t=5.61/6.50s target_err=0.041088 max|dq|=0.012272
+[WRIST_RECOVERY_02_of_04] t=5.86/6.50s target_err=0.038979 max|dq|=0.009204
+[WRIST_RECOVERY_02_of_04] t=6.11/6.50s target_err=0.037888 max|dq|=0.015340
+[WRIST_RECOVERY_02_of_04] t=6.37/6.50s target_err=0.037457 max|dq|=0.009204
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.037301 best=0.037301 stable=0.00/0.50
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.037109 best=0.037109 stable=0.25/0.50
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.036953 best=0.036953 stable=0.51/0.50
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.036810 best=0.036810 stable=0.76/0.50
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.036702 best=0.036702 stable=1.01/0.50
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.036570 best=0.036570 stable=1.27/0.50
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.036438 best=0.036426 stable=1.52/0.50
+[WRIST_RECOVERY_02_of_04_hold] max_err=0.036366 best=0.036366 stable=1.78/0.50
+
+WRIST_RECOVERY_02_of_04 RESULT
+Final error   : 0.036318 rad
+Best error    : 0.036306 rad
+Stable reached: True
+WRIST_RECOVERY_02_of_04 = PASS
+====================================================================================================
+
+Executing segment 3/7: WRIST_RECOVERY_03_of_04
+
+====================================================================================================
+SEGMENT START: WRIST_RECOVERY_03_of_04
+====================================================================================================
+Duration       : 7.000s
+Max joint delta: 0.196347 rad
+Peak velocity  : 0.052593 rad/s
+[WRIST_RECOVERY_03_of_04] t=0.00/7.00s target_err=0.196335 max|dq|=0.012272
+[WRIST_RECOVERY_03_of_04] t=0.25/7.00s target_err=0.201476 max|dq|=0.015501
+[WRIST_RECOVERY_03_of_04] t=0.51/7.00s target_err=0.201476 max|dq|=0.007751
+[WRIST_RECOVERY_03_of_04] t=0.77/7.00s target_err=0.201416 max|dq|=0.015340
+[WRIST_RECOVERY_03_of_04] t=1.03/7.00s target_err=0.201164 max|dq|=0.024544
+[WRIST_RECOVERY_03_of_04] t=1.29/7.00s target_err=0.200134 max|dq|=0.030680
+[WRIST_RECOVERY_03_of_04] t=1.55/7.00s target_err=0.197581 max|dq|=0.024544
+[WRIST_RECOVERY_03_of_04] t=1.81/7.00s target_err=0.194813 max|dq|=0.012272
+[WRIST_RECOVERY_03_of_04] t=2.06/7.00s target_err=0.186004 max|dq|=0.055223
+[WRIST_RECOVERY_03_of_04] t=2.31/7.00s target_err=0.179617 max|dq|=0.012272
+[WRIST_RECOVERY_03_of_04] t=2.57/7.00s target_err=0.171611 max|dq|=0.073631
+[WRIST_RECOVERY_03_of_04] t=2.82/7.00s target_err=0.157002 max|dq|=0.018408
+[WRIST_RECOVERY_03_of_04] t=3.07/7.00s target_err=0.151118 max|dq|=0.018408
+[WRIST_RECOVERY_03_of_04] t=3.33/7.00s target_err=0.136210 max|dq|=0.018408
+[WRIST_RECOVERY_03_of_04] t=3.58/7.00s target_err=0.126407 max|dq|=0.069756
+[WRIST_RECOVERY_03_of_04] t=3.83/7.00s target_err=0.112673 max|dq|=0.030680
+[WRIST_RECOVERY_03_of_04] t=4.09/7.00s target_err=0.101276 max|dq|=0.098175
+[WRIST_RECOVERY_03_of_04] t=4.34/7.00s target_err=0.087266 max|dq|=0.030680
+[WRIST_RECOVERY_03_of_04] t=4.60/7.00s target_err=0.075462 max|dq|=0.036816
+[WRIST_RECOVERY_03_of_04] t=4.86/7.00s target_err=0.068691 max|dq|=0.018408
+[WRIST_RECOVERY_03_of_04] t=5.12/7.00s target_err=0.062219 max|dq|=0.024544
+[WRIST_RECOVERY_03_of_04] t=5.38/7.00s target_err=0.052949 max|dq|=0.024544
+[WRIST_RECOVERY_03_of_04] t=5.63/7.00s target_err=0.050088 max|dq|=0.012272
+[WRIST_RECOVERY_03_of_04] t=5.89/7.00s target_err=0.048590 max|dq|=0.062005
+[WRIST_RECOVERY_03_of_04] t=6.15/7.00s target_err=0.046705 max|dq|=0.024544
+[WRIST_RECOVERY_03_of_04] t=6.41/7.00s target_err=0.045963 max|dq|=0.024544
+[WRIST_RECOVERY_03_of_04] t=6.67/7.00s target_err=0.045339 max|dq|=0.012272
+[WRIST_RECOVERY_03_of_04] t=6.92/7.00s target_err=0.044644 max|dq|=0.007751
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044432 best=0.044432 stable=0.00/0.50
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044324 best=0.044324 stable=0.25/0.50
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044240 best=0.044240 stable=0.50/0.50
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044168 best=0.044156 stable=0.76/0.50
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044120 best=0.044120 stable=1.01/0.50
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044096 best=0.044084 stable=1.27/0.50
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044060 best=0.044048 stable=1.53/0.50
+[WRIST_RECOVERY_03_of_04_hold] max_err=0.044036 best=0.044024 stable=1.78/0.50
+
+WRIST_RECOVERY_03_of_04 RESULT
+Final error   : 0.044024 rad
+Best error    : 0.044012 rad
+Stable reached: True
+WRIST_RECOVERY_03_of_04 = PASS
+====================================================================================================
+
+Executing segment 4/7: WRIST_RECOVERY_04_of_04
+
+====================================================================================================
+SEGMENT START: WRIST_RECOVERY_04_of_04
+====================================================================================================
+Duration       : 7.000s
+Max joint delta: 0.196182 rad
+Peak velocity  : 0.052549 rad/s
+[WRIST_RECOVERY_04_of_04] t=0.00/7.00s target_err=0.196194 max|dq|=0.024544
+[WRIST_RECOVERY_04_of_04] t=0.25/7.00s target_err=0.199453 max|dq|=0.018408
+[WRIST_RECOVERY_04_of_04] t=0.50/7.00s target_err=0.199477 max|dq|=0.012272
+[WRIST_RECOVERY_04_of_04] t=0.76/7.00s target_err=0.199429 max|dq|=0.024544
+[WRIST_RECOVERY_04_of_04] t=1.01/7.00s target_err=0.199274 max|dq|=0.021476
+[WRIST_RECOVERY_04_of_04] t=1.27/7.00s target_err=0.198962 max|dq|=0.024544
+[WRIST_RECOVERY_04_of_04] t=1.52/7.00s target_err=0.196637 max|dq|=0.012272
+[WRIST_RECOVERY_04_of_04] t=1.78/7.00s target_err=0.193773 max|dq|=0.012272
+[WRIST_RECOVERY_04_of_04] t=2.04/7.00s target_err=0.189578 max|dq|=0.018408
+[WRIST_RECOVERY_04_of_04] t=2.29/7.00s target_err=0.175377 max|dq|=0.061359
+[WRIST_RECOVERY_04_of_04] t=2.54/7.00s target_err=0.168259 max|dq|=0.024544
+[WRIST_RECOVERY_04_of_04] t=2.80/7.00s target_err=0.158623 max|dq|=0.073631
+[WRIST_RECOVERY_04_of_04] t=3.06/7.00s target_err=0.149959 max|dq|=0.042951
+[WRIST_RECOVERY_04_of_04] t=3.31/7.00s target_err=0.136440 max|dq|=0.092039
+[WRIST_RECOVERY_04_of_04] t=3.56/7.00s target_err=0.127788 max|dq|=0.036816
+[WRIST_RECOVERY_04_of_04] t=3.82/7.00s target_err=0.118141 max|dq|=0.067495
+[WRIST_RECOVERY_04_of_04] t=4.07/7.00s target_err=0.104107 max|dq|=0.073631
+[WRIST_RECOVERY_04_of_04] t=4.32/7.00s target_err=0.089306 max|dq|=0.024544
+[WRIST_RECOVERY_04_of_04] t=4.57/7.00s target_err=0.082056 max|dq|=0.038753
+[WRIST_RECOVERY_04_of_04] t=4.83/7.00s target_err=0.073080 max|dq|=0.061359
+[WRIST_RECOVERY_04_of_04] t=5.08/7.00s target_err=0.068981 max|dq|=0.024544
+[WRIST_RECOVERY_04_of_04] t=5.34/7.00s target_err=0.067232 max|dq|=0.055223
+[WRIST_RECOVERY_04_of_04] t=5.60/7.00s target_err=0.066129 max|dq|=0.036816
+[WRIST_RECOVERY_04_of_04] t=5.85/7.00s target_err=0.065674 max|dq|=0.015340
+[WRIST_RECOVERY_04_of_04] t=6.10/7.00s target_err=0.065266 max|dq|=0.024544
+[WRIST_RECOVERY_04_of_04] t=6.36/7.00s target_err=0.065134 max|dq|=0.036816
+[WRIST_RECOVERY_04_of_04] t=6.61/7.00s target_err=0.065098 max|dq|=0.018408
+[WRIST_RECOVERY_04_of_04] t=6.87/7.00s target_err=0.065062 max|dq|=0.018408
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.065050 best=0.065050 stable=0.00/0.50
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.065002 best=0.065002 stable=0.00/0.50
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.064919 best=0.064919 stable=0.00/0.50
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.064799 best=0.064787 stable=0.00/0.50
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.064703 best=0.064703 stable=0.00/0.50
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.064619 best=0.064619 stable=0.00/0.50
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.064355 best=0.064355 stable=0.00/0.50
+[WRIST_RECOVERY_04_of_04_hold] max_err=0.064164 best=0.064164 stable=0.00/0.50
+
+WRIST_RECOVERY_04_of_04 RESULT
+Final error   : 0.064044 rad
+Best error    : 0.064044 rad
+Stable reached: False
+WRIST_RECOVERY_04_of_04 = FAIL
+====================================================================================================
+
+RECOVERY ABORTED
+Failed segment: WRIST_RECOVERY_04_of_04
+LowCmd gains released.
