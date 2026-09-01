@@ -3722,6 +3722,16 @@ def build_parser():
         ),
     )
 
+    p.add_argument(
+        "--hold-left-current",
+        action="store_true",
+        help=(
+            "Replace the left-arm part of all loaded targets with the measured "
+            "current left-arm posture. Use for right-arm-only demonstration "
+            "replay so the left arm does not move back to an unrelated HOME."
+        ),
+    )
+
     return p
 
 
@@ -3890,6 +3900,43 @@ def main():
     )
 
     mover.connect_state_only()
+
+    if args.hold_left_current:
+
+        mover.wait_for_state(
+            3.0
+        )
+
+        q_current, _ = (
+            mover.arm_qdq()
+        )
+
+        if sequence_names:
+
+            sequence_targets = [
+                target.copy()
+                for target in sequence_targets
+            ]
+
+            for target in sequence_targets:
+
+                target[:7] = (
+                    q_current[:7]
+                )
+
+            q_home = (
+                sequence_targets[0]
+            )
+
+        else:
+
+            q_home = (
+                q_home.copy()
+            )
+
+            q_home[:7] = (
+                q_current[:7]
+            )
 
     passed = (
         mover.preflight(

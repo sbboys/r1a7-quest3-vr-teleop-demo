@@ -29,7 +29,7 @@ from typing import Optional
 
 import numpy as np
 
-XR_TELEOP = Path(os.getenv("XR_TELEOP_ROOT", "/home/robot/xr_teleoperate"))
+XR_TELEOP = Path(os.getenv("XR_TELEOP_ROOT", "/home/robot/unitree_sdk2-main_code_only_20260824/xr_teleoperate"))
 XR_TELEOP_TELEOP = XR_TELEOP / "teleop"
 XR_TELEOP_TV_SRC = XR_TELEOP_TELEOP / "televuer" / "src"
 for path in (XR_TELEOP_TV_SRC, XR_TELEOP_TELEOP, XR_TELEOP):

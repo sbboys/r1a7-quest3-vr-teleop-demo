@@ -278,3 +278,7 @@ PYTHONNOUSERSITE=1 /home/robot/miniconda3/envs/tv/bin/python \
 - 加入视觉定位后，把 `GRASP_NEAR_R` 从固定关键帧改为根据扳手位姿偏移。
 - 对右肩 pitch 和右肘进行 payload 条件下的误差统计，决定是否再引入前馈补偿。
 - 将大体积 episode 数据转移到外部数据仓库或 Git LFS，而不是普通 Git。
+
+## 12. 后续记录
+
+- 2026-08-30 至 2026-09-01 的示教抓取、起始姿态对齐和 VR 双臂控制迁移记录见 `docs/r1a7_wrench_teaching_and_vr_transfer_summary_2026-09-01_zh.md`。

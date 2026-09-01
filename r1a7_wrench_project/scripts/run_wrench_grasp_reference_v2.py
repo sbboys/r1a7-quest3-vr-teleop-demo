@@ -15,11 +15,15 @@ ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = ROOT.parent
 
 SEQUENCE = [
+    "TEACH_START_R",
+    "ELBOW_UP_R",
     "ARM_UP_R",
     "PRE_GRASP_HIGH_R",
     "GRASP_NEAR_R",
     "CLOSE_GRIPPER_R",
-    "POST_GRASP_HOLD_R",
+    "POST_GRASP_LIFT_R",
+    "PLACE_DOWN_R",
+    "OPEN_GRIPPER_R",
 ]
 
 
@@ -74,6 +78,9 @@ def run_stage(args: argparse.Namespace, keyframe: str) -> int:
         str(args.hold_time),
         "--home-threshold",
         str(args.stage_threshold),
+        "--state-timeout",
+        str(args.state_timeout),
+        "--hold-left-current",
         "--use-keyframe-gripper",
         "--force-direct",
         "--max-wrist-iterations",
@@ -99,7 +106,7 @@ def run_continuous_sequence(args: argparse.Namespace) -> int:
         args.python_bin,
         str(ROOT / "scripts" / "auto_move_to_keyframe_v2_1.py"),
         "--sequence",
-        ",".join(SEQUENCE),
+        ",".join(SEQUENCE[SEQUENCE.index(args.start_at) :]),
         "--interface",
         args.interface,
         "--keyframes",
@@ -110,6 +117,9 @@ def run_continuous_sequence(args: argparse.Namespace) -> int:
         str(args.hold_time),
         "--home-threshold",
         str(args.stage_threshold),
+        "--state-timeout",
+        str(args.state_timeout),
+        "--hold-left-current",
         "--use-keyframe-gripper",
         "--force-direct",
         "--max-wrist-iterations",
@@ -146,6 +156,7 @@ def main() -> int:
     parser.add_argument("--dry-print", action="store_true")
     parser.add_argument("--max-auto-duration", type=float, default=90.0)
     parser.add_argument("--start-at", choices=SEQUENCE, default=SEQUENCE[0])
+    parser.add_argument("--state-timeout", type=float, default=0.50)
     parser.add_argument("--hold-time", type=float, default=3.0)
     parser.add_argument("--stage-threshold", type=float, default=0.12)
     parser.add_argument("--max-wrist-iterations", type=int, default=16)
@@ -177,10 +188,6 @@ def main() -> int:
         print()
 
     if not args.legacy_subprocess_stages:
-        if args.start_at != SEQUENCE[0]:
-            raise RuntimeError(
-                "--start-at is only supported with --legacy-subprocess-stages"
-            )
         rc = run_continuous_sequence(args)
         if rc != 0:
             print(f"ABORT: continuous sequence exited with code {rc}")
