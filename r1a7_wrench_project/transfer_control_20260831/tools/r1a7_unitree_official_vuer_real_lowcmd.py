@@ -19,6 +19,7 @@ import select
 import signal
 import socket
 import struct
+import subprocess
 import sys
 import threading
 import time
@@ -106,13 +107,33 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--record-root",
         type=Path,
-        default=ROOT / "datasets" / "r1a7_vr_button_records",
+        default=Path("/home/robot/unitree_sim_isaaclab/r1a7_wrench_project/data/episodes"),
     )
     parser.add_argument("--record-episode-id", default="r1a7_vr_001")
+    parser.add_argument("--record-duration-s", type=float, default=60.0)
+    parser.add_argument("--record-d435i", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--d435i-recorder-mode",
+        choices=("opencv", "rs-record"),
+        default="opencv",
+    )
+    parser.add_argument(
+        "--d435i-opencv-script",
+        type=Path,
+        default=Path("/home/robot/unitree_sim_isaaclab/r1a7_wrench_project/scripts/record_d435i_color_depth.py"),
+    )
+    parser.add_argument("--d435i-python-bin", default="/usr/bin/python3")
+    parser.add_argument("--rs-record-bin", default="rs-record")
+    parser.add_argument("--d435i-filename", default="d435i.db3")
     parser.add_argument("--enable-gripper", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--gripper-kp", type=float, default=8.0)
     parser.add_argument("--gripper-kd", type=float, default=1.5)
     parser.add_argument("--gripper-speed", type=float, default=1.5)
+    parser.add_argument("--gripper-contact-hold", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--gripper-contact-error", type=float, default=0.08)
+    parser.add_argument("--gripper-contact-stall-eps", type=float, default=0.004)
+    parser.add_argument("--gripper-contact-stall-time", type=float, default=0.25)
+    parser.add_argument("--gripper-contact-hold-bias", type=float, default=0.035)
     parser.add_argument(
         "--log-file",
         type=Path,
@@ -167,13 +188,34 @@ class ButtonEdge:
 
 
 class SimpleCsvRecorder:
-    def __init__(self, root: Path, episode_id: str):
+    def __init__(
+        self,
+        root: Path,
+        episode_id: str,
+        record_d435i: bool = True,
+        d435i_recorder_mode: str = "opencv",
+        d435i_opencv_script: Path = Path("/home/robot/unitree_sim_isaaclab/r1a7_wrench_project/scripts/record_d435i_color_depth.py"),
+        d435i_python_bin: str = "/usr/bin/python3",
+        rs_record_bin: str = "rs-record",
+        d435i_filename: str = "d435i.db3",
+        record_duration_s: float = 60.0,
+    ):
         self.root = root.expanduser().resolve()
         self.episode_id = episode_id
+        self.record_d435i = bool(record_d435i)
+        self.d435i_recorder_mode = str(d435i_recorder_mode)
+        self.d435i_opencv_script = d435i_opencv_script.expanduser().resolve()
+        self.d435i_python_bin = str(d435i_python_bin)
+        self.rs_record_bin = str(rs_record_bin)
+        self.d435i_filename = str(d435i_filename)
+        self.record_duration_s = max(1.0, float(record_duration_s))
         self.active = False
         self.episode_dir: Optional[Path] = None
         self.file = None
         self.writer: Optional[csv.writer] = None
+        self.d435i_record_process: Optional[subprocess.Popen] = None
+        self.d435i_record_file: Optional[Path] = None
+        self.d435i_record_log_file = None
         self.samples = 0
         self.started_at = 0.0
 
@@ -211,6 +253,14 @@ class SimpleCsvRecorder:
             "mode": "R1A7_ArmIK TeleVuer lowcmd simple csv",
             "episode_id": self.episode_dir.name,
             "created_at_system": time.time(),
+            "recording_mode": "x_toggle_robot_csv_plus_d435i_db3",
+            "record_duration_s": self.record_duration_s,
+            "d435i_record_enabled": self.record_d435i,
+            "d435i_recorder_mode": self.d435i_recorder_mode,
+            "d435i_filename": self.d435i_filename,
+            "d435i_color_video": "d435i_color.mp4",
+            "d435i_depth_preview_video": "d435i_depth_preview.mp4",
+            "note": "X toggles robot CSV and D435i recording together in software; this is not hardware synchronization.",
         }
         (self.episode_dir / "metadata.json").write_text(
             json.dumps(metadata, ensure_ascii=False, indent=2),
@@ -228,6 +278,107 @@ class SimpleCsvRecorder:
         self.samples = 0
         self.started_at = time.monotonic()
         print(f"X RECORD START: {self.episode_dir}", flush=True)
+        self._start_d435i()
+
+    def _start_d435i(self) -> None:
+        if not self.record_d435i or self.episode_dir is None:
+            return
+        self._stop_camera_conflicts()
+        self.d435i_record_file = self.episode_dir / self.d435i_filename
+        log_path = self.episode_dir / "d435i_record.log"
+        try:
+            self.d435i_record_log_file = log_path.open(
+                "w",
+                encoding="utf-8",
+                buffering=1,
+            )
+            if self.d435i_recorder_mode == "opencv":
+                cmd = [
+                    self.d435i_python_bin,
+                    str(self.d435i_opencv_script),
+                    str(self.episode_dir),
+                    "--duration-s",
+                    str(max(1, int(round(self.record_duration_s)))),
+                ]
+            else:
+                cmd = [
+                    self.rs_record_bin,
+                    "-f",
+                    str(self.d435i_record_file),
+                    "-t",
+                    str(max(1, int(round(self.record_duration_s)))),
+                ]
+            camera_env = dict(os.environ)
+            camera_env.pop("PYTHONNOUSERSITE", None)
+            self.d435i_record_process = subprocess.Popen(
+                cmd,
+                stdout=self.d435i_record_log_file,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+                env=camera_env,
+            )
+            print(
+                "D435i RECORD START: "
+                f"pid={self.d435i_record_process.pid} file={self.d435i_record_file}",
+                flush=True,
+            )
+        except Exception as exc:
+            self.d435i_record_process = None
+            if self.d435i_record_log_file is not None:
+                self.d435i_record_log_file.close()
+                self.d435i_record_log_file = None
+            print(
+                "D435i RECORD START FAILED: "
+                f"{type(exc).__name__}: {exc}",
+                flush=True,
+            )
+
+    def _stop_camera_conflicts(self) -> None:
+        patterns = (
+            "realsense-viewer",
+            "test_three_cameras.py",
+            "rs-record",
+        )
+        for pattern in patterns:
+            try:
+                subprocess.run(
+                    ["pkill", "-TERM", "-f", pattern],
+                    check=False,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                pass
+        time.sleep(0.5)
+
+    def _stop_d435i(self) -> None:
+        proc = self.d435i_record_process
+        if proc is None:
+            if self.d435i_record_log_file is not None:
+                self.d435i_record_log_file.close()
+                self.d435i_record_log_file = None
+            return
+        if proc.poll() is None:
+            try:
+                proc.send_signal(signal.SIGINT)
+                proc.wait(timeout=8.0)
+            except subprocess.TimeoutExpired:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=3.0)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait(timeout=2.0)
+        print(
+            "D435i RECORD STOP: "
+            f"returncode={proc.returncode} file={self.d435i_record_file}",
+            flush=True,
+        )
+        self.d435i_record_process = None
+        if self.d435i_record_log_file is not None:
+            self.d435i_record_log_file.flush()
+            self.d435i_record_log_file.close()
+            self.d435i_record_log_file = None
 
     def write(
         self,
@@ -259,9 +410,12 @@ class SimpleCsvRecorder:
             int(bool(getattr(tele, "left_ctrl_aButton", False))),
         ])
         self.samples += 1
+        if self.file is not None:
+            self.file.flush()
 
     def stop(self) -> None:
         if not self.active:
+            self._stop_d435i()
             return
         elapsed = time.monotonic() - self.started_at
         print(
@@ -273,6 +427,7 @@ class SimpleCsvRecorder:
             self.file.flush()
             self.file.close()
         self.file = None
+        self._stop_d435i()
         self.writer = None
 
 
@@ -314,7 +469,7 @@ class StateBuffer:
             self._received_at = time.monotonic()
             self.count += 1
 
-    def snapshot(self) -> Optional[tuple[np.ndarray, np.ndarray, np.ndarray, int, float]]:
+    def snapshot(self) -> Optional[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, int, float]]:
         with self._lock:
             if self._message is None:
                 return None
@@ -331,10 +486,20 @@ class StateBuffer:
                 [message.motor_state[index].dq for index in ARM_INDICES],
                 dtype=float,
             )
+            gripper_q = np.asarray(
+                [message.motor_state[index].q for index in GRIPPER_INDICES],
+                dtype=float,
+            )
+            gripper_dq = np.asarray(
+                [message.motor_state[index].dq for index in GRIPPER_INDICES],
+                dtype=float,
+            )
             return (
                 upper_q,
                 arm_q,
                 arm_dq,
+                gripper_q,
+                gripper_dq,
                 int(message.mode_machine),
                 self._received_at,
             )
@@ -352,6 +517,11 @@ class R1A7LowCmdOutput:
         gripper_kp: float = 8.0,
         gripper_kd: float = 1.5,
         gripper_speed: float = 1.5,
+        gripper_contact_hold: bool = True,
+        gripper_contact_error: float = 0.08,
+        gripper_contact_stall_eps: float = 0.004,
+        gripper_contact_stall_time: float = 0.25,
+        gripper_contact_hold_bias: float = 0.035,
     ):
         self.publisher = publisher
         self.low_cmd_factory = low_cmd_factory
@@ -367,6 +537,15 @@ class R1A7LowCmdOutput:
         self.gripper_max_step = max(0.0, float(gripper_speed)) * self.period
         self.gripper_kp = float(gripper_kp)
         self.gripper_kd = float(gripper_kd)
+        self.gripper_contact_hold = bool(gripper_contact_hold)
+        self.gripper_contact_error = float(gripper_contact_error)
+        self.gripper_contact_stall_eps = float(gripper_contact_stall_eps)
+        self.gripper_contact_stall_time = float(gripper_contact_stall_time)
+        self.gripper_contact_hold_bias = float(gripper_contact_hold_bias)
+        self.gripper_stall_since = np.full(2, np.nan, dtype=float)
+        self.gripper_hold = np.zeros(2, dtype=bool)
+        self.gripper_contact_q = np.full(2, np.nan, dtype=float)
+        self.gripper_prev_state_q: Optional[np.ndarray] = None
         self.mode_machine = 0
         self.enabled = False
         self.stop = threading.Event()
@@ -381,6 +560,10 @@ class R1A7LowCmdOutput:
             self.arm_goal = upper[1:15].copy()
             self.gripper_target = GRIPPER_OPEN_Q.copy()
             self.gripper_goal = GRIPPER_OPEN_Q.copy()
+            self.gripper_stall_since[:] = np.nan
+            self.gripper_hold[:] = False
+            self.gripper_contact_q[:] = np.nan
+            self.gripper_prev_state_q = None
             self.mode_machine = int(mode_machine)
             self.enabled = True
         self.stop.clear()
@@ -416,7 +599,64 @@ class R1A7LowCmdOutput:
         alpha = np.clip((10.0 - np.asarray([left_trigger, right_trigger], dtype=float)) / 10.0, 0.0, 1.0)
         goal = GRIPPER_OPEN_Q + alpha * (GRIPPER_CLOSE_Q - GRIPPER_OPEN_Q)
         with self.lock:
+            opening = goal > self.gripper_goal + 0.02
+            self.gripper_hold[opening] = False
+            self.gripper_stall_since[opening] = np.nan
+            self.gripper_contact_q[opening] = np.nan
             self.gripper_goal = goal.copy()
+
+    def update_gripper_contact(self, gripper_q: np.ndarray, gripper_dq: np.ndarray, now: float) -> None:
+        if not self.enable_gripper or not self.gripper_contact_hold:
+            return
+        q = np.asarray(gripper_q, dtype=float).reshape(2)
+        with self.lock:
+            prev_q = self.gripper_prev_state_q
+            close_dir = np.sign(GRIPPER_CLOSE_Q - GRIPPER_OPEN_Q)
+            for index in range(2):
+                pulled = self.gripper_goal[index] <= (
+                    GRIPPER_OPEN_Q[index]
+                    + 0.15 * (GRIPPER_CLOSE_Q[index] - GRIPPER_OPEN_Q[index])
+                )
+                if not pulled:
+                    self.gripper_stall_since[index] = np.nan
+                    self.gripper_hold[index] = False
+                    self.gripper_contact_q[index] = np.nan
+                    continue
+
+                target_error = abs(self.gripper_goal[index] - q[index])
+                state_delta = (
+                    abs(q[index] - prev_q[index])
+                    if prev_q is not None
+                    else float("inf")
+                )
+                still_blocked = target_error >= self.gripper_contact_error
+                barely_moving = state_delta <= self.gripper_contact_stall_eps
+
+                if self.gripper_hold[index]:
+                    contact_q = self.gripper_contact_q[index]
+                    if not np.isfinite(contact_q):
+                        contact_q = q[index]
+                        self.gripper_contact_q[index] = contact_q
+                elif still_blocked and barely_moving:
+                    if np.isnan(self.gripper_stall_since[index]):
+                        self.gripper_stall_since[index] = now
+                    contact_q = q[index]
+                    if now - self.gripper_stall_since[index] >= self.gripper_contact_stall_time:
+                        self.gripper_hold[index] = True
+                        self.gripper_contact_q[index] = q[index]
+                        contact_q = q[index]
+                else:
+                    self.gripper_stall_since[index] = np.nan
+                    continue
+
+                if self.gripper_hold[index]:
+                    hold_target = contact_q + close_dir[index] * abs(self.gripper_contact_hold_bias)
+                    low = min(GRIPPER_OPEN_Q[index], GRIPPER_CLOSE_Q[index])
+                    high = max(GRIPPER_OPEN_Q[index], GRIPPER_CLOSE_Q[index])
+                    hold_target = float(np.clip(hold_target, low, high))
+                    self.gripper_target[index] = hold_target
+                    self.gripper_goal[index] = hold_target
+            self.gripper_prev_state_q = q.copy()
 
     def _build_message(self):
         message = self.low_cmd_factory()
@@ -570,7 +810,17 @@ def main() -> int:
     guard = acquire_lowcmd_guard(Path(__file__).name, topic=args.command_topic)
     tv = None
     output = None
-    recorder = SimpleCsvRecorder(args.record_root, args.record_episode_id)
+    recorder = SimpleCsvRecorder(
+        args.record_root,
+        args.record_episode_id,
+        record_d435i=args.record_d435i,
+        d435i_recorder_mode=args.d435i_recorder_mode,
+        d435i_opencv_script=args.d435i_opencv_script,
+        d435i_python_bin=args.d435i_python_bin,
+        rs_record_bin=args.rs_record_bin,
+        d435i_filename=args.d435i_filename,
+        record_duration_s=args.record_duration_s,
+    )
     stop = threading.Event()
 
     def request_stop(_signum=None, _frame=None) -> None:
@@ -599,7 +849,7 @@ def main() -> int:
                 "verify robot power, Ethernet connection, DDS domain and topic; "
                 "no command was sent"
             )
-        upper_q, arm_q, _arm_dq, _mode_machine, _received_at = state
+        upper_q, arm_q, _arm_dq, _gripper_q, _gripper_dq, _mode_machine, _received_at = state
         print("Measured R1-A7 arm q:", np.round(arm_q, 4).tolist(), flush=True)
 
         check_debug_mode(MotionSwitcherClient)
@@ -626,13 +876,19 @@ def main() -> int:
             gripper_kp=args.gripper_kp,
             gripper_kd=args.gripper_kd,
             gripper_speed=args.gripper_speed,
+            gripper_contact_hold=args.gripper_contact_hold,
+            gripper_contact_error=args.gripper_contact_error,
+            gripper_contact_stall_eps=args.gripper_contact_stall_eps,
+            gripper_contact_stall_time=args.gripper_contact_stall_time,
+            gripper_contact_hold_bias=args.gripper_contact_hold_bias,
         )
 
         print("WARNING: real R1-A7 debug-mode control on rt/lowcmd.", flush=True)
         if args.enable_gripper:
             print(
                 "Internal DEX1 gripper enabled on LowCmd motors 31/33: "
-                "trigger released=open, trigger pulled=close.",
+                "trigger released=open, trigger pulled=close; "
+                f"contact_hold={args.gripper_contact_hold}.",
                 flush=True,
             )
         print("MuJoCo and rt/arm_sdk are not used.", flush=True)
@@ -694,7 +950,7 @@ def main() -> int:
             if state is None:
                 print("Robot lowstate is unavailable.", flush=True)
                 continue
-            upper_q, arm_q, arm_dq, mode_machine, received_at = state
+            upper_q, arm_q, arm_dq, gripper_q, gripper_dq, mode_machine, received_at = state
             if time.monotonic() - received_at > args.lowstate_timeout:
                 print("Robot lowstate is stale.", flush=True)
                 continue
@@ -744,7 +1000,7 @@ def main() -> int:
             state = state_buffer.snapshot()
             if state is None:
                 raise RuntimeError("robot lowstate disappeared")
-            _upper_q, arm_q, arm_dq, mode_machine, received_at = state
+            _upper_q, arm_q, arm_dq, gripper_q, gripper_dq, mode_machine, received_at = state
             if now - received_at > args.lowstate_timeout:
                 raise RuntimeError(f"robot lowstate stale for {now - received_at:.3f}s")
             if output.error:
@@ -767,6 +1023,7 @@ def main() -> int:
                 float(getattr(tele, "left_ctrl_triggerValue", 10.0)),
                 float(getattr(tele, "right_ctrl_triggerValue", 10.0)),
             )
+            output.update_gripper_contact(gripper_q, gripper_dq, now)
 
             session_active = tele_session_active(tele)
             if not session_active:
@@ -816,6 +1073,7 @@ def main() -> int:
                     sent_arm_q = output.upper_target[1:15].copy()
                     goal_arm_q = output.arm_goal.copy()
                     gripper_q = output.gripper_target.copy()
+                    gripper_hold = output.gripper_hold.copy()
                 print(
                     f"tracking={int(session_active and fresh and tracking_enabled)} "
                     f"enabled={int(tracking_enabled)} solves={solve_count} "
@@ -823,7 +1081,8 @@ def main() -> int:
                     f"{np.max(np.abs(goal_arm_q - arm_q)):.3f}rad "
                     f"sent_state_error={np.max(np.abs(sent_arm_q - arm_q)):.3f}rad "
                     f"published={output.publish_count} "
-                    f"gripper=[{gripper_q[0]:.3f},{gripper_q[1]:.3f}]",
+                    f"gripper=[{gripper_q[0]:.3f},{gripper_q[1]:.3f}] "
+                    f"contact_hold=[{int(gripper_hold[0])},{int(gripper_hold[1])}]",
                     flush=True,
                 )
                 last_print = now

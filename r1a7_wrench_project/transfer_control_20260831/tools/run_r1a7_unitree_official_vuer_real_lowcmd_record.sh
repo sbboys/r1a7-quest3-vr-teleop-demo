@@ -25,7 +25,7 @@ echo "Press right A or left X to start teleoperation and synchronized recording 
 echo "Close the Quest page to stop and save; 3600 seconds is the safety maximum."
 echo "Quest URL: https://${HOST_IP}:8012/?ws=wss://${HOST_IP}:8012"
 
-exec env PYTHONNOUSERSITE=1 AIOHTTP_NOSENDFILE=1 \
+exec env -u PYTHONPATH PYTHONNOUSERSITE=1 AIOHTTP_NOSENDFILE=1 \
   XR_TELEOP_ROOT="/home/robot/R1A7_VR_dual_arm_transfer_20260831_001/robot_dev/xr_teleoperate" \
   "${CONDA}" run --no-capture-output -n tv \
   python -u "${ROOT}/tools/r1a7_unitree_official_vuer_real_lowcmd_record.py" \

@@ -1,0 +1,14 @@
+{
+  "robot": "Unitree R1-A7",
+  "mode": "R1A7_ArmIK TeleVuer lowcmd simple csv",
+  "episode_id": "r1a7_vr_003",
+  "created_at_system": 1788314382.058387,
+  "recording_mode": "x_toggle_robot_csv_plus_d435i_db3",
+  "record_duration_s": 60.0,
+  "d435i_record_enabled": true,
+  "d435i_recorder_mode": "opencv",
+  "d435i_filename": "d435i.db3",
+  "d435i_color_video": "d435i_color.mp4",
+  "d435i_depth_preview_video": "d435i_depth_preview.mp4",
+  "note": "X toggles robot CSV and D435i recording together in software; this is not hardware synchronization."
+}

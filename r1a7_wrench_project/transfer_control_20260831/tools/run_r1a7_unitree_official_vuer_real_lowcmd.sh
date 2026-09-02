@@ -20,7 +20,7 @@ echo "Official default path: TeleVuer controller -> R1A7_ArmIK -> R1 rt/lowcmd"
 echo "Real robot only. MuJoCo and rt/arm_sdk are not used."
 echo "Quest URL: https://${HOST_IP}:8012/?ws=wss://${HOST_IP}:8012"
 
-exec env PYTHONNOUSERSITE=1 AIOHTTP_NOSENDFILE=1 \
+exec env -u PYTHONPATH PYTHONNOUSERSITE=1 AIOHTTP_NOSENDFILE=1 \
   XR_TELEOP_ROOT="/home/robot/R1A7_VR_dual_arm_transfer_20260831_001/robot_dev/xr_teleoperate" \
   "${CONDA}" run --no-capture-output -n tv \
   python -u "${ROOT}/tools/r1a7_unitree_official_vuer_real_lowcmd.py" \
