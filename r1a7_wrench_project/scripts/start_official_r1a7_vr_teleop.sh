@@ -11,6 +11,8 @@ INPUT_MODE="${INPUT_MODE:-controller}"
 DISPLAY_MODE="${DISPLAY_MODE:-pass-through}"
 EE="${EE:-dex1}"
 FREQUENCY="${FREQUENCY:-30}"
+ARM_REFERENCE_MODE="${ARM_REFERENCE_MODE:-fixed_waist}"
+A_TOGGLE_CONTROL="${A_TOGGLE_CONTROL:-1}"
 
 if [[ ! -f "${OFFICIAL_XR_DIR}/teleop/teleop_hand_and_arm.py" ]]; then
   echo "Official xr_teleoperate checkout not found: ${OFFICIAL_XR_DIR}" >&2
@@ -53,9 +55,11 @@ Official R1-A7 VR teleop launch
   input mode:         ${INPUT_MODE}
   display mode:       ${DISPLAY_MODE}
   end effector:       ${EE}
+  arm reference mode: ${ARM_REFERENCE_MODE}
+  A toggle control:   ${A_TOGGLE_CONTROL}
 
 This runs Unitree official xr_teleoperate only.
-After startup, open the Quest browser URL above, enter VR, then press r in this terminal.
+After startup, open the Quest browser URL above, enter VR, then press right controller A to start/pause control.
 Press q in this terminal to exit.
 EOF
 
@@ -72,11 +76,16 @@ cmd=(
   --arm=R1_A7
   --img-server-ip="${IMG_SERVER_IP}"
   --network-interface="${NETWORK_INTERFACE}"
+  --arm-reference-mode="${ARM_REFERENCE_MODE}"
   --frequency="${FREQUENCY}"
 )
 
 if [[ "${EE}" != "none" ]]; then
   cmd+=(--ee="${EE}")
+fi
+
+if [[ "${A_TOGGLE_CONTROL}" != "0" ]]; then
+  cmd+=(--a-toggle-control)
 fi
 
 cd "${OFFICIAL_XR_DIR}/teleop"

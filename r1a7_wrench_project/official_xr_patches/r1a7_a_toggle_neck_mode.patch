@@ -1,0 +1,142 @@
+diff --git a/teleop/teleop_hand_and_arm.py b/teleop/teleop_hand_and_arm.py
+index b33ac81..9fdc987 100644
+--- a/teleop/teleop_hand_and_arm.py
++++ b/teleop/teleop_hand_and_arm.py
+@@ -81,11 +81,15 @@ if __name__ == '__main__':
+     # network parameters
+     parser.add_argument('--img-server-ip', type=str, default='192.168.123.164', help='IP address of image server, used by teleimager and televuer')
+     parser.add_argument('--network-interface', type=str, default=None, help='Network interface for dds communication, e.g., eth0, wlan0. If None, use default interface.')
++    parser.add_argument('--arm-reference-mode', type=str, choices=['head_yaw', 'head_position', 'fixed_waist'], default='head_yaw',
++                        help='Coordinate reference for XR wrist poses. fixed_waist ignores headset pose for neck-hung headset use.')
+     # mode flags
+     parser.add_argument('--motion', action = 'store_true', help = 'Enable motion control mode')
+     parser.add_argument('--headless', action='store_true', help='Enable headless mode (no display)')
+     parser.add_argument('--sim', action = 'store_true', help = 'Enable isaac simulation mode')
+     parser.add_argument('--ipc', action = 'store_true', help = 'Enable IPC server to handle input; otherwise enable sshkeyboard')
++    parser.add_argument('--a-toggle-control', action='store_true',
++                        help='Use the right controller A button to start/pause/resume arm tracking.')
+     # record mode and task info
+     parser.add_argument('--record', action = 'store_true', help = 'Enable data recording mode')
+     parser.add_argument('--task-dir', type = str, default = './utils/data/', help = 'path to save data')
+@@ -135,7 +139,7 @@ if __name__ == '__main__':
+                                      zmq=camera_config['head_camera']['enable_zmq'],
+                                      webrtc=camera_config['head_camera']['enable_webrtc'],
+                                      webrtc_url=f"https://{args.img_server_ip}:{camera_config['head_camera']['webrtc_port']}/offer",
+-                                     arm_reference_mode="head_yaw"
++                                     arm_reference_mode=args.arm_reference_mode
+                                      )
+         
+         # motion mode (G1: Regular mode R1+X, not Running mode R2+A)
+@@ -262,13 +266,19 @@ if __name__ == '__main__':
+                                      rerun_log = not args.headless)
+ 
+         logger_mp.info("----------------------------------------------------------------")
+-        logger_mp.info("🟢  Press [r] to start syncing the robot with your movements.")
++        if args.a_toggle_control:
++            logger_mp.info("🟢  Enter VR, then press the right controller A button to start/pause arm tracking.")
++        else:
++            logger_mp.info("🟢  Press [r] to start syncing the robot with your movements.")
+         if args.record:
+             logger_mp.info("🟡  Press [s] to START or SAVE recording (toggle cycle).")
+         else:
+             logger_mp.info("🔵  Recording is DISABLED (run with --record to enable).")
+         logger_mp.info("🔴  Press [q] to stop and exit the program.")
+         logger_mp.info("⚠️  IMPORTANT: Please keep your distance and stay safe.")
++        if args.a_toggle_control:
++            logger_mp.info("🕹️  Right controller A toggles arm tracking pause/resume.")
++            START = True
+         READY = True                  # now ready to (1) enter START state
+         while not START and not STOP: # wait for start or stop signal.
+             time.sleep(0.033)
+@@ -282,6 +292,13 @@ if __name__ == '__main__':
+         head_img = None
+         left_wrist_img = None
+         right_wrist_img = None
++        arm_tracking_enabled = not args.a_toggle_control
++        prev_right_a_button = False
++        hold_lr_arm_q = None
++        if args.a_toggle_control:
++            hold_lr_arm_q = arm_ctrl.get_current_dual_arm_q()
++            arm_ctrl.ctrl_dual_arm(hold_lr_arm_q, np.zeros_like(hold_lr_arm_q))
++            logger_mp.info("[A-toggle] Arm tracking is PAUSED. Press right controller A to start control.")
+ 
+         # main loop. robot start to follow VR user's motion
+         while not STOP:
+@@ -342,7 +359,19 @@ if __name__ == '__main__':
+             else:
+                 pass
+             with xr_motion_data_ready.get_lock():
+-                xr_motion_data_ready.value = tele_data.motion_data_ready
++                xr_motion_data_ready.value = tele_data.motion_data_ready and arm_tracking_enabled
++
++            if args.a_toggle_control and args.input_mode == "controller":
++                right_a_button = bool(tele_data.right_ctrl_aButton)
++                if right_a_button and not prev_right_a_button:
++                    arm_tracking_enabled = not arm_tracking_enabled
++                    if arm_tracking_enabled:
++                        logger_mp.info("[A-toggle] Arm tracking RESUMED.")
++                    else:
++                        hold_lr_arm_q = arm_ctrl.get_current_dual_arm_q()
++                        arm_ctrl.ctrl_dual_arm(hold_lr_arm_q, np.zeros_like(hold_lr_arm_q))
++                        logger_mp.info("[A-toggle] Arm tracking PAUSED; holding current arm position.")
++                prev_right_a_button = right_a_button
+             
+             # high level control
+             if args.input_mode == "controller" and args.motion:
+@@ -362,6 +391,12 @@ if __name__ == '__main__':
+             current_lr_arm_q  = arm_ctrl.get_current_dual_arm_q()
+             current_lr_arm_dq = arm_ctrl.get_current_dual_arm_dq()
+ 
++            if args.a_toggle_control and not arm_tracking_enabled:
++                if hold_lr_arm_q is not None:
++                    arm_ctrl.ctrl_dual_arm(hold_lr_arm_q, np.zeros_like(hold_lr_arm_q))
++                time.sleep(max(0, (1 / args.frequency) - (time.time() - start_time)))
++                continue
++
+             # solve ik using motor data and wrist pose, then use ik results to control arms.
+             time_ik_start = time.time()
+             sol_q, sol_tauff  = arm_ik.solve_ik(tele_data.left_wrist_pose, tele_data.right_wrist_pose, current_lr_arm_q, current_lr_arm_dq)
+diff --git a/teleop/televuer/src/televuer/tv_wrapper.py b/teleop/televuer/src/televuer/tv_wrapper.py
+index f820f6a..32357d5 100644
+--- a/teleop/televuer/src/televuer/tv_wrapper.py
++++ b/teleop/televuer/src/televuer/tv_wrapper.py
+@@ -109,8 +109,12 @@ def transform_IPunitree_Brobot_world_arm_to_head_then_waist(IPunitree_Brobot_wor
+         R_Brobot_world_head_yaw = get_Brobot_world_head_yaw_rot(Brobot_world_head[:3, :3])
+         IPunitree_Brobot_head_arm[:3, :3] = R_Brobot_world_head_yaw.T @ IPunitree_Brobot_world_arm[:3, :3]
+         IPunitree_Brobot_head_arm[:3, 3] = R_Brobot_world_head_yaw.T @ (IPunitree_Brobot_world_arm[:3, 3] - Brobot_world_head[:3, 3])
+-    else:
++    elif arm_reference_mode == "head_position":
+         IPunitree_Brobot_head_arm[:3, 3] = IPunitree_Brobot_world_arm[:3, 3] - Brobot_world_head[:3, 3]
++    elif arm_reference_mode == "fixed_waist":
++        pass
++    else:
++        raise ValueError(f"Unknown arm_reference_mode: {arm_reference_mode}")
+ 
+     # Translate the origin of IPunitree_Brobot_head_arm from HEAD to WAIST.
+     IPunitree_Brobot_waist_arm = IPunitree_Brobot_head_arm.copy()
+@@ -229,7 +233,7 @@ class TeleVuerWrapper:
+     def __init__(self, use_hand_tracking: bool, binocular: bool=True, img_shape: tuple=(480, 1280), display_fps: float=30.0,
+                        display_mode: Literal["immersive", "pass-through", "ego"]="immersive", zmq: bool=False, webrtc: bool=False, webrtc_url: str=None, 
+                        cert_file: str=None, key_file: str=None, return_hand_rot_data: bool=False,
+-                       arm_reference_mode: Literal["head_position", "head_yaw"]="head_yaw"):
++                       arm_reference_mode: Literal["head_position", "head_yaw", "fixed_waist"]="head_yaw"):
+         """
+         TeleVuerWrapper is a wrapper for the TeleVuer class, which handles XR device's data suit for robot control.
+         It initializes the TeleVuer instance with the specified parameters and provides a method to get motion state data.
+@@ -248,6 +252,7 @@ class TeleVuerWrapper:
+         :param arm_reference_mode: str, controls how wrist poses are expressed for IK.
+             * "head_position": transfer from WORLD to HEAD with translation adjustment only.
+             * "head_yaw": default mode; transfer from WORLD to HEAD with R_Brobot_world_head_yaw^T, ignoring pitch/roll.
++            * "fixed_waist": ignore head pose and use the XR world frame as the waist reference.
+ 
+         Note:
+ 
+@@ -272,7 +277,7 @@ class TeleVuerWrapper:
+         """
+         if display_mode not in ("immersive", "pass-through", "ego"):
+             raise ValueError(f"[TeleVuerWrapper] Unknown display_mode: {display_mode}")
+-        if arm_reference_mode not in ("head_position", "head_yaw"):
++        if arm_reference_mode not in ("head_position", "head_yaw", "fixed_waist"):
+             raise ValueError(f"[TeleVuerWrapper] Unknown arm_reference_mode: {arm_reference_mode}")
+         self.use_hand_tracking = use_hand_tracking
+         self.return_hand_rot_data = return_hand_rot_data
