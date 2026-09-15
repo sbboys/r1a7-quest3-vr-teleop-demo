@@ -1,0 +1,50 @@
+task:
+  name: r1a7_thread_tweezer_v1
+  date_created: "2026-09-10"
+  objective: "Use gripper-driven tweezers to grasp a thin wire and insert it through a hole."
+
+stages:
+  - id: bind_tweezer
+    goal: "Rigidly mount tweezers on the right gripper."
+    success:
+      - "No slip across repeated open-close cycles."
+      - "No collision in the expected workspace."
+    learning_data: false
+
+  - id: calibrate_opening
+    goal: "Measure command_norm to tweezer tip gap."
+    success:
+      - "Safe open and close command limits are known."
+      - "A wire-holding close command is identified."
+    learning_data: false
+
+  - id: grasp_wire_v1
+    goal: "Manually grasp and hold the wire endpoint with VR or hand controller."
+    success:
+      - "Wire remains held during a small lift or translation."
+      - "Right wrist camera clearly sees the tweezer tip and wire endpoint."
+    learning_data: "pilot only after calibration passes"
+
+  - id: align_wire_to_hole_v1
+    goal: "Move the grasped wire endpoint to the hole entrance."
+    success:
+      - "Endpoint reaches the pre-insertion pose without losing the wire."
+      - "Top or wrist camera can judge endpoint-to-hole offset."
+    learning_data: "after grasp_wire_v1 is repeatable"
+
+  - id: thread_wire_v1
+    goal: "Insert the wire endpoint through the hole."
+    success:
+      - "Wire passes through the hole by a recorded minimum length."
+      - "Failure frames and commands are recorded for diagnosis."
+    learning_data: "only after manual success is repeatable"
+
+project_boundaries:
+  modify_allowed:
+    - "r1a7_threading_project/**"
+    - "new threading-only scripts copied from verified control paths"
+  avoid_modifying:
+    - "r1a7_wrench_project/**"
+    - "existing tv and aloha conda environments unless cloned first"
+    - "shared lowcmd control code without a threading-specific wrapper"
+

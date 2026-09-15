@@ -1,0 +1,49 @@
+# Camera roles for the threading project.
+# This starts from the previously verified R1-A7 three-camera layout, but it is
+# owned by the threading project so later changes do not alter wrench configs.
+
+cameras:
+  top:
+    enabled: true
+    driver: realsense
+    model: Intel RealSense D435i
+    serial_number: "109622072668"
+    color:
+      width: 640
+      height: 480
+      fps: 30
+    depth:
+      enabled: false
+    threading_role: "hole and workspace overview"
+
+  left_wrist:
+    enabled: true
+    driver: orbbec
+    model: Orbbec Gemini 336L
+    serial_number: "CPCBC530007Z"
+    color:
+      width: 640
+      height: 480
+      fps: 30
+    depth:
+      enabled: false
+    threading_role: "secondary tool and wire context"
+
+  right_wrist:
+    enabled: true
+    driver: orbbec
+    model: Orbbec Gemini 336L
+    serial_number: "CPCBC53000C5"
+    color:
+      width: 640
+      height: 480
+      fps: 30
+    depth:
+      enabled: false
+    threading_role: "primary tweezer tip and wire endpoint view"
+
+visual_setup_requirements:
+  - "Use high-contrast background during first wire tests."
+  - "Check whether the wire endpoint is visible in right_wrist before collecting learning data."
+  - "Record lighting, wire color, hole diameter, and camera exposure in each trial note."
+

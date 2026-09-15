@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-09-11T14:06:06+0800",
+  "mode": "relative_from_contact",
+  "right_gripper_index": 33,
+  "baseline_q": 0.16993427276611328,
+  "relative_offsets_q": [
+    0.0
+  ],
+  "state_topic": "rt/lowstate",
+  "command_topic": "rt/lowcmd",
+  "interface": "enp6s0"
+}

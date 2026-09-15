@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-11T14:13:56+0800",
+  "received_at_unix": 1789107236.4937909,
+  "state_topic": "rt/lowstate",
+  "left_index": 31,
+  "right_index": 33,
+  "left_q": 8.106231689453125e-06,
+  "left_dq": -0.006872234400361776,
+  "right_q": 0.1619110107421875,
+  "right_dq": 0.0009817477548494935
+}

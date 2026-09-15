@@ -1,0 +1,67 @@
+# R1-A7 right gripper to tweezer calibration.
+# Date: 2026-09-10
+#
+# Semantics remain consistent with the previous R1-A7 ACT data convention:
+# normalized openness 1.0 = open, 0.0 = close.
+#
+# Do not treat the values below as final robot-safe commands. They are initial
+# conservative placeholders for bench calibration with the tweezers mounted.
+
+robot:
+  platform: unitree_r1_a7
+  dds_state_topic: rt/lowstate
+  dds_command_topic: rt/lowcmd
+
+tool:
+  name: tweezer_for_thin_wire_threading
+  mounted_on: right_dex1_gripper
+  gripper_motor_index: 33
+  mounting_status: pending
+  notes:
+    - "Bind tweezers rigidly to the right gripper before motor tests."
+    - "Confirm the tweezers cannot slide, rotate, or collide with the wrist camera."
+
+gripper_raw_reference:
+  right_open_q: 4.80
+  right_close_q: -0.20
+  source: "previous R1-A7 DEX1 normalization record; verify again after tweezer binding"
+
+tweezer_command_limits:
+  initial_open_norm: 0.65
+  initial_close_norm: 0.20
+  minimum_step_norm: 0.05
+  max_gripper_speed_norm_per_s: 0.20
+  allow_full_close: false
+  allow_full_open: false
+  calibration_mode: relative_from_contact
+  contact_baseline_definition: "current gripper state where the gripper has just contacted the tweezer but has not visibly closed it"
+
+trigger_mapping:
+  action_open: 1.0
+  action_close: 0.0
+  note: "For learning data, trigger labels should still describe operator intent, not contact-held motor position."
+
+bench_calibration_table:
+  columns:
+    - trial_id
+    - command_norm
+    - relative_close_step
+    - measured_gripper_q
+    - tweezer_tip_gap_mm
+    - wire_diameter_mm
+    - can_hold_wire
+    - wire_damage
+    - tweezer_slip
+    - observation
+  rows: []
+
+acceptance_criteria:
+  mechanical_binding:
+    - "No visible tweezer slip during 20 open-close cycles."
+    - "No collision with wrist shell, camera, cable, or tabletop."
+  calibration:
+    - "If direct gap measurement is unavailable, record the current contact baseline and use relative close steps."
+    - "One conservative relative close step can hold the wire without damaging it."
+  readiness_for_vr_trial:
+    - "Open and close commands are bounded by measured safe limits."
+    - "Operator can recover to open state quickly."
