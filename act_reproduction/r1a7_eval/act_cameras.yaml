@@ -1,0 +1,82 @@
+dataset:
+  name: r1a7_act_wrench_v1
+  frequency_hz: 30
+
+cameras:
+
+  top:
+    role: top
+    driver: realsense
+    model: Intel RealSense D435i
+    serial_number: "109622072668"
+
+    color:
+      enabled: true
+      width: 640
+      height: 480
+      fps: 30
+      format: BGR8
+
+    depth:
+      enabled: true
+      width: 640
+      height: 480
+      fps: 30
+      format: Z16
+
+
+  left_wrist:
+    role: left_wrist
+    driver: orbbec
+    model: Orbbec Gemini 336L
+    serial_number: "CPCBC530007Z"
+
+    color:
+      enabled: true
+      width: 640
+      height: 480
+      fps: 30
+      format: MJPG
+
+    depth:
+      enabled: true
+      width: 640
+      height: 480
+      fps: 30
+      format: Y16
+
+
+  right_wrist:
+    role: right_wrist
+    driver: orbbec
+    model: Orbbec Gemini 336L
+    serial_number: "CPCBC53000C5"
+
+    color:
+      enabled: true
+      width: 640
+      height: 480
+      fps: 30
+      format: MJPG
+
+    depth:
+      enabled: true
+      width: 640
+      height: 480
+      fps: 30
+      format: Y16
+
+
+recording:
+  warmup_s: 2.0
+
+  timestamps:
+    save_host_monotonic: true
+    save_device_timestamp: true
+
+  color:
+    training_use: true
+
+  depth:
+    training_use_v1: false
+    preserve_raw_uint16: true
