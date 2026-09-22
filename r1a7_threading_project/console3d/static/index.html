@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>R1-A7 双臂机器人控制系统</title>
+  <link rel="stylesheet" href="/static/styles.css?v=20260917-forward-up">
+  <script type="importmap">
+    {"imports":{"three":"/static/vendor/three/three.module.js","three/addons/":"/static/vendor/three/addons/","three/examples/jsm/":"/static/vendor/three/addons/"}}
+  </script>
+</head>
+<body>
+  <main>
+    <section id="model-rail" aria-label="数字孪生与运行状态">
+      <section id="viewport" aria-label="R1-A7 三维空间">
+        <div class="view-bar">
+          <div><strong>R1-A7</strong><span>实时三维状态</span></div>
+          <div class="view-actions">
+            <button id="reset-view" title="复位三维视角">复位视角</button>
+            <button id="toggle-grid" title="显示或隐藏网格">网格</button>
+          </div>
+        </div>
+        <div id="canvas-wrap"></div>
+        <div class="axis-legend"><span class="x">X 前</span><span class="y">Y 左</span><span class="z">Z 上</span></div>
+      </section>
+      <div class="telemetry-strip">
+        <span>控制模式 <b id="control-mode">--</b></span>
+        <span>实际末端 <b id="actual-xyz">--</b></span>
+        <span>目标末端 <b id="command-xyz">--</b></span>
+        <span>跟踪误差 <b id="lag">--</b></span>
+        <span>姿态误差 <b id="orientation-error">--</b></span>
+        <span>指令速度 <b id="command-speed">--</b></span>
+        <span>构型条件 <b id="jacobian-condition">--</b></span>
+      </div>
+      <section class="log-panel panel rail-log">
+        <div class="log-title"><h2>系统日志</h2><button id="clear-log">清除</button></div>
+        <pre id="logs"></pre>
+      </section>
+    </section>
+
+    <aside id="control-panel">
+      <header>
+        <div><h1>R1-A7 双臂机器人控制台</h1><p>设备控制与状态监视</p></div>
+        <span id="state" data-state="stopped">系统待机</span>
+      </header>
+
+      <div class="control-grid">
+        <section class="connection-panel panel" aria-label="通信与控制参数">
+          <h2>通信与控制参数</h2>
+          <div class="settings">
+            <label>通信网卡<input id="interface" value="enp6s0"></label>
+            <label>控制端 IP<input id="host-ip" value="192.168.123.223"></label>
+            <label>平面步长 (mm)<input id="xy-step" type="number" min="0.5" max="10" step="0.5" value="5"></label>
+            <label>垂直步长 (mm)<input id="z-step" type="number" min="0.5" max="5" step="0.5" value="2"></label>
+            <label>关节步长 (°)<input id="joint-step" type="number" min="0.1" max="2" step="0.1" value="0.5"></label>
+            <label>夹爪速度 (q/s)<input id="gripper-speed" type="number" min="0.1" max="2" step="0.1" value="0.6"></label>
+            <label>末端速度 (mm/s)<input id="cartesian-speed" type="number" min="1" max="12" step="1" value="8"></label>
+            <label>末端加速度 (mm/s²)<input id="cartesian-accel" type="number" min="5" max="40" step="5" value="20"></label>
+            <label>右臂重力补偿<input id="gravity-ff-scale" type="number" min="0" max="1" step="0.1" value="0"></label>
+            <label>关节连动周期 (ms)<input id="repeat-ms" type="number" min="120" max="1000" step="20" value="250"></label>
+          </div>
+          <div class="session-actions">
+            <button id="start" class="primary">连接机器人</button>
+            <button id="enable" disabled>授权控制</button>
+            <button id="stop" class="danger" disabled>断开连接</button>
+          </div>
+        </section>
+
+        <section class="motion-panel panel" aria-label="末端位置控制">
+          <h2>末端位置控制</h2>
+          <div class="jog">
+            <div class="plane-label">水平面 X / Y</div>
+            <button data-command="w" class="forward"><span>↑</span>前 +X</button>
+            <button data-command="a" class="left"><span>←</span>左 +Y</button>
+            <button data-command="d" class="right"><span>→</span>右 -Y</button>
+            <button data-command="s" class="back"><span>↓</span>后 -X</button>
+            <div class="vertical-label">高度 Z</div>
+            <button data-command="u" class="up"><span>↑</span>上 +Z</button>
+            <button data-command="j" class="down"><span>↓</span>下 -Z</button>
+          </div>
+          <div class="utility-actions">
+            <button data-command="h">复位姿态</button>
+            <button data-command="i" title="短按执行一次 +X+Z 耦合点动；长按连续向前上方移动">前上方 +X+Z</button>
+          </div>
+        </section>
+
+      <section class="gripper-control panel" aria-label="末端执行器控制">
+        <h2>末端执行器</h2>
+        <div class="gripper-columns"><span>执行器</span><span>实际 / 目标</span><span>操作</span></div>
+        <div class="gripper-row">
+          <span class="gripper-name">左夹爪<small id="gripper-state-0">--</small></span>
+          <span class="gripper-value"><b id="gripper-actual-0">--</b><small id="gripper-goal-0">--</small></span>
+          <div class="gripper-actions">
+            <button data-gripper-command="gripper:left:open" title="左夹爪张开">张开</button>
+            <button data-gripper-command="gripper:left:hold" title="左夹爪立即保持当前位置">保持</button>
+            <button data-gripper-command="gripper:left:close" title="左夹爪闭合">闭合</button>
+          </div>
+        </div>
+        <div class="gripper-row">
+          <span class="gripper-name">右夹爪/镊子<small id="gripper-state-1">--</small></span>
+          <span class="gripper-value"><b id="gripper-actual-1">--</b><small id="gripper-goal-1">--</small></span>
+          <div class="gripper-actions">
+            <button data-gripper-command="gripper:right:open" title="右夹爪带动镊子张开">张开</button>
+            <button data-gripper-command="gripper:right:hold" title="右夹爪立即保持当前位置">保持</button>
+            <button data-gripper-command="gripper:right:close" title="右夹爪带动镊子闭合">闭合</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="joint-control panel" aria-label="关节独立控制">
+        <div class="joint-control-title">
+          <h2>关节独立控制</h2>
+          <div class="arm-tabs" role="tablist" aria-label="选择手臂">
+            <button id="arm-left" data-arm="left" role="tab" aria-selected="false">左臂</button>
+            <button id="arm-right" data-arm="right" role="tab" aria-selected="true" class="selected">右臂</button>
+          </div>
+        </div>
+        <div class="joint-columns"><span>关节</span><span>当前 / 目标</span><span>减小</span><span>增大</span></div>
+        <div id="joint-jog-list"></div>
+      </section>
+
+      </div>
+    </aside>
+  </main>
+  <script type="module" src="/static/app.js?v=20260917-layer-sync"></script>
+</body>
+</html>
