@@ -1,0 +1,32 @@
+{
+  "calibration_file": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/handeye/r1a7_right_wrist_handeye.json",
+  "T_ee_camera": [
+    [
+      -0.03634692049605781,
+      -0.09140200692091188,
+      0.9951505285640373,
+      0.0516946371331181
+    ],
+    [
+      -0.9993336889506754,
+      7.531623145706767e-06,
+      -0.036499014664909735,
+      0.02421532728256329
+    ],
+    [
+      0.0033285880922542255,
+      -0.9958140755553238,
+      -0.09134137850507773,
+      0.07600111913180706
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "reference_T_base_board": null,
+  "samples": [],
+  "summary": null
+}

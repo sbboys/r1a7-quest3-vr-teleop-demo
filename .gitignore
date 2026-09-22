@@ -1,127 +1,41 @@
-# ================================
-# Python
-# ================================
-*/__pycache__
-*/__pycache__/
-__pycache__
-__pycache__
+# Generated Python files
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# ================================
-# env
-# ================================
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-conda-meta/
-
-# ================================
-# IDE 
-# ================================
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-
-# ================================
-# Jupyter Notebook
-# ================================
-.ipynb_checkpoints
-*.ipynb
-
-# ================================
-# 日志文件
-# ================================
+# Local runtime state and recordings
+r1a7_threading_project/data/*
 *.log
-logs/
-log/
 
-# ================================
-# 仿真和机器人相关
-# ================================
-# Isaac Lab 相关
-.isaac/
-isaac-sim/
-kit/
-logs/
-videos/
-screenshots/
-*.usda
+# Historical local backups are kept on the workstation, not in the project snapshot.
+*.bak*
+*.backup*
 
+# Codex local metadata
+.codex-build/
+.codex-finalizer/
 
-# ROS 相关（如果使用）
-devel/
-build/
-install/
-.catkin_workspace
-*.pyc
+# Runtime logs and transient visual debug captures
+r1a7_threading_project/Log/
 
-# Gazebo 相关
-*.world~
-models/
+# Historical local experiment copies. The active implementation and frozen
+# calibration results remain tracked; these copies stay on the workstation.
+*.before_*
+*.baseline_*
+*.virtual_*
+*.failed_*
+*.broken_*
+*before*
+*legacy*
+*_backup*
+*_legacy_*
 
-
-
-
-# ================================
-# 缓存和临时文件
-# ================================
-.cache/
-.tmp/
-tmp/
-temp/
-*.tmp
-*.temp
-*.bak
-*.backup
-*.old
-
-
-
-
-
-# ================================
-# Git 相关
-# ================================
-*.orig
-*.rej
-
-
-data.*
-data/
-
-assets/
-assets.*
-assets
-
-${data}
-*.etli
+# Accidental top-level Python probe/module artifacts
+/casadi
+/logging_mp
+/mg
+/np
+/os
+/pickle
+/pin
+/sys
+/time

@@ -1,0 +1,456 @@
+{
+  "camera": {
+    "name": "USB ZOOM Camera",
+    "serial": "20685204b12d5283",
+    "device_at_calibration": "/dev/video14"
+  },
+  "stream": {
+    "width": 1280,
+    "height": 720,
+    "pixel_format": "MJPG",
+    "fps": 30
+  },
+  "lens_settings": {
+    "zoom_absolute": 0,
+    "focus_automatic_continuous": 0,
+    "focus_absolute": 220
+  },
+  "board": {
+    "type": "ChArUco",
+    "dictionary": "DICT_5X5_100",
+    "squares_x": 6,
+    "squares_y": 8,
+    "square_length_m": 0.03,
+    "marker_length_m": 0.022,
+    "internal_charuco_corners": 35
+  },
+  "calibration": {
+    "rms_reprojection_error_px": 0.3515792944723287,
+    "camera_matrix": [
+      [
+        1252.0063229787888,
+        0.0,
+        701.6727681727671
+      ],
+      [
+        0.0,
+        1241.7504509786818,
+        318.2750970106271
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "dist_coeffs": [
+      -0.31471622037484653,
+      0.32084432704180277,
+      0.002305528742228122,
+      0.0044796592682293315,
+      -0.24435636813376474
+    ],
+    "fx": 1252.0063229787888,
+    "fy": 1241.7504509786818,
+    "cx": 701.6727681727671,
+    "cy": 318.2750970106271,
+    "image_width": 1280,
+    "image_height": 720,
+    "images_found": 43,
+    "usable_views": 43
+  },
+  "used_images": [
+    {
+      "image": "charuco_001.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_002.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_003.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_004.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_005.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_006.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_007.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_008.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_009.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_010.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_011.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_012.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_013.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_014.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_015.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_016.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_017.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_018.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_019.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_020.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_021.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_022.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_023.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_024.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_025.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_026.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_027.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_028.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_029.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_030.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_031.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_032.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_033.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_034.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_035.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_036.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_037.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_038.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_039.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_040.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_041.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_042.png",
+      "charuco_corners": 35
+    },
+    {
+      "image": "charuco_043.png",
+      "charuco_corners": 35
+    }
+  ],
+  "generated_at": "2026-09-20T16:48:28",
+  "per_view_reprojection_errors": [
+    {
+      "image": "charuco_001.png",
+      "charuco_corners": 35,
+      "error_px": 0.2987876536783106
+    },
+    {
+      "image": "charuco_002.png",
+      "charuco_corners": 35,
+      "error_px": 0.3163201998249822
+    },
+    {
+      "image": "charuco_003.png",
+      "charuco_corners": 35,
+      "error_px": 0.31403149740550484
+    },
+    {
+      "image": "charuco_004.png",
+      "charuco_corners": 35,
+      "error_px": 0.30363139019194013
+    },
+    {
+      "image": "charuco_005.png",
+      "charuco_corners": 35,
+      "error_px": 0.4661540721220771
+    },
+    {
+      "image": "charuco_006.png",
+      "charuco_corners": 35,
+      "error_px": 0.2805724414897344
+    },
+    {
+      "image": "charuco_007.png",
+      "charuco_corners": 35,
+      "error_px": 0.2792296085386305
+    },
+    {
+      "image": "charuco_008.png",
+      "charuco_corners": 35,
+      "error_px": 0.3064619580940142
+    },
+    {
+      "image": "charuco_009.png",
+      "charuco_corners": 35,
+      "error_px": 0.28982093179034074
+    },
+    {
+      "image": "charuco_010.png",
+      "charuco_corners": 35,
+      "error_px": 0.29587185146333755
+    },
+    {
+      "image": "charuco_011.png",
+      "charuco_corners": 35,
+      "error_px": 0.34976256602008327
+    },
+    {
+      "image": "charuco_012.png",
+      "charuco_corners": 35,
+      "error_px": 0.3193146479565555
+    },
+    {
+      "image": "charuco_013.png",
+      "charuco_corners": 35,
+      "error_px": 0.3297282914201391
+    },
+    {
+      "image": "charuco_014.png",
+      "charuco_corners": 35,
+      "error_px": 0.342852271398573
+    },
+    {
+      "image": "charuco_015.png",
+      "charuco_corners": 35,
+      "error_px": 0.34387488733519206
+    },
+    {
+      "image": "charuco_016.png",
+      "charuco_corners": 35,
+      "error_px": 0.30587611206748433
+    },
+    {
+      "image": "charuco_017.png",
+      "charuco_corners": 35,
+      "error_px": 0.36349036007155505
+    },
+    {
+      "image": "charuco_018.png",
+      "charuco_corners": 35,
+      "error_px": 0.3270692383436666
+    },
+    {
+      "image": "charuco_019.png",
+      "charuco_corners": 35,
+      "error_px": 0.33206612204492475
+    },
+    {
+      "image": "charuco_020.png",
+      "charuco_corners": 35,
+      "error_px": 0.3251934215439509
+    },
+    {
+      "image": "charuco_021.png",
+      "charuco_corners": 35,
+      "error_px": 0.34812305260401327
+    },
+    {
+      "image": "charuco_022.png",
+      "charuco_corners": 35,
+      "error_px": 0.4896488163338863
+    },
+    {
+      "image": "charuco_023.png",
+      "charuco_corners": 35,
+      "error_px": 0.29244489278545266
+    },
+    {
+      "image": "charuco_024.png",
+      "charuco_corners": 35,
+      "error_px": 0.3518880866750807
+    },
+    {
+      "image": "charuco_025.png",
+      "charuco_corners": 35,
+      "error_px": 0.32317899011663037
+    },
+    {
+      "image": "charuco_026.png",
+      "charuco_corners": 35,
+      "error_px": 0.31003385597940514
+    },
+    {
+      "image": "charuco_027.png",
+      "charuco_corners": 35,
+      "error_px": 0.32243876305600977
+    },
+    {
+      "image": "charuco_028.png",
+      "charuco_corners": 35,
+      "error_px": 0.3323517318462869
+    },
+    {
+      "image": "charuco_029.png",
+      "charuco_corners": 35,
+      "error_px": 0.3274520552210202
+    },
+    {
+      "image": "charuco_030.png",
+      "charuco_corners": 35,
+      "error_px": 0.29745441428844893
+    },
+    {
+      "image": "charuco_031.png",
+      "charuco_corners": 35,
+      "error_px": 0.32546554852171644
+    },
+    {
+      "image": "charuco_032.png",
+      "charuco_corners": 35,
+      "error_px": 0.3496839952337685
+    },
+    {
+      "image": "charuco_033.png",
+      "charuco_corners": 35,
+      "error_px": 0.32966610188863454
+    },
+    {
+      "image": "charuco_034.png",
+      "charuco_corners": 35,
+      "error_px": 0.35134699232072747
+    },
+    {
+      "image": "charuco_035.png",
+      "charuco_corners": 35,
+      "error_px": 0.3308529249697848
+    },
+    {
+      "image": "charuco_036.png",
+      "charuco_corners": 35,
+      "error_px": 0.3750988476837253
+    },
+    {
+      "image": "charuco_037.png",
+      "charuco_corners": 35,
+      "error_px": 0.3418012242575658
+    },
+    {
+      "image": "charuco_038.png",
+      "charuco_corners": 35,
+      "error_px": 0.44017333190208746
+    },
+    {
+      "image": "charuco_039.png",
+      "charuco_corners": 35,
+      "error_px": 0.3425476214538976
+    },
+    {
+      "image": "charuco_040.png",
+      "charuco_corners": 35,
+      "error_px": 0.537575190835956
+    },
+    {
+      "image": "charuco_041.png",
+      "charuco_corners": 35,
+      "error_px": 0.4648042398580128
+    },
+    {
+      "image": "charuco_042.png",
+      "charuco_corners": 35,
+      "error_px": 0.4933060060326039
+    },
+    {
+      "image": "charuco_043.png",
+      "charuco_corners": 35,
+      "error_px": 0.33208882892019187
+    }
+  ],
+  "per_view_error_mean_px": 0.34650081478106753,
+  "per_view_error_max_px": 0.537575190835956
+}

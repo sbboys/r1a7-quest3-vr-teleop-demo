@@ -1,0 +1,48 @@
+{
+  "robot": "Unitree R1-A7",
+  "tool_side": "right",
+  "ee_frame": "R_ee",
+  "ee_definition": {
+    "parent_joint": "right_wrist_yaw_joint",
+    "local_translation_m": [
+      0.05,
+      0.0,
+      0.0
+    ]
+  },
+  "tcp_definition": {
+    "name": "P_tip",
+    "meaning": "tool working point expressed in R_ee coordinates"
+  },
+  "P_tip_ee_m": [
+    0.10480489598898014,
+    0.0016062716284654388,
+    0.10545927354691631
+  ],
+  "P_tip_ee_mm": [
+    104.80489598898015,
+    1.6062716284654388,
+    105.45927354691631
+  ],
+  "P_tip_norm_mm": 148.68861660816097,
+  "calibration_pivot_base_m": [
+    0.40038033039536036,
+    -0.1040717158759734,
+    -0.04746772065584351
+  ],
+  "calibration_pivot_base_mm": [
+    400.3803303953604,
+    -104.0717158759734,
+    -47.46772065584351
+  ],
+  "sample_count": 20,
+  "validation": {
+    "full_position_rms_mm": 4.771347753343647,
+    "full_position_max_mm": 8.835868161028671,
+    "loo_position_rms_mm": 5.127296766598176,
+    "loo_position_max_mm": 9.333590843667059,
+    "loo_p_tip_shift_rms_mm": 0.431344421344647,
+    "loo_p_tip_shift_max_mm": 0.8509706223720886
+  },
+  "status": "accepted_for_independent_geometric_validation"
+}
