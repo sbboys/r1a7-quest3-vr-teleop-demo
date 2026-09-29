@@ -1,0 +1,41 @@
+# -*- coding: utf-8 -*-
+"""Isaac Lab configuration for the final R1-A7 + dual Dex1 USD."""
+
+from copy import deepcopy
+
+from isaaclab.actuators import ImplicitActuatorCfg
+
+from robots.a7 import A7_CFG
+
+
+R1_A7_DEX1_USD_PATH = (
+    "/home/robot/IsaacLab/bolt_nut_assembly/g1_dex1_r1.usd"
+)
+
+# Preserve robots/a7.py as the reusable 17-DoF base configuration.
+A7_DEX1_CFG = deepcopy(A7_CFG)
+A7_DEX1_CFG.spawn.usd_path = R1_A7_DEX1_USD_PATH
+
+# The supplied gripper URDF uses q=-0.020 m as the open state.
+# Increasing q moves the fingers toward the closing direction.
+A7_DEX1_CFG.init_state.joint_pos.update(
+    {
+        "left_dex1_Joint1_1": -0.020,
+        "right_dex1_Joint1_1": -0.020,
+    }
+)
+
+# Only the master joint on each gripper is driven. The second slider must
+# remain a mimic/dependent joint in the imported USD.
+A7_DEX1_CFG.actuators["dex1_grippers"] = ImplicitActuatorCfg(
+    joint_names_expr=[
+        "left_dex1_Joint1_1",
+        "right_dex1_Joint1_1",
+    ],
+    effort_limit=20.0,
+    velocity_limit=0.2,
+    stiffness=220.0,
+    damping=12.0,
+    armature=0.001,
+    friction=0.05,
+)

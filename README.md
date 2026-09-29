@@ -14,6 +14,8 @@ This repository is a multi-project R1-A7 engineering workbench. Start with the p
 - [Project index](PROJECT_INDEX.md)
 - [Branch catalog](BRANCH_CATALOG.md)
 - [Repository management and data policy](docs/repository_management_zh.md)
+- [Unified project entry points](projects/README.md)
+- [Unified source matrix](docs/unified_source_matrix_zh.md)
 - [Interactive code architecture report](r1a7_threading_project/docs/r1a7_threading_code_architecture_report_2026-09-29.html)
 
 ## Important Notes First

@@ -17,6 +17,8 @@
 - [GitHub 分支目录表](BRANCH_CATALOG.md)
 - [仓库审查与数据管理方案](docs/repository_management_zh.md)
 - [交互式代码架构解析报告](r1a7_threading_project/docs/r1a7_threading_code_architecture_report_2026-09-29.html)
+- [统一项目分类入口](projects/README.md)
+- [统一仓库来源矩阵](docs/unified_source_matrix_zh.md)
 
 ## 重要事情提前说
 - R1-A7 真实机器人 Gemini 相机控制右臂与 Dex1_1 夹爪的完整操作、换电脑接回通信、夹爪/手臂故障恢复流程见：[R1-A7 Gemini 相机控制右臂与 Dex1_1 夹爪操作手册](docs/r1a7_camera_arm_gripper_runbook_zh.md)

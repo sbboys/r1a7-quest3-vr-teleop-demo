@@ -2,6 +2,8 @@
 
 本仓库包含 R1-A7 机器人仿真、VR 遥操作、手臂控制台、细线穿孔、视觉伺服、ACT 复现和扳手任务等多个阶段性项目。
 
+统一项目入口位于 [`projects/`](projects/README.md)，来源和合并关系见 [`docs/unified_source_matrix_zh.md`](docs/unified_source_matrix_zh.md)。
+
 ## 使用规则
 
 - `main` 只保留可公开说明和基础演示入口，不作为日常实验分支。
@@ -40,4 +42,3 @@
 2. 再阅读 `BRANCH_CATALOG.md`，确认代码所在分支和状态。
 3. 再进入项目 README，确认环境、硬件、启动命令和安全要求。
 4. 最后查看实验记录，不把实验记录中的临时命令当作稳定入口。
-

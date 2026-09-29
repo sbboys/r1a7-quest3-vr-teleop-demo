@@ -1,0 +1,47 @@
+# -*- coding: utf-8 -*-
+"""Isaac Lab config for R1-A7 + dual Dex1 with explicit two-slider drives.
+
+The imported USD currently exposes 21 joints, so both physical sliders of each
+Dex1 must have actuators.  The task controller synchronizes each pair from one
+logical gripper scalar, preserving 19 logical control DoF.
+"""
+
+from copy import deepcopy
+
+from isaaclab.actuators import ImplicitActuatorCfg
+
+from robots.a7 import A7_CFG
+
+
+R1_A7_DEX1_USD_PATH = (
+    "/home/robot/IsaacLab/bolt_nut_assembly/g1_dex1_r1.usd"
+)
+
+A7_DEX1_CFG = deepcopy(A7_CFG)
+A7_DEX1_CFG.spawn.usd_path = R1_A7_DEX1_USD_PATH
+
+A7_DEX1_CFG.init_state.joint_pos.update(
+    {
+        "left_dex1_Joint1_1": -0.020,
+        "left_dex1_Joint2_1": -0.020,
+        "right_dex1_Joint1_1": -0.020,
+        "right_dex1_Joint2_1": -0.020,
+    }
+)
+
+# Important: the runtime log shows all four slider joints as independent joints.
+# Therefore every slider must belong to an actuator group.
+A7_DEX1_CFG.actuators["dex1_grippers"] = ImplicitActuatorCfg(
+    joint_names_expr=[
+        "left_dex1_Joint1_1",
+        "left_dex1_Joint2_1",
+        "right_dex1_Joint1_1",
+        "right_dex1_Joint2_1",
+    ],
+    effort_limit=20.0,
+    velocity_limit=0.2,
+    stiffness=300.0,
+    damping=18.0,
+    armature=0.001,
+    friction=0.05,
+)

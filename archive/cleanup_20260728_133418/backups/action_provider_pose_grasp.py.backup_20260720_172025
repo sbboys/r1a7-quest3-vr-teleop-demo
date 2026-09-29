@@ -1,0 +1,621 @@
+# -*- coding: utf-8 -*-
+"""R1-A7 + dual Dex1 cylinder-grasp controller for Isaac Lab.
+
+The controller uses the cylinder ground-truth pose only for the first physical
+validation of the robot, gripper, collision, and IK chain.  After this works,
+replace ``_object_pose_w()`` with a camera-based pose estimate.
+
+State machine:
+    WAIT -> OPEN -> PREGRASP -> APPROACH -> CLOSE -> LIFT -> HOLD
+
+The left arm is used because the default cylinder scene places the object on
+that side.  The approach direction is computed from the robot base toward the
+object, so no fixed world-space cylinder coordinates are required.
+"""
+
+from __future__ import annotations
+
+from typing import Optional
+
+import torch
+
+from action_provider.action_base import ActionProvider
+from isaaclab.controllers import DifferentialIKController
+from isaaclab.controllers import DifferentialIKControllerCfg
+from isaaclab.utils.math import subtract_frame_transforms
+
+
+class PoseGraspActionProvider(ActionProvider):
+    # ------------------------------------------------------------------
+    # R1-A7 left-arm joint chain
+    # ------------------------------------------------------------------
+    ARM_JOINT_NAMES = [
+        "left_shoulder_pitch_joint",
+        "left_shoulder_roll_joint",
+        "left_shoulder_yaw_joint",
+        "left_elbow_joint",
+        "left_wrist_roll_joint",
+        "left_wrist_pitch_joint",
+        "left_wrist_yaw_joint",
+    ]
+
+    # The URDF importer may merge fixed links.  Use the first body that exists.
+    EE_BODY_CANDIDATES = (
+        "left_grasp_center",
+        "left_dex1_base_link",
+        "left_wrist_yaw_link",
+    )
+
+    LEFT_GRIPPER_MASTER = "left_dex1_Joint1_1"
+    LEFT_GRIPPER_SLAVE = "left_dex1_Joint2_1"
+    RIGHT_GRIPPER_MASTER = "right_dex1_Joint1_1"
+    RIGHT_GRIPPER_SLAVE = "right_dex1_Joint2_1"
+
+    # ------------------------------------------------------------------
+    # Gripper calibration.  The supplied URDF uses increasing q to close.
+    # Start conservatively; do not command the hard upper limit immediately.
+    # ------------------------------------------------------------------
+    GRIPPER_OPEN = -0.018
+    GRIPPER_CLOSE = 0.018
+
+    # ------------------------------------------------------------------
+    # Waypoint geometry in the robot-base frame, unit: metre.
+    # PREGRASP_DISTANCE and APPROACH_DISTANCE are measured from the cylinder
+    # toward the robot base along the horizontal direction.
+    # ------------------------------------------------------------------
+    PREGRASP_DISTANCE = 0.16
+    PREGRASP_Z_OFFSET = 0.03
+    APPROACH_DISTANCE = 0.045
+    APPROACH_Z_OFFSET = 0.0
+    GRASP_STANDOFF = 0.005
+    GRASP_Z_OFFSET = 0.0
+    LIFT_HEIGHT = 0.12
+
+    # Motion limits and state thresholds.
+    MAX_JOINT_STEP = 0.006
+    PREGRASP_TOL = 0.015
+    APPROACH_TOL = 0.010
+    LIFT_TOL = 0.015
+    STABLE_STEPS = 20
+
+    WAIT_TIME = 1.0
+    OPEN_TIME = 1.0
+    CLOSE_TIME = 2.0
+    HOLD_TIME = 8.0
+    PREGRASP_TIMEOUT = 12.0
+    APPROACH_TIMEOUT = 10.0
+    LIFT_TIMEOUT = 10.0
+
+    def __init__(self, env, args_cli):
+        super().__init__("R1A7Dex1CylinderGrasp")
+
+        self.env = env
+        self.args_cli = args_cli
+        self.robot = env.scene["robot"]
+        self.object = env.scene["object"]
+        self.device = env.device
+        self.num_envs = env.num_envs
+
+        if self.num_envs != 1:
+            raise RuntimeError(
+                "This validation controller requires num_envs=1, got "
+                f"{self.num_envs}."
+            )
+
+        self.joint_names = list(self.robot.joint_names)
+        self.body_names = list(self.robot.body_names)
+
+        missing_arm = [
+            name for name in self.ARM_JOINT_NAMES
+            if name not in self.joint_names
+        ]
+        if missing_arm:
+            raise RuntimeError(
+                "The final USD does not contain the required left-arm joints: "
+                f"{missing_arm}\nLoaded joints: {self.joint_names}"
+            )
+
+        self.arm_ids = [
+            self.joint_names.index(name)
+            for name in self.ARM_JOINT_NAMES
+        ]
+
+        self.ee_body_name = next(
+            (
+                name for name in self.EE_BODY_CANDIDATES
+                if name in self.body_names
+            ),
+            None,
+        )
+        if self.ee_body_name is None:
+            raise RuntimeError(
+                "No usable left end-effector body was found. Tried "
+                f"{self.EE_BODY_CANDIDATES}.\nLoaded bodies: {self.body_names}"
+            )
+
+        self.ee_body_id = self.body_names.index(self.ee_body_name)
+        self.ee_jacobian_id = (
+            self.ee_body_id - 1
+            if self.robot.is_fixed_base
+            else self.ee_body_id
+        )
+
+        self.left_master_id = self._optional_joint_id(
+            self.LEFT_GRIPPER_MASTER
+        )
+        self.left_slave_id = self._optional_joint_id(
+            self.LEFT_GRIPPER_SLAVE
+        )
+        self.right_master_id = self._optional_joint_id(
+            self.RIGHT_GRIPPER_MASTER
+        )
+        self.right_slave_id = self._optional_joint_id(
+            self.RIGHT_GRIPPER_SLAVE
+        )
+
+        if self.left_master_id is None:
+            raise RuntimeError(
+                "The left Dex1 master joint is missing: "
+                f"{self.LEFT_GRIPPER_MASTER}.\n"
+                f"Loaded joints: {self.joint_names}"
+            )
+
+        self.default_joint_pos = self.robot.data.default_joint_pos.clone()
+        self.home_joint_pos = self.robot.data.joint_pos.clone()
+
+        # Hold the right gripper open during the left-arm task.
+        self.gripper_target = self.GRIPPER_OPEN
+        self._write_gripper_target(
+            self.home_joint_pos,
+            left=self.GRIPPER_OPEN,
+            right=self.GRIPPER_OPEN,
+        )
+
+        ik_cfg = DifferentialIKControllerCfg(
+            command_type="pose",
+            use_relative_mode=False,
+            ik_method="dls",
+            ik_params={"lambda_val": 0.08},
+        )
+        self.ik = DifferentialIKController(
+            ik_cfg,
+            num_envs=self.num_envs,
+            device=self.device,
+        )
+
+        # Use simulation time rather than wall-clock time.  This is robust to
+        # slow rendering and pauses in the Isaac Sim UI.
+        self.control_dt = float(
+            getattr(
+                env,
+                "step_dt",
+                float(env.cfg.sim.dt) * int(env.cfg.decimation),
+            )
+        )
+
+        self.initialized = False
+        self.init_wait_steps = max(5, int(0.25 / self.control_dt))
+        self.step_count = 0
+        self.state = "BOOT"
+        self.state_elapsed = 0.0
+        self.stable_count = 0
+        self.target_pose = None
+        self.last_log_time = -1.0
+
+        self.initial_ee_pose_b = None
+        self.initial_object_pose_w = None
+        self.pregrasp_pose = None
+        self.approach_pose = None
+        self.grasp_pose = None
+        self.lift_pose = None
+
+        print("\n" + "=" * 84)
+        print("[R1-A7 GRASP] controller constructed")
+        print("[R1-A7 GRASP] robot joint count:", len(self.joint_names))
+        print("[R1-A7 GRASP] action-manager dimension:", self._action_dim())
+        print("[R1-A7 GRASP] EE body:", self.ee_body_name)
+        print("[R1-A7 GRASP] arm ids:", self.arm_ids)
+        print(
+            "[R1-A7 GRASP] gripper ids:",
+            {
+                "left_master": self.left_master_id,
+                "left_slave": self.left_slave_id,
+                "right_master": self.right_master_id,
+                "right_slave": self.right_slave_id,
+            },
+        )
+        print("[R1-A7 GRASP] waiting for valid simulation poses ...")
+        print("=" * 84 + "\n")
+
+    # ------------------------------------------------------------------
+    # Isaac Lab state helpers
+    # ------------------------------------------------------------------
+    def _optional_joint_id(self, name: str) -> int | None:
+        try:
+            return self.joint_names.index(name)
+        except ValueError:
+            return None
+
+    def _action_dim(self):
+        manager = getattr(self.env, "action_manager", None)
+        if manager is None:
+            return None
+        for name in ("total_action_dim", "action_dim"):
+            if hasattr(manager, name):
+                return getattr(manager, name)
+        return None
+
+    def _root_pose_w(self) -> torch.Tensor:
+        data = self.robot.data
+        if hasattr(data, "root_link_pose_w"):
+            return data.root_link_pose_w
+        if hasattr(data, "root_pose_w"):
+            return data.root_pose_w
+        return data.root_state_w[:, 0:7]
+
+    def _body_pose_w(self) -> torch.Tensor:
+        data = self.robot.data
+        if hasattr(data, "body_link_pose_w"):
+            return data.body_link_pose_w
+        if hasattr(data, "body_pose_w"):
+            return data.body_pose_w
+        return data.body_state_w[:, :, 0:7]
+
+    def _object_pose_w(self) -> torch.Tensor:
+        data = self.object.data
+        if hasattr(data, "root_link_pose_w"):
+            return data.root_link_pose_w
+        if hasattr(data, "root_pose_w"):
+            return data.root_pose_w
+        return data.root_state_w[:, 0:7]
+
+    def _ee_pose_b(self):
+        root = self._root_pose_w()
+        ee = self._body_pose_w()[:, self.ee_body_id, :]
+        return subtract_frame_transforms(
+            root[:, 0:3],
+            root[:, 3:7],
+            ee[:, 0:3],
+            ee[:, 3:7],
+        )
+
+    def _object_pose_b(self):
+        root = self._root_pose_w()
+        obj = self._object_pose_w()
+        return subtract_frame_transforms(
+            root[:, 0:3],
+            root[:, 3:7],
+            obj[:, 0:3],
+            obj[:, 3:7],
+        )
+
+    def _jacobian(self) -> torch.Tensor:
+        view = (
+            self.robot.root_view
+            if hasattr(self.robot, "root_view")
+            else self.robot.root_physx_view
+        )
+        jacobians = view.get_jacobians()
+        return jacobians[
+            :,
+            self.ee_jacobian_id,
+            :,
+            self.arm_ids,
+        ]
+
+    # ------------------------------------------------------------------
+    # Gripper command helper.  A single scalar controls each gripper.  When
+    # slave joints are still visible as independent USD joints, they receive
+    # the same target; when mimic is active, this remains consistent.
+    # ------------------------------------------------------------------
+    def _write_gripper_target(
+        self,
+        desired: torch.Tensor,
+        *,
+        left: float,
+        right: float,
+    ) -> None:
+        for joint_id in (self.left_master_id, self.left_slave_id):
+            if joint_id is not None:
+                desired[:, joint_id] = left
+        for joint_id in (self.right_master_id, self.right_slave_id):
+            if joint_id is not None:
+                desired[:, joint_id] = right
+
+    # ------------------------------------------------------------------
+    # Waypoint creation
+    # ------------------------------------------------------------------
+    def _initialize_waypoints(self) -> None:
+        ee_pos_b, ee_quat_b = self._ee_pose_b()
+        object_pos_b, _ = self._object_pose_b()
+
+        if not torch.isfinite(ee_pos_b).all():
+            raise RuntimeError("EE pose contains NaN/Inf; USD articulation is invalid.")
+        if not torch.isfinite(object_pos_b).all():
+            raise RuntimeError("Cylinder pose contains NaN/Inf.")
+
+        direction_xy = object_pos_b[:, 0:2].clone()
+        distance_xy = torch.linalg.norm(
+            direction_xy,
+            dim=-1,
+            keepdim=True,
+        ).clamp_min(1.0e-6)
+        direction_xy = direction_xy / distance_xy
+
+        pregrasp_pos = object_pos_b.clone()
+        pregrasp_pos[:, 0:2] -= (
+            direction_xy * self.PREGRASP_DISTANCE
+        )
+        pregrasp_pos[:, 2] += self.PREGRASP_Z_OFFSET
+
+        approach_pos = object_pos_b.clone()
+        approach_pos[:, 0:2] -= (
+            direction_xy * self.APPROACH_DISTANCE
+        )
+        approach_pos[:, 2] += self.APPROACH_Z_OFFSET
+
+        grasp_pos = object_pos_b.clone()
+        grasp_pos[:, 0:2] -= direction_xy * self.GRASP_STANDOFF
+        grasp_pos[:, 2] += self.GRASP_Z_OFFSET
+
+        lift_pos = grasp_pos.clone()
+        lift_pos[:, 2] += self.LIFT_HEIGHT
+
+        # Keep the initial gripper orientation for the first controlled test.
+        # If the fingers are not aligned with the cylinder, calibrate the grasp
+        # frame in the URDF/USD instead of hiding the error in world coordinates.
+        target_quat = ee_quat_b.clone()
+
+        self.initial_ee_pose_b = torch.cat(
+            (ee_pos_b.clone(), ee_quat_b.clone()),
+            dim=-1,
+        )
+        self.initial_object_pose_w = self._object_pose_w().clone()
+        self.pregrasp_pose = torch.cat((pregrasp_pos, target_quat), dim=-1)
+        self.approach_pose = torch.cat((approach_pos, target_quat), dim=-1)
+        self.grasp_pose = torch.cat((grasp_pos, target_quat), dim=-1)
+        self.lift_pose = torch.cat((lift_pos, target_quat), dim=-1)
+
+        self.initialized = True
+        self._set_state("WAIT", self.initial_ee_pose_b)
+
+        root = self._root_pose_w()[0]
+        obj_w = self._object_pose_w()[0]
+        obj_b = object_pos_b[0]
+        ee_w = self._body_pose_w()[0, self.ee_body_id]
+        ee_b = ee_pos_b[0]
+        horizontal = float(distance_xy[0, 0].item())
+        ee_to_object = float(
+            torch.linalg.norm(object_pos_b - ee_pos_b, dim=-1)[0].item()
+        )
+
+        print("\n" + "=" * 84)
+        print("[R1-A7 GRASP] pose calibration")
+        print("[R1-A7 GRASP] robot root W xyz/quat:", root.tolist())
+        print("[R1-A7 GRASP] cylinder W xyz/quat:", obj_w.tolist())
+        print("[R1-A7 GRASP] cylinder B xyz:", obj_b.tolist())
+        print("[R1-A7 GRASP] EE W xyz/quat:", ee_w.tolist())
+        print("[R1-A7 GRASP] EE B xyz:", ee_b.tolist())
+        print("[R1-A7 GRASP] base-object horizontal distance:", horizontal)
+        print("[R1-A7 GRASP] EE-object distance:", ee_to_object)
+        print("[R1-A7 GRASP] pregrasp B xyz:", pregrasp_pos[0].tolist())
+        print("[R1-A7 GRASP] approach B xyz:", approach_pos[0].tolist())
+        print("[R1-A7 GRASP] grasp B xyz:", grasp_pos[0].tolist())
+        print("[R1-A7 GRASP] lift B xyz:", lift_pos[0].tolist())
+        if horizontal < 0.20 or horizontal > 0.65:
+            print(
+                "[R1-A7 GRASP][WARNING] cylinder is likely outside the "
+                "recommended horizontal workspace (0.20-0.65 m). "
+                "Adjust A7_TABLE_OFFSET_X/Y before grasping."
+            )
+        print("=" * 84 + "\n")
+
+    # ------------------------------------------------------------------
+    # State machine
+    # ------------------------------------------------------------------
+    def _set_state(self, state: str, pose: torch.Tensor) -> None:
+        self.state = state
+        self.state_elapsed = 0.0
+        self.stable_count = 0
+        self.target_pose = pose.clone()
+        self.ik.set_command(self.target_pose)
+        print(f"[R1-A7 GRASP] >>> {state}")
+
+    def _fail(self, reason: str) -> None:
+        self.state = "FAIL"
+        self.state_elapsed = 0.0
+        self.stable_count = 0
+        print(f"[R1-A7 GRASP][FAIL] {reason}")
+
+    def _update_state(self, position_error: float) -> None:
+        if self.state == "WAIT":
+            if self.state_elapsed >= self.WAIT_TIME:
+                self.gripper_target = self.GRIPPER_OPEN
+                self._set_state("OPEN", self.initial_ee_pose_b)
+
+        elif self.state == "OPEN":
+            if self.state_elapsed >= self.OPEN_TIME:
+                self._set_state("PREGRASP", self.pregrasp_pose)
+
+        elif self.state == "PREGRASP":
+            if position_error < self.PREGRASP_TOL:
+                self.stable_count += 1
+            else:
+                self.stable_count = 0
+            if self.stable_count >= self.STABLE_STEPS:
+                self._set_state("APPROACH", self.approach_pose)
+            elif self.state_elapsed >= self.PREGRASP_TIMEOUT:
+                self._fail(
+                    f"PREGRASP timeout, position error={position_error:.4f} m"
+                )
+
+        elif self.state == "APPROACH":
+            if position_error < self.APPROACH_TOL:
+                self.stable_count += 1
+            else:
+                self.stable_count = 0
+            if self.stable_count >= self.STABLE_STEPS:
+                self.gripper_target = self.GRIPPER_CLOSE
+                self._set_state("CLOSE", self.grasp_pose)
+            elif self.state_elapsed >= self.APPROACH_TIMEOUT:
+                self._fail(
+                    f"APPROACH timeout, position error={position_error:.4f} m"
+                )
+
+        elif self.state == "CLOSE":
+            if self.state_elapsed >= self.CLOSE_TIME:
+                self._set_state("LIFT", self.lift_pose)
+
+        elif self.state == "LIFT":
+            if position_error < self.LIFT_TOL:
+                self.stable_count += 1
+            else:
+                self.stable_count = 0
+            if self.stable_count >= self.STABLE_STEPS:
+                self._set_state("HOLD", self.lift_pose)
+            elif self.state_elapsed >= self.LIFT_TIMEOUT:
+                self._fail(
+                    f"LIFT timeout, position error={position_error:.4f} m"
+                )
+
+        elif self.state == "HOLD":
+            # Keep holding so the user can inspect contacts and object motion.
+            if self.state_elapsed >= self.HOLD_TIME:
+                self.state_elapsed = 0.0
+                object_lift = self._object_lift_height()
+                if object_lift >= 0.03:
+                    print(
+                        "[R1-A7 GRASP][SUCCESS] cylinder lift height="
+                        f"{object_lift:.4f} m"
+                    )
+                else:
+                    print(
+                        "[R1-A7 GRASP][WARNING] arm reached the lift pose, "
+                        "but cylinder lift height is only "
+                        f"{object_lift:.4f} m. Check gripper collision, "
+                        "closing value, friction, and grasp-center offset."
+                    )
+
+    def _object_lift_height(self) -> float:
+        if self.initial_object_pose_w is None:
+            return 0.0
+        current_z = self._object_pose_w()[0, 2]
+        initial_z = self.initial_object_pose_w[0, 2]
+        return float((current_z - initial_z).item())
+
+    # ------------------------------------------------------------------
+    # Main action call
+    # ------------------------------------------------------------------
+    def get_action(self, env) -> Optional[torch.Tensor]:
+        del env
+
+        self.step_count += 1
+
+        # During the first few frames, hold the current pose and wait until
+        # PhysX has populated valid body poses and Jacobians.
+        if not self.initialized:
+            current = self.robot.data.joint_pos.clone()
+            if self.step_count >= self.init_wait_steps:
+                self._initialize_waypoints()
+            return current - self.default_joint_pos
+
+        self.state_elapsed += self.control_dt
+
+        ee_pos_b, ee_quat_b = self._ee_pose_b()
+        current = self.robot.data.joint_pos
+        current_arm = current[:, self.arm_ids]
+
+        if self.state == "FAIL":
+            desired = current.clone()
+            self._write_gripper_target(
+                desired,
+                left=self.GRIPPER_OPEN,
+                right=self.GRIPPER_OPEN,
+            )
+            return desired - self.default_joint_pos
+
+        jacobian = self._jacobian()
+        desired_arm = self.ik.compute(
+            ee_pos_b,
+            ee_quat_b,
+            jacobian,
+            current_arm,
+        )
+
+        desired_arm = torch.nan_to_num(
+            desired_arm,
+            nan=0.0,
+            posinf=0.0,
+            neginf=0.0,
+        )
+
+        delta = torch.clamp(
+            desired_arm - current_arm,
+            min=-self.MAX_JOINT_STEP,
+            max=self.MAX_JOINT_STEP,
+        )
+        desired_arm = current_arm + delta
+
+        limits = getattr(
+            self.robot.data,
+            "soft_joint_pos_limits",
+            None,
+        )
+        if limits is not None:
+            arm_limits = limits[:, self.arm_ids, :]
+            desired_arm = torch.maximum(
+                desired_arm,
+                arm_limits[..., 0] + 0.01,
+            )
+            desired_arm = torch.minimum(
+                desired_arm,
+                arm_limits[..., 1] - 0.01,
+            )
+
+        # Hold the non-controlled joints at their startup values.
+        desired = self.home_joint_pos.clone()
+        desired[:, self.arm_ids] = desired_arm
+        self._write_gripper_target(
+            desired,
+            left=self.gripper_target,
+            right=self.GRIPPER_OPEN,
+        )
+
+        action = desired - self.default_joint_pos
+
+        action_dim = self._action_dim()
+        if action_dim is not None and int(action_dim) != int(action.shape[1]):
+            raise RuntimeError(
+                "Action dimension mismatch: provider returns "
+                f"{action.shape[1]}, action manager expects {action_dim}. "
+                "Keep JointPositionActionCfg(joint_names=['.*']) or update "
+                "the provider/action ordering together."
+            )
+
+        position_error = float(
+            torch.linalg.norm(
+                self.target_pose[:, 0:3] - ee_pos_b,
+                dim=-1,
+            )[0].item()
+        )
+
+        self._update_state(position_error)
+
+        simulation_time = self.step_count * self.control_dt
+        if simulation_time - self.last_log_time >= 0.5:
+            self.last_log_time = simulation_time
+            object_pos_b, _ = self._object_pose_b()
+            print(
+                f"[R1-A7 GRASP] state={self.state:<9} "
+                f"t={self.state_elapsed:5.2f}s "
+                f"err={position_error:.4f}m "
+                f"grip={self.gripper_target:+.4f} "
+                f"EE_B={ee_pos_b[0].tolist()} "
+                f"OBJ_B={object_pos_b[0].tolist()} "
+                f"obj_lift={self._object_lift_height():.4f}m"
+            )
+
+        return action
+
+    def cleanup(self):
+        print("[R1-A7 GRASP] controller cleanup")

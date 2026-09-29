@@ -1,0 +1,503 @@
+# -*- coding: utf-8 -*-
+"""R1-A7 + Dex1 deterministic cylinder grasp controller, V5.
+
+Key changes:
+- Explicitly commands both physical finger sliders of each Dex1 gripper.
+- The optional finger synchronization test is disabled by default.
+- Uses a tool-point Jacobian and manual damped-least-squares position IK.
+  The raw PhysX Jacobian is rotated from world frame into the robot-base frame
+  before applying the 0.115 m grasp-center offset.
+- Uses a persistent joint-position command so actuator position error can build
+  enough torque to move the gravity-loaded arm.
+- Uses the external controller frequency (--step_hz) rather than env.step_dt.
+- Uses clearance, pre-grasp, approach, insertion, close and lift waypoints.
+
+Default state machine:
+  BOOT -> WAIT -> CLEARANCE -> PREGRASP -> APPROACH
+       -> INSERT -> CLOSE -> LIFT -> HOLD
+
+When RUN_FINGER_TEST is True:
+  BOOT -> FINGER_TEST_CLOSE -> FINGER_TEST_OPEN -> WAIT -> ...
+"""
+
+from __future__ import annotations
+
+from typing import Optional
+
+import torch
+
+from action_provider.action_base import ActionProvider
+from isaaclab.utils.math import quat_apply, quat_apply_inverse, subtract_frame_transforms
+
+
+class PoseGraspActionProvider(ActionProvider):
+    # Set True only for a dedicated gripper test. False starts arm motion immediately.
+    RUN_FINGER_TEST = False
+    ARM_JOINT_NAMES = [
+        "left_shoulder_pitch_joint",
+        "left_shoulder_roll_joint",
+        "left_shoulder_yaw_joint",
+        "left_elbow_joint",
+        "left_wrist_roll_joint",
+        "left_wrist_pitch_joint",
+        "left_wrist_yaw_joint",
+    ]
+
+    IK_BODY_CANDIDATES = (
+        ("left_dex1_base_link", (0.0, 0.115, 0.0)),
+        ("left_wrist_yaw_link", (0.1565, 0.0, 0.0)),
+    )
+
+    LEFT_MASTER = "left_dex1_Joint1_1"
+    LEFT_SLAVE = "left_dex1_Joint2_1"
+    RIGHT_MASTER = "right_dex1_Joint1_1"
+    RIGHT_SLAVE = "right_dex1_Joint2_1"
+
+    GRIPPER_OPEN = -0.018
+    GRIPPER_TEST_CLOSE = 0.006
+    GRIPPER_CLOSE = 0.018
+
+    # Waypoint geometry in the robot-base frame.
+    CLEARANCE_Z_RAISE = 0.12
+    PREGRASP_DISTANCE = 0.16
+    PREGRASP_Z_OFFSET = 0.06
+    APPROACH_DISTANCE = 0.060
+    APPROACH_Z_OFFSET = 0.015
+    GRASP_STANDOFF = 0.006
+    GRASP_Z_OFFSET = 0.0
+    LIFT_HEIGHT = 0.10
+
+    # DLS tool-point IK settings.
+    DLS_LAMBDA = 0.05
+    MAX_CARTESIAN_STEP = 0.018
+    MAX_JOINT_STEP = 0.035
+    MAX_JOINT_SPEED = 0.80
+    MAX_COMMAND_LEAD = 0.18
+
+    # root_physx_view.get_jacobians() is expressed in the simulation world frame.
+    # The Cartesian targets below are expressed in the robot-base frame.
+    JACOBIAN_IS_WORLD = True
+
+    CLEARANCE_TOL = 0.025
+    PREGRASP_TOL = 0.025
+    APPROACH_TOL = 0.018
+    INSERT_TOL = 0.014
+    LIFT_TOL = 0.025
+    STABLE_STEPS = 10
+
+    FINGER_TEST_TIME = 0.5
+    WAIT_TIME = 0.2
+    CLOSE_TIME = 2.0
+    HOLD_TIME = 8.0
+    CLEARANCE_TIMEOUT = 12.0
+    PREGRASP_TIMEOUT = 20.0
+    APPROACH_TIMEOUT = 15.0
+    INSERT_TIMEOUT = 12.0
+    LIFT_TIMEOUT = 15.0
+
+    def __init__(self, env, args_cli):
+        super().__init__("R1A7Dex1CylinderGraspV5")
+        self.env = env
+        self.args_cli = args_cli
+        self.robot = env.scene["robot"]
+        self.object = env.scene["object"]
+        self.device = env.device
+        self.num_envs = env.num_envs
+
+        if self.num_envs != 1:
+            raise RuntimeError(f"V4 controller requires num_envs=1, got {self.num_envs}")
+
+        self.joint_names = list(self.robot.joint_names)
+        self.body_names = list(self.robot.body_names)
+
+        missing = [name for name in self.ARM_JOINT_NAMES if name not in self.joint_names]
+        if missing:
+            raise RuntimeError(f"Missing left-arm joints: {missing}\n{self.joint_names}")
+        self.arm_ids = [self.joint_names.index(name) for name in self.ARM_JOINT_NAMES]
+
+        selected = next(
+            ((name, offset) for name, offset in self.IK_BODY_CANDIDATES if name in self.body_names),
+            None,
+        )
+        if selected is None:
+            raise RuntimeError(f"No IK body found. Bodies: {self.body_names}")
+        self.ik_body_name, tool_offset = selected
+        self.ik_body_id = self.body_names.index(self.ik_body_name)
+        self.ik_jacobian_id = self.ik_body_id - 1 if self.robot.is_fixed_base else self.ik_body_id
+        self.tool_offset_local = torch.tensor(
+            tool_offset, dtype=torch.float32, device=self.device
+        ).view(1, 3)
+
+        self.left_master_id = self._joint_id(self.LEFT_MASTER)
+        self.left_slave_id = self._joint_id(self.LEFT_SLAVE)
+        self.right_master_id = self._joint_id(self.RIGHT_MASTER)
+        self.right_slave_id = self._joint_id(self.RIGHT_SLAVE)
+
+        self.default_joint_pos = self.robot.data.default_joint_pos.clone()
+        self.hold_joint_pos = self.robot.data.joint_pos.clone()
+
+        # get_action() is called by SimpleController at --step_hz, not at env.step_dt.
+        # Using env.step_dt (0.01 s in this task) while the controller runs at 25 Hz
+        # incorrectly reduces the state timer and joint-speed limit by a factor of four.
+        step_hz = float(getattr(args_cli, "step_hz", 25.0))
+        if not torch.isfinite(torch.tensor(step_hz)) or step_hz <= 0.0:
+            step_hz = 25.0
+        self.control_dt = 1.0 / step_hz
+        self.arm_command = self.robot.data.joint_pos[:, self.arm_ids].clone()
+        self.last_dq_command = torch.zeros_like(self.arm_command)
+
+        self.step_count = 0
+        self.init_wait_steps = max(8, int(0.35 / self.control_dt))
+        self.initialized = False
+        self.state = "BOOT"
+        self.state_elapsed = 0.0
+        self.stable_count = 0
+        self.target_tool_pos = None
+        self.last_log_time = -1.0
+        self.gripper_target = self.GRIPPER_OPEN
+
+        self.initial_tool_pos = None
+        self.initial_object_pose_w = None
+        self.clearance_pos = None
+        self.pregrasp_pos = None
+        self.approach_pos = None
+        self.grasp_pos = None
+        self.lift_pos = None
+
+        print("\n" + "=" * 92)
+        print("[R1-A7 GRASP V5] controller constructed")
+        print("[R1-A7 GRASP V5] joint count/action dim:", len(self.joint_names), self._action_dim())
+        print("[R1-A7 GRASP V5] IK body/Jacobian id:", self.ik_body_name, self.ik_jacobian_id)
+        print("[R1-A7 GRASP V5] arm ids:", self.arm_ids)
+        print("[R1-A7 GRASP V5] finger ids:", self._finger_ids())
+        print("[R1-A7 GRASP V5] controller dt:", self.control_dt)
+        print("[R1-A7 GRASP V5] Jacobian world->base rotation:", self.JACOBIAN_IS_WORLD)
+        print("=" * 92 + "\n")
+
+    def _joint_id(self, name: str) -> int:
+        if name not in self.joint_names:
+            raise RuntimeError(f"Missing required joint: {name}")
+        return self.joint_names.index(name)
+
+    def _finger_ids(self):
+        return {
+            "left_master": self.left_master_id,
+            "left_slave": self.left_slave_id,
+            "right_master": self.right_master_id,
+            "right_slave": self.right_slave_id,
+        }
+
+    def _action_dim(self):
+        manager = getattr(self.env, "action_manager", None)
+        if manager is None:
+            return None
+        for name in ("total_action_dim", "action_dim"):
+            if hasattr(manager, name):
+                return getattr(manager, name)
+        return None
+
+    def _root_pose_w(self):
+        data = self.robot.data
+        if hasattr(data, "root_link_pose_w"):
+            return data.root_link_pose_w
+        if hasattr(data, "root_pose_w"):
+            return data.root_pose_w
+        return data.root_state_w[:, 0:7]
+
+    def _body_pose_w(self):
+        data = self.robot.data
+        if hasattr(data, "body_link_pose_w"):
+            return data.body_link_pose_w
+        if hasattr(data, "body_pose_w"):
+            return data.body_pose_w
+        return data.body_state_w[:, :, 0:7]
+
+    def _object_pose_w(self):
+        data = self.object.data
+        if hasattr(data, "root_link_pose_w"):
+            return data.root_link_pose_w
+        if hasattr(data, "root_pose_w"):
+            return data.root_pose_w
+        return data.root_state_w[:, 0:7]
+
+    def _ik_body_pose_b(self):
+        root = self._root_pose_w()
+        body = self._body_pose_w()[:, self.ik_body_id, :]
+        return subtract_frame_transforms(
+            root[:, 0:3], root[:, 3:7], body[:, 0:3], body[:, 3:7]
+        )
+
+    def _tool_pose_b(self):
+        body_pos_b, body_quat_b = self._ik_body_pose_b()
+        offset_b = quat_apply(body_quat_b, self.tool_offset_local)
+        return body_pos_b + offset_b, body_quat_b, offset_b
+
+    def _object_pose_b(self):
+        root = self._root_pose_w()
+        obj = self._object_pose_w()
+        return subtract_frame_transforms(
+            root[:, 0:3], root[:, 3:7], obj[:, 0:3], obj[:, 3:7]
+        )
+
+    def _body_jacobian(self):
+        view = self.robot.root_view if hasattr(self.robot, "root_view") else self.robot.root_physx_view
+        all_j = view.get_jacobians()
+        jac_w = all_j[:, self.ik_jacobian_id, :, self.arm_ids]
+        if not self.JACOBIAN_IS_WORLD:
+            return jac_w
+
+        # Rotate every linear/angular Jacobian column from world into base frame.
+        root_quat_w = self._root_pose_w()[:, 3:7]
+        num_joints = jac_w.shape[-1]
+        root_quat_cols = root_quat_w.repeat_interleave(num_joints, dim=0)
+
+        jv_w = jac_w[:, 0:3, :].transpose(1, 2).reshape(-1, 3)
+        jw_w = jac_w[:, 3:6, :].transpose(1, 2).reshape(-1, 3)
+        jv_b = quat_apply_inverse(root_quat_cols, jv_w).view(self.num_envs, num_joints, 3).transpose(1, 2)
+        jw_b = quat_apply_inverse(root_quat_cols, jw_w).view(self.num_envs, num_joints, 3).transpose(1, 2)
+        return torch.cat((jv_b, jw_b), dim=1)
+
+    @staticmethod
+    def _skew(v: torch.Tensor) -> torch.Tensor:
+        zeros = torch.zeros_like(v[:, 0])
+        x, y, z = v[:, 0], v[:, 1], v[:, 2]
+        return torch.stack(
+            [
+                zeros, -z, y,
+                z, zeros, -x,
+                -y, x, zeros,
+            ],
+            dim=-1,
+        ).view(-1, 3, 3)
+
+    def _tool_linear_jacobian(self, offset_b: torch.Tensor) -> torch.Tensor:
+        body_j = self._body_jacobian()
+        jv = body_j[:, 0:3, :]
+        jw = body_j[:, 3:6, :]
+        # v_tool = v_body + omega x r = v_body - skew(r) * omega
+        return jv - torch.bmm(self._skew(offset_b), jw)
+
+    def _write_grippers(self, desired: torch.Tensor, left: float, right: float):
+        desired[:, self.left_master_id] = left
+        desired[:, self.left_slave_id] = left
+        desired[:, self.right_master_id] = right
+        desired[:, self.right_slave_id] = right
+
+    def _initialize(self):
+        tool, _, _ = self._tool_pose_b()
+        obj, _ = self._object_pose_b()
+        if not torch.isfinite(tool).all() or not torch.isfinite(obj).all():
+            raise RuntimeError("Invalid tool/object pose")
+
+        direction = obj[:, 0:2] - tool[:, 0:2]
+        direction = direction / torch.linalg.norm(direction, dim=-1, keepdim=True).clamp_min(1e-6)
+
+        clearance = tool.clone()
+        clearance[:, 2] += self.CLEARANCE_Z_RAISE
+
+        pre = obj.clone()
+        pre[:, 0:2] -= direction * self.PREGRASP_DISTANCE
+        pre[:, 2] += self.PREGRASP_Z_OFFSET
+
+        approach = obj.clone()
+        approach[:, 0:2] -= direction * self.APPROACH_DISTANCE
+        approach[:, 2] += self.APPROACH_Z_OFFSET
+
+        grasp = obj.clone()
+        grasp[:, 0:2] -= direction * self.GRASP_STANDOFF
+        grasp[:, 2] += self.GRASP_Z_OFFSET
+
+        lift = grasp.clone()
+        lift[:, 2] += self.LIFT_HEIGHT
+
+        self.arm_command = self.robot.data.joint_pos[:, self.arm_ids].clone()
+        self.last_dq_command.zero_()
+        self.initial_tool_pos = tool.clone()
+        self.initial_object_pose_w = self._object_pose_w().clone()
+        self.clearance_pos = clearance
+        self.pregrasp_pos = pre
+        self.approach_pos = approach
+        self.grasp_pos = grasp
+        self.lift_pos = lift
+        self.initialized = True
+        if self.RUN_FINGER_TEST:
+            self._set_state("FINGER_TEST_CLOSE", self.initial_tool_pos)
+        else:
+            self.gripper_target = self.GRIPPER_OPEN
+            self._set_state("WAIT", self.initial_tool_pos)
+
+        print("\n" + "=" * 92)
+        print("[R1-A7 GRASP V5] calibration")
+        print("[R1-A7 GRASP V5] tool B:", tool[0].tolist())
+        print("[R1-A7 GRASP V5] cylinder B:", obj[0].tolist())
+        print("[R1-A7 GRASP V5] clearance B:", clearance[0].tolist())
+        print("[R1-A7 GRASP V5] pregrasp B:", pre[0].tolist())
+        print("[R1-A7 GRASP V5] approach B:", approach[0].tolist())
+        print("[R1-A7 GRASP V5] grasp B:", grasp[0].tolist())
+        print("[R1-A7 GRASP V5] lift B:", lift[0].tolist())
+        print("=" * 92 + "\n")
+
+    def _set_state(self, state: str, target: torch.Tensor):
+        self.state = state
+        self.state_elapsed = 0.0
+        self.stable_count = 0
+        self.target_tool_pos = target.clone()
+        print(f"[R1-A7 GRASP V5] >>> {state}")
+
+    def _fail(self, reason: str):
+        self.state = "FAIL"
+        self.state_elapsed = 0.0
+        print(f"[R1-A7 GRASP V5][FAIL] {reason}")
+
+    def _reached(self, err: float, tol: float) -> bool:
+        self.stable_count = self.stable_count + 1 if err < tol else 0
+        return self.stable_count >= self.STABLE_STEPS
+
+    def _update_state(self, err: float):
+        if self.state == "FINGER_TEST_CLOSE":
+            self.gripper_target = self.GRIPPER_TEST_CLOSE
+            if self.state_elapsed >= self.FINGER_TEST_TIME:
+                self.gripper_target = self.GRIPPER_OPEN
+                self._set_state("FINGER_TEST_OPEN", self.initial_tool_pos)
+        elif self.state == "FINGER_TEST_OPEN":
+            if self.state_elapsed >= self.FINGER_TEST_TIME:
+                self._set_state("WAIT", self.initial_tool_pos)
+        elif self.state == "WAIT":
+            if self.state_elapsed >= self.WAIT_TIME:
+                self._set_state("CLEARANCE", self.clearance_pos)
+        elif self.state == "CLEARANCE":
+            if self._reached(err, self.CLEARANCE_TOL):
+                self._set_state("PREGRASP", self.pregrasp_pos)
+            elif self.state_elapsed >= self.CLEARANCE_TIMEOUT:
+                self._fail(f"CLEARANCE timeout err={err:.4f}")
+        elif self.state == "PREGRASP":
+            if self._reached(err, self.PREGRASP_TOL):
+                self._set_state("APPROACH", self.approach_pos)
+            elif self.state_elapsed >= self.PREGRASP_TIMEOUT:
+                self._fail(f"PREGRASP timeout err={err:.4f}")
+        elif self.state == "APPROACH":
+            if self._reached(err, self.APPROACH_TOL):
+                self._set_state("INSERT", self.grasp_pos)
+            elif self.state_elapsed >= self.APPROACH_TIMEOUT:
+                self._fail(f"APPROACH timeout err={err:.4f}")
+        elif self.state == "INSERT":
+            if self._reached(err, self.INSERT_TOL):
+                self.gripper_target = self.GRIPPER_CLOSE
+                self._set_state("CLOSE", self.grasp_pos)
+            elif self.state_elapsed >= self.INSERT_TIMEOUT:
+                self._fail(f"INSERT timeout err={err:.4f}")
+        elif self.state == "CLOSE":
+            if self.state_elapsed >= self.CLOSE_TIME:
+                self._set_state("LIFT", self.lift_pos)
+        elif self.state == "LIFT":
+            if self._reached(err, self.LIFT_TOL):
+                self._set_state("HOLD", self.lift_pos)
+            elif self.state_elapsed >= self.LIFT_TIMEOUT:
+                self._fail(f"LIFT timeout err={err:.4f}")
+        elif self.state == "HOLD" and self.state_elapsed >= self.HOLD_TIME:
+            self.state_elapsed = 0.0
+            lift = self._object_lift_height()
+            tag = "SUCCESS" if lift >= 0.03 else "WARNING"
+            print(f"[R1-A7 GRASP V5][{tag}] object lift={lift:.4f} m")
+
+    def _object_lift_height(self) -> float:
+        if self.initial_object_pose_w is None:
+            return 0.0
+        return float((self._object_pose_w()[0, 2] - self.initial_object_pose_w[0, 2]).item())
+
+    def _solve_tool_position_ik(self, tool_pos, offset_b, current_arm):
+        error = self.target_tool_pos - tool_pos
+        error_norm = torch.linalg.norm(error, dim=-1, keepdim=True).clamp_min(1e-9)
+        cart_step = error * torch.clamp(self.MAX_CARTESIAN_STEP / error_norm, max=1.0)
+
+        j = self._tool_linear_jacobian(offset_b)
+        eye3 = torch.eye(3, device=self.device, dtype=j.dtype).unsqueeze(0)
+        lhs = torch.bmm(j, j.transpose(1, 2)) + (self.DLS_LAMBDA ** 2) * eye3
+        task = torch.linalg.solve(lhs, cart_step.unsqueeze(-1))
+        dq = torch.bmm(j.transpose(1, 2), task).squeeze(-1)
+
+        max_step = min(self.MAX_JOINT_STEP, self.MAX_JOINT_SPEED * self.control_dt)
+        dq = torch.clamp(dq, -max_step, max_step)
+        dq = torch.nan_to_num(dq)
+
+        # Integrate a persistent command. Using current_arm + dq every cycle keeps
+        # the actuator target only a few milliradians ahead of the measured joint,
+        # which may not generate enough torque to lift a gravity-loaded arm.
+        self.arm_command = self.arm_command + dq
+        self.arm_command = torch.maximum(
+            self.arm_command, current_arm - self.MAX_COMMAND_LEAD
+        )
+        self.arm_command = torch.minimum(
+            self.arm_command, current_arm + self.MAX_COMMAND_LEAD
+        )
+
+        limits = getattr(self.robot.data, "soft_joint_pos_limits", None)
+        if limits is not None:
+            arm_limits = limits[:, self.arm_ids, :]
+            self.arm_command = torch.maximum(self.arm_command, arm_limits[..., 0] + 0.01)
+            self.arm_command = torch.minimum(self.arm_command, arm_limits[..., 1] - 0.01)
+
+        self.last_dq_command = dq.clone()
+        return torch.nan_to_num(self.arm_command), j
+
+    def get_action(self, env) -> Optional[torch.Tensor]:
+        del env
+        self.step_count += 1
+
+        current = self.robot.data.joint_pos.clone()
+        if not self.initialized:
+            self.arm_command = current[:, self.arm_ids].clone()
+            self._write_grippers(current, self.GRIPPER_OPEN, self.GRIPPER_OPEN)
+            if self.step_count >= self.init_wait_steps:
+                self._initialize()
+            return current - self.default_joint_pos
+
+        self.state_elapsed += self.control_dt
+        tool_pos, _, offset_b = self._tool_pose_b()
+        current_arm = current[:, self.arm_ids]
+
+        desired = current.clone()
+        j_tool = None
+        if self.state not in ("FAIL", "FINGER_TEST_CLOSE", "FINGER_TEST_OPEN", "WAIT", "CLOSE"):
+            desired_arm, j_tool = self._solve_tool_position_ik(tool_pos, offset_b, current_arm)
+            desired[:, self.arm_ids] = desired_arm
+
+        if self.state == "FAIL":
+            self.gripper_target = self.GRIPPER_OPEN
+            self.arm_command = current_arm.clone()
+            self.last_dq_command.zero_()
+
+        self._write_grippers(desired, self.gripper_target, self.GRIPPER_OPEN)
+        action = desired - self.default_joint_pos
+
+        action_dim = self._action_dim()
+        if action_dim is not None and int(action_dim) != int(action.shape[1]):
+            raise RuntimeError(f"Action dim mismatch: {action.shape[1]} vs {action_dim}")
+
+        err = float(torch.linalg.norm(self.target_tool_pos - tool_pos, dim=-1)[0].item())
+        self._update_state(err)
+
+        sim_time = self.step_count * self.control_dt
+        if sim_time - self.last_log_time >= 0.5:
+            self.last_log_time = sim_time
+            q = self.robot.data.joint_pos[0]
+            qd = self.robot.data.joint_vel[0]
+            obj, _ = self._object_pose_b()
+            svals = []
+            if j_tool is not None:
+                svals = torch.linalg.svdvals(j_tool[0]).tolist()
+            arm_track = self.arm_command - current_arm
+            print(
+                f"[R1-A7 GRASP V5] state={self.state:<17} t={self.state_elapsed:5.2f}s "
+                f"err={err:.4f} tool={tool_pos[0].tolist()} target={self.target_tool_pos[0].tolist()} "
+                f"obj={obj[0].tolist()} fingers_q=[{float(q[self.left_master_id]):+.4f},"
+                f"{float(q[self.left_slave_id]):+.4f}] fingers_dq=[{float(qd[self.left_master_id]):+.4f},"
+                f"{float(qd[self.left_slave_id]):+.4f}] "
+                f"dq_max={float(self.last_dq_command.abs().max()):.4f} "
+                f"lead_max={float(arm_track.abs().max()):.4f} svals={svals}"
+            )
+
+        return action
+
+    def cleanup(self):
+        print("[R1-A7 GRASP V5] provider cleanup")
