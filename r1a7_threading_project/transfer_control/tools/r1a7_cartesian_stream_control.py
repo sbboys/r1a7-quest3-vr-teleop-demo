@@ -1663,8 +1663,23 @@ def main() -> int:
         # Terminal jog stays active until explicit stop/direction change.
         CARTESIAN_JOG_WATCHDOG_S = float('inf')
         # DIRECT_CARTESIAN_CONTROL_V1
-        # No artificial Cartesian command/actual backlog clamp.
+        # No artificial Cartesian command/actual backlog clamp
+        # for manual Cartesian jog.
         CARTESIAN_JOG_MAX_COMMAND_LAG_M = float('inf')
+
+        # IBVS must not integrate a visual target far ahead of
+        # the measured real TCP.  Keep only a small look-ahead
+        # during visual servoing.
+        IBVS_MAX_COMMAND_LAG_M = float('inf')
+
+        # Minimum resultant speed for active visual servoing.
+        #
+        # This avoids the Cartesian low-speed snap removing
+        # small but meaningful IBVS corrections near the hole.
+        #
+        # Applied only when IBVS already reports a non-zero
+        # valid velocity.
+        IBVS_MIN_SPEED_MM_S = 1.0
 
         # The nominal IK target is generated from the commanded Cartesian
         # path.  On the real arm, gravity, gearbox compliance, and small model
@@ -3296,6 +3311,37 @@ def main() -> int:
                                         candidate_speed_m_s
                                     )
 
+                                # ---------------------------------------
+                                # IBVS minimum resultant speed
+                                #
+                                # Preserve direction. Do not force each axis
+                                # independently.
+                                #
+                                # Example:
+                                # [0.1,0.3,0] mm/s
+                                # becomes approximately
+                                # [0.32,0.95,0] mm/s
+                                # instead of [1,1,1].
+                                # ---------------------------------------
+
+                                candidate_speed_mm_s = (
+                                    candidate_speed_m_s
+                                    * 1000.0
+                                )
+
+                                if (
+                                    candidate_speed_mm_s > 0.0
+                                    and
+                                    candidate_speed_mm_s
+                                    <
+                                    IBVS_MIN_SPEED_MM_S
+                                ):
+                                    candidate_velocity_m_s *= (
+                                        IBVS_MIN_SPEED_MM_S
+                                        /
+                                        candidate_speed_mm_s
+                                    )
+
                                 ibvs_velocity_m_s[:] = (
                                     candidate_velocity_m_s
                                 )
@@ -3512,7 +3558,7 @@ def main() -> int:
 
                 if (
                     cartesian_jog_releasing
-                    and float(np.linalg.norm(cartesian_velocity_m_s)) < 5.0e-4
+                    and float(np.linalg.norm(cartesian_velocity_m_s)) < 5.0e-5
                 ):
                     cartesian_velocity_m_s[:] = 0.0
                     cartesian_jog_releasing = False
@@ -3537,7 +3583,7 @@ def main() -> int:
                         limit_cartesian_backlog(
                             next_command_xyz,
                             actual_xyz_now,
-                            CARTESIAN_JOG_MAX_COMMAND_LAG_M,
+                            IBVS_MAX_COMMAND_LAG_M,
                             active_axes,
                         )
                     )
@@ -3557,6 +3603,8 @@ def main() -> int:
                 # stream is nearly stopped, snap only the
                 # numerical reference to the exact target.
                 if (
+                    not ibvs_velocity_active
+                    and
                     cart_distance
                     <= VIRTUAL_VR_POSITION_EPS_M
                     and float(
