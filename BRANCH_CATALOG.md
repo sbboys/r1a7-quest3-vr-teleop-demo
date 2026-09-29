@@ -18,6 +18,7 @@
 | `codex/r1a7-arm-console` | `4e5ec2d` | 677 | 手臂控制台快照 | 功能快照 |
 | `codex/r1a7-dual-camera-visual-servo-2026-09-29` | `621e53d` | 886 | 双相机视觉伺服和代码解析报告 | 当前资料最完整 |
 | `codex/repository-management-2026-09-29` | 本分支 | 以最新视觉伺服快照为基础 | 仓库管理与分类 | 整理中 |
+| `codex/r1a7-unified-workspace-2026-09-29` | `494e0ee` | 统一项目入口和跨分支内容 | ACT、细线、扳手、VR、相机、视觉伺服、控制台 | 当前整合分支 |
 
 ## 重要结构结论
 
@@ -50,4 +51,3 @@
 - 冻结快照：`archive/<project>-<date>`。
 
 现有快照分支暂不删除。完成目录索引和 tag 后，再将不再使用的分支改为 archived，并在 GitHub 分支保护设置中禁止直接向 `main` 推送实验代码。
-
