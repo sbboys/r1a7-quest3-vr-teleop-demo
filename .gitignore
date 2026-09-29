@@ -39,3 +39,18 @@ r1a7_threading_project/Log/
 /pin
 /sys
 /time
+
+# Repository management: keep new recordings and model artifacts out of Git.
+# Existing tracked historical files are intentionally left unchanged.
+r1a7_wrench_project/data/episodes/
+r1a7_wrench_project/data/logs/
+datasets/raw/
+checkpoints/raw/
+*.mp4
+*.avi
+*.bag
+*.webm
+*.pt
+*.pth
+*.ckpt
+*.onnx

@@ -7,6 +7,15 @@
   <a href="https://discord.gg/ZwcVwxv5rq" target="_blank"><img src="https://img.shields.io/badge/-Discord-5865F2?style=flat&logo=Discord&logoColor=white" alt="Unitree LOGO"></a>
 </div>
 
+## R1-A7 Workbench Management
+
+This repository is a multi-project R1-A7 engineering workbench. Start with the project and branch indexes before running code:
+
+- [Project index](PROJECT_INDEX.md)
+- [Branch catalog](BRANCH_CATALOG.md)
+- [Repository management and data policy](docs/repository_management_zh.md)
+- [Interactive code architecture report](r1a7_threading_project/docs/r1a7_threading_code_architecture_report_2026-09-29.html)
+
 ## Important Notes First
 - Please use the [officially recommended](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html) hardware resources for deployment
 - The simulator may take some time to load resources during its first startup, and the waiting time depends on hardware performance and network environment

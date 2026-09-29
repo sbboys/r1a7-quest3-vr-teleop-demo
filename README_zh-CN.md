@@ -9,6 +9,15 @@
   </p>
 </div>
 
+## R1-A7 仓库管理入口
+
+本仓库是 R1-A7 多项目研发工作台。运行代码前请先查看项目索引和分支目录表：
+
+- [项目总索引](PROJECT_INDEX.md)
+- [GitHub 分支目录表](BRANCH_CATALOG.md)
+- [仓库审查与数据管理方案](docs/repository_management_zh.md)
+- [交互式代码架构解析报告](r1a7_threading_project/docs/r1a7_threading_code_architecture_report_2026-09-29.html)
+
 ## 重要事情提前说
 - R1-A7 真实机器人 Gemini 相机控制右臂与 Dex1_1 夹爪的完整操作、换电脑接回通信、夹爪/手臂故障恢复流程见：[R1-A7 Gemini 相机控制右臂与 Dex1_1 夹爪操作手册](docs/r1a7_camera_arm_gripper_runbook_zh.md)
 - 请使用[官方推荐](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html)的硬件资源进行部署使用
