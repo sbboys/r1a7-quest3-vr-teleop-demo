@@ -34,6 +34,18 @@
 - `calibration/tweezer_marker_tip_calibration_median30.json`
 - `vision_dual_camera/task6_threading/wrist_tip_calibration.json`
 
+### 审查补充文件
+
+- `aruco_id20_5x5_50.png`
+- `vision_dual_camera/task6_threading/perception/tweezer_tip/test_wrist_tip_tracking_v2.py`
+- `vision_dual_camera/task6_threading/perception/tweezer_tip/tip_temporal_filter.py`
+- `vision_dual_camera/task6_threading/perception/tweezer_tip/calibrate_aruco_marker_to_tip.py`
+- `vision_dual_camera/task6_threading/perception/tweezer_tip/calibrate_aruco_marker_to_tip_median30.py`
+- `vision_dual_camera/task6_threading/perception/tweezer_tip/refine_marker_tip_pixel.py`
+- `vision_dual_camera/task6_threading/test_external_fk_tip_projection.py`
+
+详细审查结果见 `docs/r1a7_dual_camera_visual_servo_upload_audit_2026-09-29_zh.md`。
+
 ## 2. 不上传内容
 
 - `third_party/sam2/checkpoints/*.pt`：模型 checkpoint 体积大，且属于外部模型文件；文档只保留本机路径和使用说明。
