@@ -1,6 +1,6 @@
 # R1-A7 机器人手臂控制台工作总结
 
-更新时间：2026-09-22
+更新时间：2026-09-30（补充方向切换纠错）
 项目目录：`r1a7_threading_project`
 GitHub 分支：`codex/r1a7-arm-console`
 
@@ -51,8 +51,9 @@ GitHub 分支：`codex/r1a7-arm-console`
 浏览器按钮/键盘
     │
     ├─ 短按：单步命令
-    ├─ 长按：jog:start + 150 ms keepalive
-    └─ 松手/停止：jog:stop
+    ├─ 按住点动：jog:start + 150 ms keepalive，松手 jog:stop
+    ├─ 连续切换：新的 jog:start 直接替换活动方向，不插入 jog:stop
+    └─ 明确停止：停止按钮/空格/Esc/失焦发送 jog:stop
     │
 aiohttp HTTP + WebSocket 服务
     │ stdin 整行命令
@@ -96,7 +97,8 @@ rt/lowstate / 控制遥测
 - 短按执行有限步长；
 - 按住超过约 `180 ms` 进入连续速度模式；
 - 浏览器每 `150 ms` 发送 keepalive；
-- 松手发送 `jog:stop`；
+- “按住点动”模式松手发送 `jog:stop`；
+- “连续切换”模式点击另一方向时直接发送新的 `jog:start:<direction>`，保持目标、姿态参考、IK 和速度状态连续；
 - 页面失焦、页面隐藏、空格键、`Esc` 或“停止运动”按钮都发送 `jog:stop`；
 - “断开连接”先停止运动，再退出控制进程并释放 LowCmd 锁。
 
@@ -111,6 +113,7 @@ rt/lowstate / 控制遥测
 | 三维夹爪不随真机开合 | 只加载夹爪外形或量程映射不一致 | 加载 Dex1-1 可动关节并按左右实际量程归一化 |
 | 夹爪与手臂没有固定好 | 腕部模型存在结构偏置 | 增加左右腕部独立安装补偿，仅影响显示 |
 | 连续控制积压、延迟 | 每次点击都追加离散位置目标 | 改为 start/keepalive/stop 连续速度协议 |
+| `+Z` 切换 `+X` 时瞬间抖动 | 原网页松开 `+Z` 先发送 `jog:stop`，随后 `+X` 重新 START；这与终端测试中不停止直接 `U→W` 的语义不一致 | 新增“连续切换”模式，方向变化只发送新的 `jog:start`，不在方向之间插入 `jog:stop` |
 | 长按运动仍抖动 | IK 冗余解变化、接近奇异区、跟踪层叠加 | 保留实测状态驱动的 IK 和单一 LowCmd 输出链；不盲目提高增益 |
 | `+X` 时手臂先下降，`+Z` 时先后缩 | 固定末端姿态、冗余 IK 路径和工作空间约束相互作用 | 通过 `+X+Z` 对比实验定位为 IK 路径问题；多次不理想修改已撤销 |
 | 到一定位置只抖动、不再前进 | 肘部接近伸直或雅可比条件变差 | 显示构型条件和进度告警，使用 `-X` 退出边界，不把速度直接放大 |
@@ -140,10 +143,11 @@ r1a7_threading_project/console3d_hierarchical/server.py \
 1. 保持急停可用，人员和线缆离开双臂工作空间。
 2. 点击“连接机器人”，等待“等待授权”。
 3. 点击“授权控制”，确认变为“控制已连接”。
-4. 首次只执行一个方向的短距离测试。
-5. 长按方向按钮连续运动，松开后确认状态变为“平滑减速”或“位置保持”。
-6. 需要保持当前位置时点击“停止运动”，或按空格/`Esc`。
-7. 测试结束点击“断开连接”，确认控制进程退出。
+4. 首次只使用“按住点动”执行一个方向的短距离测试。
+5. 验证方向切换时选择“连续切换”，点击“上 +Z”后不要停止，直接点击“前 +X”。
+6. 确认日志出现 `SWITCH UP +Z -> FORWARD +X`，且中间没有 `STOP UP +Z`。
+7. 需要保持当前位置时点击“停止运动”，或按空格/`Esc`。
+8. 测试结束点击“断开连接”，确认控制进程退出。
 
 “停止运动”只把速度归零并保持当前位置，控制器仍在线；“断开连接”会退出控制进程并释放 `rt/lowcmd`。
 
@@ -185,6 +189,7 @@ r1a7_threading_project/
 - 网页结构化命令不会再被 raw-key 模式拆成单字符；
 - `jog:stop` 后遥测进入 `holding`，速度为 `0.0 mm/s`；
 - 8098 启动命令不再包含分层 IK 和 `--max-joint-speed 0.8`。
+- 2026-09-30 真机确认：“连续切换”模式执行 `+Z→+X` 后右臂恢复正常，方向之间不再因网页自动 STOP/START 产生瞬时抖动。
 
 仍需继续验证：
 
@@ -195,11 +200,12 @@ r1a7_threading_project/
 
 ## 9. 版本边界与已知限制
 
-1. 8098 使用 2026-09-20 的稳定网页兼容控制副本。
+1. 8098 使用 2026-09-20 的网页兼容控制副本；2026-09-30 修正了网页方向切换时序。这里的“稳定”只表示控制入口和参数固定，不表示所有真机操作路径已经完成验证。
 2. `tools/r1a7_cartesian_stream_control.py` 在 2026-09-21 新增视觉伺服、IBVS 文件速度输入和标记孔位 `T` 命令，已不再与 8098 副本逐行一致；`visual_servo_receiver.py` 仅作为该入口的必要导入依赖随仓库保存。
 3. 当前没有把 2026-09-21 的视觉功能合并进网页控制副本，因为这些功能尚未完成控制台真机回归。
 4. 8098 暂时关闭夹爪控制；页面中的夹爪区域用于保留数字孪生结构。
-5. 软件停止不能替代实体急停、碰撞保护和现场监护。
+5. “按住点动”适合单方向短距离操作；需要连续改变方向时必须选择“连续切换”，否则松开按钮会按设计停止当前运动。
+6. 软件停止不能替代实体急停、碰撞保护和现场监护。
 
 ## 10. 核心文件 SHA-256
 
@@ -207,7 +213,7 @@ r1a7_threading_project/
 918bd2d57f673a674571db3034b074d3ed143cdd0fc402d257763832ba79ba40  console3d/server.py
 585b6f02e6e913fd0f6201d41f6fe83b1f380b69acc8cee636d147a83ff11766  console3d/static/app.js
 27e3e40291f7e899428f4b94eaa6e1a7d515f8dfa6d1588fa5b89302871b876b  console3d_hierarchical/server.py
-bff83ea85a285a2d79981983e862d22382c32303da9ab3356199e2c85f56cdc7  console3d_hierarchical/app.js
+c82345fe56937056e9e5f2b6bb688df84cffcf5730cb680c88c5306e7b0dbb48  console3d_hierarchical/app.js
 0ab47242af97eaf3b7ec9407536b067786fd0f6cb25b4ce206563ecdeb93f8ba  transfer_control/tools/r1a7_cartesian_stream_control.py
 e20ab931a32f07e77eacbb7be4808a9419ed2cccd85a4a7eab9b47659618c2ab  transfer_control/experimental/r1a7_cartesian_stream_control_experimental.py
 ```

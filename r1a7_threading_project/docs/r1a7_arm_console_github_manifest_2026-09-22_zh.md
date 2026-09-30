@@ -1,6 +1,7 @@
 # R1-A7 手臂控制台 GitHub 上传清单
 
 上传日期：2026-09-22
+纠错更新：2026-09-30
 目标远程：`git@github.com:sbboys/r1a7-quest3-vr-teleop-demo.git`
 目标分支：`codex/r1a7-arm-console`
 
@@ -31,6 +32,8 @@
 - `r1a7_threading_project/docs/r1a7_arm_console_work_summary_2026-09-22_zh.md`
   - 从创建到完成的工作总结、问题处理和当前边界。
 - 本上传清单。
+- `r1a7_threading_project/docs/r1a7_arm_console_direction_switch_correction_2026-09-30_zh.md`
+  - 记录网页 STOP/START 与终端连续切换语义不一致的问题、修正范围和真机验证结果。
 - `r1a7_threading_project/README.md`
   - 增加控制台文档入口。
 
@@ -63,3 +66,5 @@ git diff --cached --check
 ```
 
 确认暂存区只包含本清单列出的控制台相关文件后再提交和推送。
+
+原始真机日志不上传，但纠错文档必须记录可复核的命令序列、异常指标和通过标准，避免只保留“稳定”标签而丢失验证边界。

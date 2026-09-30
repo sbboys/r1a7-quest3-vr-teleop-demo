@@ -70,7 +70,13 @@
         </section>
 
         <section class="motion-panel panel" aria-label="末端位置控制">
-          <h2>末端位置控制</h2>
+          <div class="motion-control-title">
+            <h2>末端位置控制</h2>
+            <div class="arm-tabs" role="group" aria-label="末端运动方式">
+              <button id="cartesian-hold-mode" class="selected" aria-pressed="true">按住点动</button>
+              <button id="cartesian-latch-mode" aria-pressed="false">连续切换</button>
+            </div>
+          </div>
           <div class="jog">
             <div class="plane-label">水平面 X / Y</div>
             <button data-command="w" class="forward"><span>↑</span>前 +X</button>
@@ -125,6 +131,6 @@
       </div>
     </aside>
   </main>
-  <script type="module" src="/experiment/app.js?v=20260920-motion-stop"></script>
+  <script type="module" src="/experiment/app.js?v=20260930-direction-switch"></script>
 </body>
 </html>

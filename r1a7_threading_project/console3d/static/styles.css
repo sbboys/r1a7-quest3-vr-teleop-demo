@@ -142,6 +142,8 @@ header p { margin: 2px 0 0; color: #8fa0ac; font-size: 10px; }
 }
 .connection-panel { grid-area: connection; display: flex; flex-direction: column; }
 .motion-panel { grid-area: motion; display: flex; flex-direction: column; }
+.motion-control-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.motion-control-title h2 { margin-bottom: 0; }
 .gripper-control {
   grid-area: gripper;
   display: grid;

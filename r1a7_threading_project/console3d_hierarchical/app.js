@@ -13,6 +13,8 @@ let heldKind = null;
 let cartesianHoldTimer = null;
 let cartesianHeartbeatTimer = null;
 let cartesianStreaming = false;
+let cartesianInputMode = 'hold';
+let latchedCartesianCommand = null;
 let commandQueue = Promise.resolve();
 let selectedArm = 'right';
 let latestTelemetry = {};
@@ -272,6 +274,27 @@ function pressCartesianJog(button) {
     }, 150);
   }, 180);
 }
+function clearLatchedCartesian() {
+  if (cartesianHeartbeatTimer) clearInterval(cartesianHeartbeatTimer);
+  cartesianHeartbeatTimer = null;
+  latchedCartesianCommand = null;
+  cartesianStreaming = false;
+  document.querySelectorAll('.jog [data-command], .utility-actions [data-command="i"]').forEach((b) => b.classList.remove('active'));
+}
+function startLatchedCartesian(button) {
+  if (!enabled) return;
+  const command = button.dataset.command;
+  latchedCartesianCommand = command;
+  cartesianStreaming = true;
+  document.querySelectorAll('.jog [data-command], .utility-actions [data-command="i"]').forEach((b) => b.classList.toggle('active', b === button));
+  sendCommand(`jog:start:${command}`);
+  if (cartesianHeartbeatTimer) clearInterval(cartesianHeartbeatTimer);
+  cartesianHeartbeatTimer = setInterval(() => {
+    if (cartesianInputMode === 'latch' && latchedCartesianCommand) {
+      sendCommand(`jog:keepalive:${latchedCartesianCommand}`);
+    }
+  }, 150);
+}
 function releaseJog(sendClick=true) {
   const releasedCommand = heldCommand;
   const releasedKind = heldKind;
@@ -293,6 +316,7 @@ function releaseJog(sendClick=true) {
 }
 function stopMotion(source) {
   releaseJog(false);
+  clearLatchedCartesian();
   sendCommand('jog:stop');
   appendLog(`[停止运动] ${source}触发，速度归零并保持当前位置`);
 }
@@ -302,9 +326,18 @@ function bindJointJogButton(button) {
   button.addEventListener('pointercancel', () => releaseJog(false));
 }
 function bindCartesianJogButton(button) {
-  button.addEventListener('pointerdown', (e) => { e.preventDefault(); button.setPointerCapture(e.pointerId); pressCartesianJog(button); });
-  button.addEventListener('pointerup', () => releaseJog(true));
-  button.addEventListener('pointercancel', () => releaseJog(false));
+  button.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    button.setPointerCapture(e.pointerId);
+    if (cartesianInputMode === 'latch') startLatchedCartesian(button);
+    else pressCartesianJog(button);
+  });
+  button.addEventListener('pointerup', () => {
+    if (cartesianInputMode === 'hold') releaseJog(true);
+  });
+  button.addEventListener('pointercancel', () => {
+    if (cartesianInputMode === 'hold') releaseJog(false);
+  });
 }
 document.querySelectorAll('.jog [data-command]').forEach(bindCartesianJogButton);
 document.querySelectorAll('.utility-actions [data-command]').forEach((button) => {
@@ -317,7 +350,9 @@ document.querySelectorAll('[data-gripper-command]').forEach((button) => {
 window.addEventListener('blur', () => {
   if (enabled) stopMotion('窗口失焦');
 });
-window.addEventListener('pointerup', () => releaseJog(true));
+window.addEventListener('pointerup', () => {
+  if (cartesianInputMode === 'hold') releaseJog(true);
+});
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && enabled) stopMotion('页面切换');
 });
@@ -328,6 +363,18 @@ document.addEventListener('keydown', (event) => {
     stopMotion(event.code === 'Space' ? '空格键' : 'Esc 键');
   }
 });
+
+function setCartesianInputMode(mode) {
+  if (mode === cartesianInputMode) return;
+  stopMotion('运动方式切换');
+  cartesianInputMode = mode;
+  $('cartesian-hold-mode').classList.toggle('selected', mode === 'hold');
+  $('cartesian-latch-mode').classList.toggle('selected', mode === 'latch');
+  $('cartesian-hold-mode').setAttribute('aria-pressed', String(mode === 'hold'));
+  $('cartesian-latch-mode').setAttribute('aria-pressed', String(mode === 'latch'));
+}
+$('cartesian-hold-mode').onclick = () => setCartesianInputMode('hold');
+$('cartesian-latch-mode').onclick = () => setCartesianInputMode('latch');
 
 function updateJointReadouts(t) {
   const q = t.arm_q_actual || [];
