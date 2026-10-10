@@ -73,10 +73,10 @@ DEFAULT_OUT = Path(
 # image +V -> robot -Z
 # ============================================================
 
-KP_X = 0.010
-KP_Z = 0.010
+KP_X = 0.150
+KP_Z = 0.150
 
-MAX_SPEED_MM_S = 5.0
+MAX_SPEED_MM_S = 50.0
 
 DEADBAND_U_PX = 3.0
 DEADBAND_V_PX = 3.0

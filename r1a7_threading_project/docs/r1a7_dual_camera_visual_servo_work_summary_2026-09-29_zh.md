@@ -190,3 +190,13 @@ PYTHONNOUSERSITE=1 /home/robot/miniconda3/envs/tv_sam2/bin/python -m py_compile 
 - 第一次联调必须关闭机器人运动或使用极小 Cartesian 速度。
 - 双相机同时失效、目标接近区检测失效、孔状态不可信时必须停止，而不是盲目继续。
 - SAM2 checkpoint、录制数据和现场日志保留在本机，不通过 Git 提交。
+
+## 8. 2026-10-10 后续接续
+
+本阶段之后的低速控制、W/U 笛卡尔分层诊断、Wrist Hole/Tip 状态机修复和 10 mm/s 验证，已整理到：
+
+- `r1a7_visual_servo_control_handoff_2026-10-10_zh.md`
+- `r1a7_visual_servo_control_upload_manifest_2026-10-10_zh.md`
+- `source_records/2026-10-07_to_2026-10-10/`
+
+Git 历史关系为：`codex/r1a7-dual-camera-visual-servo-2026-09-29` → `codex/r1a7-visual-servo-control-2026-10-10`。上一阶段标记为“继续稳定化”的 Wrist Hole/Hold/重捕获问题，在后续阶段进一步发展为身份感知 Template 重捕获、预测安全化和 Tip false-relock 修复；最终明确通过的是 10 mm/s，15/25 mm/s 仍需重新资格验证。

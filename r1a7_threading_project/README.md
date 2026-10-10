@@ -33,6 +33,21 @@ The active visual-servo files are under `vision_dual_camera/task6_threading/`.
 The SAM2 source tree and model checkpoints remain local dependencies and are not
 included in this snapshot.
 
+## 2026-10-10 visual-servo and low-speed-control continuation
+
+The work after the 2026-09-29 visual-servo archive is indexed in:
+
+- `docs/r1a7_visual_servo_control_handoff_2026-10-10_zh.md`: Chinese handoff covering low-speed joint diagnosis, DQIK/Kd/POSVEL, W/U task analysis, Wrist Hole/Tip tracking repairs, and the verified 10 mm/s baseline;
+- `docs/r1a7_visual_servo_control_upload_manifest_2026-10-10_zh.md`: selected source files, source-record hashes, excluded runtime data, and validation boundary;
+- `docs/source_records/2026-10-07_to_2026-10-10/`: seven original Word work records.
+
+The stable experimental robot controller is
+`transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_v1.py`.
+The active visual stack remains under `vision_dual_camera/task6_threading/` and
+can be launched with `run_task6_visual_stack.sh`. The 10 mm/s configuration was
+confirmed in the recorded test; 15 and 25 mm/s require new qualification after
+the visual-state-machine fixes.
+
 ## Complete project snapshot
 
 The complete engineering snapshot is documented in
