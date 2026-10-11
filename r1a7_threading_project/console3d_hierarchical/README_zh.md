@@ -22,9 +22,25 @@ PYTHONNOUSERSITE=1 /home/robot/miniconda3/envs/tv/bin/python -u \
 
 打开 `http://127.0.0.1:8098/`。
 
+## 末端运动方式
+
+控制台提供两种明确分开的操作方式：
+
+1. **按住点动**：按住方向按钮超过约 `180 ms` 后连续运动；松开按钮发送 `jog:stop`。
+2. **连续切换**：点击一个方向后持续运动，再点击另一方向时直接发送新的 `jog:start:<direction>`，中间不发送 `jog:stop`。该模式用于复现终端控制中 `U` 运动期间直接按 `W` 的连续方向切换语义。
+
+连续切换模式下，从“上 +Z”切换到“前 +X”的正确日志应为：
+
+```text
+[CARTESIAN JOG] START UP +Z
+[CARTESIAN JOG] SWITCH UP +Z -> FORWARD +X
+```
+
+如果中间出现 `STOP UP +Z`，说明方向连续性已被打断，下一次 START 可能重新建立 Cartesian 目标并造成关节目标突跳。
+
 ## 停止方式
 
-1. 松开末端方向按钮：发送 `jog:stop`，平滑减速后保持当前位置。
+1. “按住点动”模式下松开末端方向按钮：发送 `jog:stop`，平滑减速后保持当前位置。
 2. 点击“停止运动”，或按空格键/`Esc`：发送 `jog:stop`，控制器继续在线并保持当前位置。
 3. 点击“断开连接”：先停止运动，再发送退出命令并释放 `rt/lowcmd` 控制锁。
 
