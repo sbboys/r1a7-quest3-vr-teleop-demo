@@ -123,10 +123,10 @@ OUTPUT_FILE = Path(
 # ============================================================
 
 # Conservative settings for first live-tip IBVS run.
-KP_Y = 0.010
-KP_Z = 0.010
+KP_Y = 0.150
+KP_Z = 0.150
 
-MAX_SPEED = 5.0
+MAX_SPEED = 50.0
 
 DEADBAND_U_PX = 3.0
 DEADBAND_V_PX = 3.0
@@ -143,11 +143,25 @@ TIP_MAX_JUMP_PX = 8.0
 TIP_RELOCK_FRAMES = 3
 TIP_RELOCK_CLUSTER_RADIUS_PX = 5.0
 
+# A relock cluster must also remain close to the last reliable
+# Tip trajectory.  This specifically rejects the observed
+# false jump from roughly (840,575) toward (880,644).
+TIP_RELOCK_MAX_ANCHOR_DIST_PX = 45.0
+
+# Tip motion model is used only for short-term gate prediction.
+# It is NOT itself treated as a visual observation.
+TIP_VELOCITY_ALPHA = 0.25
+TIP_PREDICT_MAX_SPEED_PX_S = 250.0
+
 # Wrist tip short-time hold
 TIP_HOLD_S = 0.30
 
 
 
+
+# Heavy coarse Tip detector runs at reduced frequency.
+# Intermediate frames use Tip motion prediction.
+TIP_DETECT_EVERY_N_FRAMES = 2
 def limit(v):
 
     return max(
@@ -182,7 +196,7 @@ hole_velocity = np.zeros(2, dtype=np.float64)
 #
 # Reuse only the most recent CONFIRMED hole center and only
 # for this bounded grace interval.
-HOLE_HOLD_S = 0.15
+HOLE_HOLD_S = 0.30
 
 # Wrist hole stability
 HOLE_MAX_JUMP_PX = 20.0
@@ -749,299 +763,2089 @@ def track_hole(gray):
     global hole_last_valid_center
     global hole_last_valid_time
     global hole_velocity
+    global hole_ema
+
     if hole_center is None:
         return None
 
     if hole_radius is None:
         return None
 
-    prev_x, prev_y = hole_center
+    # ========================================================
+    # Hole tracker configuration
+    # ========================================================
 
-    search = 40
+    LOCAL_SEARCH = 80
 
-    x0 = max(
-        0,
-        prev_x - search
+    # Short local prediction period.
+    # HOLE_HOLD_S itself remains unchanged.
+
+    # --------------------------------------------------------
+    # Global template reacquisition
+    # --------------------------------------------------------
+
+    GLOBAL_TM_SCALE = 0.75
+    GLOBAL_TM_PERIOD_S = 0.10
+
+    # Initial conservative template threshold.
+    GLOBAL_TM_MIN_SCORE = 0.72
+
+    # Local ellipse/Hough measurements must still look like
+    # the manually initialized target Hole.
+    #
+    # Deliberately lower than GLOBAL_TM_MIN_SCORE because the
+    # local target is moving and may have perspective change.
+    LOCAL_TM_MIN_SCORE = 0.60
+
+    # Do not require the geometric center to align perfectly
+    # with the template center. Search around it locally.
+    LOCAL_TM_SEARCH_MARGIN = 10
+
+    # Hole image velocity is used ONLY to predict the search
+    # position. Filter and clamp it to avoid runaway ROI
+    # prediction after a single noisy measurement.
+    HOLE_VELOCITY_ALPHA = 0.25
+    HOLE_PREDICT_MAX_SPEED_PX_S = 300.0
+
+    # --------------------------------------------------------
+    # Adaptive RECENT Hole appearance
+    #
+    # INITIAL template remains immutable.
+    # RECENT template follows slow viewpoint/illumination
+    # changes only after reliable LOCAL visual measurements.
+    # --------------------------------------------------------
+    RECENT_TEMPLATE_ALPHA = 0.15
+    RECENT_TEMPLATE_MIN_SCORE = 0.68
+
+    # During the first second after loss, a global candidate
+    # should stay reasonably close to the predicted trajectory.
+    GLOBAL_NEAR_LOSS_S = 1.0
+    GLOBAL_NEAR_MOTION_LIMIT_PX = 90.0
+
+    # Radius-aware Hough range.
+    #
+    # Example:
+    # manually initialized radius=3 px
+    # -> search roughly 2..7 px
+    #
+    # The old max(5, radius-5) excluded a 3 px target.
+    HOUGH_MIN_RADIUS = max(
+        2,
+        int(round(float(hole_radius))) - 2
     )
 
-    y0 = max(
-        0,
-        prev_y - search
+    HOUGH_MAX_RADIUS = max(
+        HOUGH_MIN_RADIUS + 2,
+        int(round(float(hole_radius))) + 4
     )
 
-    x1 = min(
-        gray.shape[1],
-        prev_x + search
-    )
+    # Inspect several local maxima instead of trusting only
+    # the single global maximum.
+    GLOBAL_TM_TOP_K = 8
 
-    y1 = min(
-        gray.shape[0],
-        prev_y + search
-    )
+    # Template candidate must also pass local geometry.
+    GLOBAL_GEOM_MAX_OFFSET_PX = 30.0
 
-    if x1 <= x0 or y1 <= y0:
-        return None
+    # Three geometrically verified template observations are
+    # needed before relocking.
+    GLOBAL_RELOCK_FRAMES = 3
+    GLOBAL_RELOCK_MAX_STEP_PX = 30.0
 
-    crop = gray[
-        y0:y1,
-        x0:x1
-    ]
+    # Permit one intermittent failed global frame.
+    GLOBAL_MAX_MISSES = 1
 
-    if crop.size == 0:
-        return None
+    # After global relock, require two LOCAL visual
+    # measurements before Hole is released back to IBVS.
+    POST_RELOCK_LOCAL_FRAMES = 2
 
-    blur = cv2.GaussianBlur(
-        crop,
-        (5, 5),
-        0
-    )
+    # --------------------------------------------------------
+    # Persistent template/global state
+    # --------------------------------------------------------
 
-    ellipse_hole = detect_hole_ellipse(
-        crop,
-        x0,
-        y0
-    )
+    if not hasattr(
+        track_hole,
+        "_tm_template_gray"
+    ):
+        track_hole._tm_template_gray = None
 
-    if ellipse_hole is not None:
+    if not hasattr(
+        track_hole,
+        "_tm_template_edge"
+    ):
+        track_hole._tm_template_edge = None
 
-        global hole_ema
+    if not hasattr(
+        track_hole,
+        "_tm_recent_gray"
+    ):
+        track_hole._tm_recent_gray = None
 
-        candidate = np.array(
-            [
-                ellipse_hole[0],
-                ellipse_hole[1]
-            ],
-            dtype=np.float64,
-        )
+    if not hasattr(
+        track_hole,
+        "_tm_recent_edge"
+    ):
+        track_hole._tm_recent_edge = None
 
-        previous = np.array(
-            [
-                prev_x,
-                prev_y
-            ],
-            dtype=np.float64,
-        )
+    if not hasattr(
+        track_hole,
+        "_tm_recent_updates"
+    ):
+        track_hole._tm_recent_updates = 0
 
-        jump = float(
-            np.linalg.norm(
-                candidate - previous
+    if not hasattr(
+        track_hole,
+        "_tm_candidates"
+    ):
+        track_hole._tm_candidates = []
+
+    if not hasattr(
+        track_hole,
+        "_tm_misses"
+    ):
+        track_hole._tm_misses = 0
+
+    if not hasattr(
+        track_hole,
+        "_tm_active"
+    ):
+        track_hole._tm_active = False
+
+    if not hasattr(
+        track_hole,
+        "_tm_last_run"
+    ):
+        track_hole._tm_last_run = 0.0
+
+    if not hasattr(
+        track_hole,
+        "_tm_last_print"
+    ):
+        track_hole._tm_last_print = 0.0
+
+    if not hasattr(
+        track_hole,
+        "_post_relock_remaining"
+    ):
+        track_hole._post_relock_remaining = 0
+
+    now_track = time.time()
+
+    # ========================================================
+    # Capture the MANUALLY INITIALIZED Hole appearance.
+    #
+    # This happens only once per visual process / selected
+    # target. It uses a patch centered on the manually
+    # initialized hole_center.
+    # ========================================================
+
+    if track_hole._tm_template_gray is None:
+
+        cx = int(hole_center[0])
+        cy = int(hole_center[1])
+
+        desired_half = max(
+            20,
+            min(
+                70,
+                int(
+                    round(
+                        float(hole_radius)
+                        *
+                        2.5
+                    )
+                )
             )
         )
 
-        # Reject false ellipse detections
-        if jump > HOLE_MAX_JUMP_PX:
+        max_half = min(
+            cx,
+            cy,
+            gray.shape[1] - 1 - cx,
+            gray.shape[0] - 1 - cy,
+        )
 
-            return hole_center
+        template_half = min(
+            desired_half,
+            max_half
+        )
 
+        if template_half >= 12:
 
-        # Reject invalid ellipse results
+            tx0 = cx - template_half
+            ty0 = cy - template_half
+            tx1 = cx + template_half + 1
+            ty1 = cy + template_half + 1
+
+            template = gray[
+                ty0:ty1,
+                tx0:tx1
+            ].copy()
+
+            if (
+                template.size > 0
+                and
+                template.shape[0] >= 20
+                and
+                template.shape[1] >= 20
+            ):
+
+                template = cv2.GaussianBlur(
+                    template,
+                    (3, 3),
+                    0
+                )
+
+                track_hole._tm_template_gray = (
+                    template.copy()
+                )
+
+                track_hole._tm_template_edge = (
+                    cv2.Canny(
+                        template,
+                        50,
+                        150
+                    )
+                )
+
+                # INITIAL template is never overwritten.
+                # RECENT starts from the same manually
+                # initialized appearance and then adapts.
+                track_hole._tm_recent_gray = (
+                    template.copy()
+                )
+
+                track_hole._tm_recent_edge = (
+                    track_hole
+                    ._tm_template_edge
+                    .copy()
+                )
+
+                track_hole._tm_recent_updates = 0
+
+                cv2.imwrite(
+                    "/tmp/r1a7_hole_template.png",
+                    template
+                )
+
+                print(
+                    "[HOLE TEMPLATE] INIT "
+                    f"center=({cx},{cy}) "
+                    f"radius={hole_radius} "
+                    f"size="
+                    f"{template.shape[1]}x"
+                    f"{template.shape[0]} "
+                    "saved="
+                    "/tmp/r1a7_hole_template.png",
+                    flush=True,
+                )
+
+    # ========================================================
+    # LOCAL appearance verification
+    #
+    # A geometric ellipse/circle alone is not enough to renew
+    # hole_last_valid_time.  The surrounding appearance must
+    # also resemble the manually initialized Hole template.
+    # ========================================================
+
+    def _template_score_near(
+        candidate_center,
+        template_local,
+    ):
+
+        if template_local is None:
+            return -1.0
+
+        candidate_center = np.array(
+            candidate_center,
+            dtype=np.float64,
+        )
+
         if not np.all(
-            np.isfinite(candidate)
+            np.isfinite(
+                candidate_center
+            )
         ):
-            return hole_center
+            return -1.0
 
+        th = int(
+            template_local.shape[0]
+        )
+
+        tw = int(
+            template_local.shape[1]
+        )
+
+        margin = int(
+            LOCAL_TM_SEARCH_MARGIN
+        )
+
+        cx = int(
+            round(
+                candidate_center[0]
+            )
+        )
+
+        cy = int(
+            round(
+                candidate_center[1]
+            )
+        )
+
+        x0_tm = (
+            cx
+            -
+            tw // 2
+            -
+            margin
+        )
+
+        y0_tm = (
+            cy
+            -
+            th // 2
+            -
+            margin
+        )
+
+        x1_tm = (
+            cx
+            +
+            tw // 2
+            +
+            margin
+            +
+            1
+        )
+
+        y1_tm = (
+            cy
+            +
+            th // 2
+            +
+            margin
+            +
+            1
+        )
 
         if (
-            hole_ema is not None
-            and
-            not np.all(
-                np.isfinite(hole_ema)
-            )
+            x0_tm < 0
+            or
+            y0_tm < 0
+            or
+            x1_tm > gray.shape[1]
+            or
+            y1_tm > gray.shape[0]
         ):
-            hole_ema = None
+            return -1.0
+
+        search_patch = gray[
+            y0_tm:y1_tm,
+            x0_tm:x1_tm
+        ]
+
+        if (
+            search_patch.shape[0]
+            <
+            th
+            or
+            search_patch.shape[1]
+            <
+            tw
+        ):
+            return -1.0
+
+        search_patch = cv2.GaussianBlur(
+            search_patch,
+            (3, 3),
+            0
+        )
+
+        result = cv2.matchTemplate(
+            search_patch,
+            template_local,
+            cv2.TM_CCOEFF_NORMED,
+        )
+
+        (
+            _min_val,
+            max_val,
+            _min_loc,
+            _max_loc,
+        ) = cv2.minMaxLoc(
+            result
+        )
+
+        score = float(
+            max_val
+        )
+
+        if not np.isfinite(score):
+            return -1.0
+
+        return score
 
 
-        if hole_ema is None:
+    def local_template_score(
+        candidate_center,
+    ):
 
-            hole_ema = candidate.copy()
+        initial_score = (
+            _template_score_near(
+                candidate_center,
+                track_hole._tm_template_gray,
+            )
+        )
+
+        recent_score = (
+            _template_score_near(
+                candidate_center,
+                track_hole._tm_recent_gray,
+            )
+        )
+
+        # Either identity anchor can validate LOCAL tracking.
+        # INITIAL prevents unlimited appearance drift.
+        # RECENT permits gradual viewpoint changes.
+        return max(
+            initial_score,
+            recent_score,
+        )
+
+
+    def update_recent_template(
+        candidate_center,
+    ):
+
+        initial_template = (
+            track_hole._tm_template_gray
+        )
+
+        if initial_template is None:
+            return
+
+        # Never adapt immediately after a GLOBAL relock.
+        # First require normal LOCAL verification.
+        if (
+            track_hole._post_relock_remaining
+            >
+            0
+        ):
+            return
+
+        score = local_template_score(
+            candidate_center
+        )
+
+        if (
+            score
+            <
+            RECENT_TEMPLATE_MIN_SCORE
+        ):
+            return
+
+        th = int(
+            initial_template.shape[0]
+        )
+
+        tw = int(
+            initial_template.shape[1]
+        )
+
+        cx = int(
+            round(
+                float(
+                    candidate_center[0]
+                )
+            )
+        )
+
+        cy = int(
+            round(
+                float(
+                    candidate_center[1]
+                )
+            )
+        )
+
+        x0 = cx - tw // 2
+        y0 = cy - th // 2
+        x1 = x0 + tw
+        y1 = y0 + th
+
+        if (
+            x0 < 0
+            or
+            y0 < 0
+            or
+            x1 > gray.shape[1]
+            or
+            y1 > gray.shape[0]
+        ):
+            return
+
+        patch = gray[
+            y0:y1,
+            x0:x1
+        ].copy()
+
+        if (
+            patch.shape
+            !=
+            initial_template.shape
+        ):
+            return
+
+        patch = cv2.GaussianBlur(
+            patch,
+            (3, 3),
+            0
+        )
+
+        if track_hole._tm_recent_gray is None:
+
+            track_hole._tm_recent_gray = (
+                patch.copy()
+            )
 
         else:
 
-            hole_ema = (
-                HOLE_EMA_ALPHA * candidate
-                +
-                (1.0 - HOLE_EMA_ALPHA)
-                *
-                hole_ema
+            recent_float = (
+                track_hole
+                ._tm_recent_gray
+                .astype(np.float32)
             )
 
+            patch_float = patch.astype(
+                np.float32
+            )
 
-        if not np.all(
-            np.isfinite(hole_ema)
-        ):
-            return hole_center
+            updated = (
+                (
+                    1.0
+                    -
+                    RECENT_TEMPLATE_ALPHA
+                )
+                *
+                recent_float
+                +
+                RECENT_TEMPLATE_ALPHA
+                *
+                patch_float
+            )
 
+            track_hole._tm_recent_gray = (
+                np.clip(
+                    updated,
+                    0,
+                    255
+                )
+                .astype(np.uint8)
+            )
 
-        hole_center = (
-            int(round(hole_ema[0])),
-            int(round(hole_ema[1]))
+        track_hole._tm_recent_edge = (
+            cv2.Canny(
+                track_hole._tm_recent_gray,
+                50,
+                150
+            )
         )
 
-        now_hole_time = time.time()
+        track_hole._tm_recent_updates += 1
 
-        if (
+
+    # ========================================================
+    # Sanitized velocity
+    # ========================================================
+
+    if hole_velocity is None:
+
+        velocity = np.zeros(
+            2,
+            dtype=np.float64,
+        )
+
+    else:
+
+        velocity = np.array(
+            hole_velocity,
+            dtype=np.float64,
+        )
+
+        if not np.all(
+            np.isfinite(velocity)
+        ):
+
+            velocity = np.zeros(
+                2,
+                dtype=np.float64,
+            )
+
+    # ========================================================
+    # Time since last REAL Hole measurement
+    # ========================================================
+
+    if hole_last_valid_time is not None:
+
+        lost_time = max(
+            0.0,
+            now_track
+            -
+            hole_last_valid_time
+        )
+
+    else:
+
+        lost_time = float("inf")
+
+    # ========================================================
+    # Predicted reference for normal LOCAL tracking
+    # ========================================================
+
+    reference = np.array(
+        hole_center,
+        dtype=np.float64,
+    )
+
+    if (
+        hole_last_valid_center is not None
+        and
+        hole_last_valid_time is not None
+    ):
+
+        predict_dt = min(
+            lost_time,
+            HOLE_HOLD_S
+        )
+
+        predicted_reference = (
+            np.array(
+                hole_last_valid_center,
+                dtype=np.float64,
+            )
+            +
+            velocity
+            *
+            predict_dt
+        )
+
+        if np.all(
+            np.isfinite(
+                predicted_reference
+            )
+        ):
+
+            reference = (
+                predicted_reference
+            )
+
+    # ========================================================
+    # Helper: accept a REAL visual Hole measurement
+    # ========================================================
+
+    def accept_measurement(
+        measured_center,
+        reset_velocity=False,
+    ):
+
+        global hole_center
+        global hole_last_valid_center
+        global hole_last_valid_time
+        global hole_velocity
+        global hole_ema
+
+        measured_center = np.array(
+            measured_center,
+            dtype=np.float64,
+        )
+
+        if not np.all(
+            np.isfinite(
+                measured_center
+            )
+        ):
+            return None
+
+        now_measure = time.time()
+
+        if reset_velocity:
+
+            hole_velocity = np.zeros(
+                2,
+                dtype=np.float64,
+            )
+
+        elif (
             hole_last_valid_center is not None
             and
             hole_last_valid_time is not None
         ):
 
             dt = max(
-                now_hole_time - hole_last_valid_time,
+                now_measure
+                -
+                hole_last_valid_time,
                 1e-3
             )
 
-            hole_velocity = (
-                np.array(
-                    hole_center,
-                    dtype=np.float64
-                )
+            new_velocity = (
+                measured_center
                 -
-                hole_last_valid_center
+                np.array(
+                    hole_last_valid_center,
+                    dtype=np.float64,
+                )
             ) / dt
 
+            if np.all(
+                np.isfinite(
+                    new_velocity
+                )
+            ):
 
-        hole_last_valid_center = np.array(
-            hole_center,
-            dtype=np.float64
+                speed = float(
+                    np.linalg.norm(
+                        new_velocity
+                    )
+                )
+
+                if (
+                    speed
+                    >
+                    HOLE_PREDICT_MAX_SPEED_PX_S
+                    and
+                    speed > 1e-6
+                ):
+
+                    new_velocity = (
+                        new_velocity
+                        *
+                        (
+                            HOLE_PREDICT_MAX_SPEED_PX_S
+                            /
+                            speed
+                        )
+                    )
+
+                if hole_velocity is None:
+
+                    hole_velocity = (
+                        new_velocity
+                    )
+
+                else:
+
+                    previous_velocity = np.array(
+                        hole_velocity,
+                        dtype=np.float64,
+                    )
+
+                    if np.all(
+                        np.isfinite(
+                            previous_velocity
+                        )
+                    ):
+
+                        hole_velocity = (
+                            HOLE_VELOCITY_ALPHA
+                            *
+                            new_velocity
+                            +
+                            (
+                                1.0
+                                -
+                                HOLE_VELOCITY_ALPHA
+                            )
+                            *
+                            previous_velocity
+                        )
+
+                    else:
+
+                        hole_velocity = (
+                            new_velocity
+                        )
+
+        hole_center = (
+            int(
+                round(
+                    measured_center[0]
+                )
+            ),
+            int(
+                round(
+                    measured_center[1]
+                )
+            ),
         )
 
-        hole_last_valid_time = now_hole_time
+        hole_last_valid_center = (
+            np.array(
+                hole_center,
+                dtype=np.float64,
+            )
+        )
+
+        hole_last_valid_time = (
+            now_measure
+        )
+
+        track_hole._tm_active = False
+        track_hole._tm_candidates = []
+        track_hole._tm_misses = 0
 
         return hole_center
 
+    # ========================================================
+    # Helper: after GLOBAL relock, do not immediately feed the
+    # recovered target into IBVS.
+    #
+    # Require POST_RELOCK_LOCAL_FRAMES normal local visual
+    # measurements first.
+    # ========================================================
 
-    circles = cv2.HoughCircles(
-        blur,
-        cv2.HOUGH_GRADIENT,
-        dp=1,
-        minDist=15,
-        param1=80,
-        param2=12,
-        minRadius=max(
-            5,
-            hole_radius - 5
-        ),
-        maxRadius=hole_radius + 5
+    def finish_local_measurement(
+        accepted,
+        source,
+    ):
+
+        if accepted is None:
+            return None
+
+        if (
+            track_hole._post_relock_remaining
+            >
+            0
+        ):
+
+            track_hole._post_relock_remaining -= 1
+
+            print(
+                "[HOLE POST RELOCK] "
+                f"source={source} "
+                f"remaining="
+                f"{track_hole._post_relock_remaining}",
+                flush=True,
+            )
+
+            if (
+                track_hole._post_relock_remaining
+                >
+                0
+            ):
+                return None
+
+            print(
+                "[HOLE POST RELOCK] "
+                "LOCAL VERIFIED -> IBVS ENABLED",
+                flush=True,
+            )
+
+        return accepted
+
+    # ========================================================
+    # LOCAL TRACKING
+    # ========================================================
+
+    ref_x = int(
+        round(
+            reference[0]
+        )
     )
 
-    if circles is None:
+    ref_y = int(
+        round(
+            reference[1]
+        )
+    )
 
-        if (
-            hole_last_valid_center is not None
-            and
-            hole_last_valid_time is not None
-        ):
+    x0 = max(
+        0,
+        ref_x - LOCAL_SEARCH
+    )
 
-            lost_time = (
-                time.time()
-                -
-                hole_last_valid_time
+    y0 = max(
+        0,
+        ref_y - LOCAL_SEARCH
+    )
+
+    x1 = min(
+        gray.shape[1],
+        ref_x + LOCAL_SEARCH
+    )
+
+    y1 = min(
+        gray.shape[0],
+        ref_y + LOCAL_SEARCH
+    )
+
+    local_valid = (
+        x1 > x0
+        and
+        y1 > y0
+    )
+
+    if local_valid:
+
+        crop = gray[
+            y0:y1,
+            x0:x1
+        ]
+
+        local_valid = (
+            crop.size > 0
+        )
+
+    if local_valid:
+
+        blur = cv2.GaussianBlur(
+            crop,
+            (5, 5),
+            0
+        )
+
+        # ----------------------------------------------------
+        # LOCAL ellipse
+        # ----------------------------------------------------
+
+        ellipse_hole = (
+            detect_hole_ellipse(
+                crop,
+                x0,
+                y0
+            )
+        )
+
+        if ellipse_hole is not None:
+
+            candidate = np.array(
+                [
+                    ellipse_hole[0],
+                    ellipse_hole[1],
+                ],
+                dtype=np.float64,
             )
 
-            if lost_time <= HOLE_HOLD_S:
+            if np.all(
+                np.isfinite(candidate)
+            ):
 
-                predicted = (
-                    hole_last_valid_center
-                    +
-                    hole_velocity
-                    *
-                    lost_time
+                jump = float(
+                    np.linalg.norm(
+                        candidate
+                        -
+                        reference
+                    )
                 )
 
-                if np.all(
-                    np.isfinite(predicted)
+                if (
+                    jump
+                    <=
+                    HOLE_MAX_JUMP_PX
+                    and
+                    local_template_score(
+                        candidate
+                    )
+                    >=
+                    LOCAL_TM_MIN_SCORE
                 ):
 
-                    hole_center = (
-                        int(round(predicted[0])),
-                        int(round(predicted[1]))
+                    if (
+                        hole_ema is None
+                        or
+                        not np.all(
+                            np.isfinite(
+                                hole_ema
+                            )
+                        )
+                    ):
+
+                        hole_ema = (
+                            candidate.copy()
+                        )
+
+                    else:
+
+                        hole_ema = (
+                            HOLE_EMA_ALPHA
+                            *
+                            candidate
+                            +
+                            (
+                                1.0
+                                -
+                                HOLE_EMA_ALPHA
+                            )
+                            *
+                            hole_ema
+                        )
+
+                    if np.all(
+                        np.isfinite(
+                            hole_ema
+                        )
+                    ):
+
+                        update_recent_template(
+                            hole_ema
+                        )
+
+                        accepted = (
+                            accept_measurement(
+                                hole_ema,
+                                reset_velocity=False,
+                            )
+                        )
+
+                        return finish_local_measurement(
+                            accepted,
+                            "ELLIPSE",
+                        )
+
+        # ----------------------------------------------------
+        # LOCAL Hough fallback
+        # ----------------------------------------------------
+
+        circles = cv2.HoughCircles(
+            blur,
+            cv2.HOUGH_GRADIENT,
+            dp=1,
+            minDist=15,
+            param1=80,
+            param2=12,
+            minRadius=
+            HOUGH_MIN_RADIUS,
+            maxRadius=
+            HOUGH_MAX_RADIUS
+        )
+
+        if circles is not None:
+
+            candidates = np.round(
+                circles[0]
+            ).astype(int)
+
+            best = None
+            best_dist2 = None
+
+            for c in candidates:
+
+                cx = int(
+                    c[0] + x0
+                )
+
+                cy = int(
+                    c[1] + y0
+                )
+
+                dist2 = (
+                    (
+                        float(cx)
+                        -
+                        reference[0]
+                    ) ** 2
+                    +
+                    (
+                        float(cy)
+                        -
+                        reference[1]
+                    ) ** 2
+                )
+
+                if (
+                    best_dist2 is None
+                    or
+                    dist2 < best_dist2
+                ):
+
+                    best_dist2 = dist2
+                    best = (
+                        cx,
+                        cy
                     )
 
-                    return hole_center
+            if best is not None:
 
+                best_array = np.array(
+                    best,
+                    dtype=np.float64,
+                )
+
+                best_jump = float(
+                    np.linalg.norm(
+                        best_array
+                        -
+                        reference
+                    )
+                )
+
+                if (
+                    np.all(
+                        np.isfinite(
+                            best_array
+                        )
+                    )
+                    and
+                    best_jump
+                    <=
+                    HOLE_MAX_JUMP_PX
+                    and
+                    local_template_score(
+                        best_array
+                    )
+                    >=
+                    LOCAL_TM_MIN_SCORE
+                ):
+
+                    hole_ema = (
+                        best_array.copy()
+                    )
+
+                    update_recent_template(
+                        best_array
+                    )
+
+                    accepted = (
+                        accept_measurement(
+                            best_array,
+                            reset_velocity=False,
+                        )
+                    )
+
+                    return finish_local_measurement(
+                        accepted,
+                        "HOUGH",
+                    )
+
+    # ========================================================
+    # During post-global verification, prediction must NOT
+    # enter IBVS.
+    # ========================================================
+
+    if (
+        track_hole._post_relock_remaining
+        >
+        0
+    ):
 
         return None
-    candidates = np.round(
-        circles[0]
-    ).astype(int)
 
-    best = None
-    best_dist2 = None
+    # ========================================================
+    # SHORT HOLD / PREDICTION
+    # ========================================================
 
-    for c in candidates:
+    if (
+        hole_last_valid_center is not None
+        and
+        hole_last_valid_time is not None
+        and
+        lost_time <= HOLE_HOLD_S
+    ):
 
-        cx = int(
-            c[0] + x0
+        # Prediction is already used above to move the LOCAL
+        # search reference.  It is intentionally NOT returned
+        # as a valid Hole observation.
+        #
+        # This prevents predicted Hole coordinates from
+        # generating Wrist IBVS velocity commands.
+        return None
+
+    # ========================================================
+    # GLOBAL TEMPLATE REACQUIRE
+    # ========================================================
+
+    # Prefer the most recently validated appearance during
+    # GLOBAL reacquisition.
+    #
+    # INITIAL template remains stored separately and is never
+    # overwritten.
+    if (
+        track_hole._tm_recent_gray
+        is not None
+    ):
+
+        template_gray = (
+            track_hole._tm_recent_gray
         )
 
-        cy = int(
-            c[1] + y0
+        template_edge = (
+            track_hole._tm_recent_edge
         )
 
-        dist2 = (
-            (cx - prev_x) ** 2
+    else:
+
+        template_gray = (
+            track_hole._tm_template_gray
+        )
+
+        template_edge = (
+            track_hole._tm_template_edge
+        )
+
+    if template_gray is None:
+
+        if (
+            now_track
+            -
+            track_hole._tm_last_print
+            >
+            0.5
+        ):
+
+            print(
+                "[HOLE GLOBAL TM] "
+                "NO TEMPLATE",
+                flush=True,
+            )
+
+            track_hole._tm_last_print = (
+                now_track
+            )
+
+        return None
+
+    if not track_hole._tm_active:
+
+        track_hole._tm_active = True
+        track_hole._tm_candidates = []
+        track_hole._tm_misses = 0
+
+        print(
+            "[HOLE GLOBAL TM] START "
+            f"lost={lost_time:.3f}s "
+            f"last={hole_last_valid_center}",
+            flush=True,
+        )
+
+    if (
+        now_track
+        -
+        track_hole._tm_last_run
+        <
+        GLOBAL_TM_PERIOD_S
+    ):
+
+        return None
+
+    track_hole._tm_last_run = (
+        now_track
+    )
+
+    # --------------------------------------------------------
+    # Search image and template at 0.75 scale.
+    # --------------------------------------------------------
+
+    search_small = cv2.resize(
+        gray,
+        None,
+        fx=GLOBAL_TM_SCALE,
+        fy=GLOBAL_TM_SCALE,
+        interpolation=cv2.INTER_AREA,
+    )
+
+    template_small = cv2.resize(
+        template_gray,
+        None,
+        fx=GLOBAL_TM_SCALE,
+        fy=GLOBAL_TM_SCALE,
+        interpolation=cv2.INTER_AREA,
+    )
+
+    if (
+        template_small.shape[0] < 8
+        or
+        template_small.shape[1] < 8
+        or
+        template_small.shape[0]
+        >=
+        search_small.shape[0]
+        or
+        template_small.shape[1]
+        >=
+        search_small.shape[1]
+    ):
+
+        print(
+            "[HOLE GLOBAL TM] "
+            "INVALID TEMPLATE SIZE",
+            flush=True,
+        )
+
+        return None
+
+    search_small = cv2.GaussianBlur(
+        search_small,
+        (3, 3),
+        0
+    )
+
+    gray_response = cv2.matchTemplate(
+        search_small,
+        template_small,
+        cv2.TM_CCOEFF_NORMED,
+    )
+
+    # --------------------------------------------------------
+    # Add edge appearance to reduce confusion with unrelated
+    # circular objects having different local texture.
+    # --------------------------------------------------------
+
+    use_edge = False
+    combined = gray_response
+
+    if template_edge is not None:
+
+        template_edge_small = cv2.resize(
+            template_edge,
+            (
+                template_small.shape[1],
+                template_small.shape[0],
+            ),
+            interpolation=cv2.INTER_NEAREST,
+        )
+
+        if (
+            float(
+                np.std(
+                    template_edge_small
+                )
+            )
+            >
+            1.0
+        ):
+
+            search_edge_small = cv2.Canny(
+                search_small,
+                50,
+                150
+            )
+
+            edge_response = cv2.matchTemplate(
+                search_edge_small,
+                template_edge_small,
+                cv2.TM_CCORR_NORMED,
+            )
+
+            combined = (
+                0.70
+                *
+                gray_response
+                +
+                0.30
+                *
+                edge_response
+            )
+
+            use_edge = True
+
+    # --------------------------------------------------------
+    # Get several spatially separated template peaks.
+    # --------------------------------------------------------
+
+    score_work = (
+        combined.copy()
+    )
+
+    th = template_small.shape[0]
+    tw = template_small.shape[1]
+
+    peak_candidates = []
+
+    nms_radius = max(
+        10,
+        int(
+            round(
+                0.75
+                *
+                max(
+                    th,
+                    tw
+                )
+            )
+        )
+    )
+
+    best_raw_score = -1.0
+
+    for _ in range(
+        GLOBAL_TM_TOP_K
+    ):
+
+        (
+            _min_val,
+            max_val,
+            _min_loc,
+            max_loc,
+        ) = cv2.minMaxLoc(
+            score_work
+        )
+
+        score = float(
+            max_val
+        )
+
+        if score > best_raw_score:
+            best_raw_score = score
+
+        if (
+            score
+            <
+            GLOBAL_TM_MIN_SCORE
+        ):
+            break
+
+        cx_small = (
+            float(max_loc[0])
             +
-            (cy - prev_y) ** 2
+            0.5
+            *
+            float(tw)
+        )
+
+        cy_small = (
+            float(max_loc[1])
+            +
+            0.5
+            *
+            float(th)
+        )
+
+        candidate_full = np.array(
+            [
+                cx_small
+                /
+                GLOBAL_TM_SCALE,
+
+                cy_small
+                /
+                GLOBAL_TM_SCALE,
+            ],
+            dtype=np.float64,
+        )
+
+        peak_candidates.append(
+            (
+                score,
+                candidate_full,
+            )
+        )
+
+        sx0 = max(
+            0,
+            max_loc[0]
+            -
+            nms_radius
+        )
+
+        sy0 = max(
+            0,
+            max_loc[1]
+            -
+            nms_radius
+        )
+
+        sx1 = min(
+            score_work.shape[1],
+            max_loc[0]
+            +
+            nms_radius
+            +
+            1
+        )
+
+        sy1 = min(
+            score_work.shape[0],
+            max_loc[1]
+            +
+            nms_radius
+            +
+            1
+        )
+
+        score_work[
+            sy0:sy1,
+            sx0:sx1
+        ] = -1.0
+
+    if not peak_candidates:
+
+        track_hole._tm_misses += 1
+
+        if (
+            track_hole._tm_misses
+            >
+            GLOBAL_MAX_MISSES
+        ):
+
+            track_hole._tm_candidates = []
+            track_hole._tm_misses = 0
+
+        if (
+            now_track
+            -
+            track_hole._tm_last_print
+            >
+            0.30
+        ):
+
+            print(
+                "[HOLE GLOBAL TM] "
+                f"score={best_raw_score:.3f} "
+                f"< {GLOBAL_TM_MIN_SCORE:.2f} "
+                f"edge={int(use_edge)}",
+                flush=True,
+            )
+
+            track_hole._tm_last_print = (
+                now_track
+            )
+
+        return None
+
+    # ========================================================
+    # Helper: geometry validation around template candidate
+    # ========================================================
+
+    def verify_global_geometry(
+        template_center,
+    ):
+
+        tcx = int(
+            round(
+                template_center[0]
+            )
+        )
+
+        tcy = int(
+            round(
+                template_center[1]
+            )
+        )
+
+        verify_half = max(
+            45,
+            min(
+                90,
+                int(
+                    round(
+                        float(hole_radius)
+                        *
+                        4.0
+                    )
+                )
+            )
+        )
+
+        gx0 = max(
+            0,
+            tcx - verify_half
+        )
+
+        gy0 = max(
+            0,
+            tcy - verify_half
+        )
+
+        gx1 = min(
+            gray.shape[1],
+            tcx + verify_half
+        )
+
+        gy1 = min(
+            gray.shape[0],
+            tcy + verify_half
         )
 
         if (
-            best_dist2 is None
+            gx1 <= gx0
             or
-            dist2 < best_dist2
+            gy1 <= gy0
         ):
+            return None, None
 
-            best_dist2 = dist2
+        gcrop = gray[
+            gy0:gy1,
+            gx0:gx1
+        ]
 
-            best = (
-                cx,
-                cy
+        if gcrop.size == 0:
+            return None, None
+
+        geom_candidates = []
+
+        # ----------------------------------------------------
+        # Geometry A: ellipse detector
+        # ----------------------------------------------------
+
+        gellipse = detect_hole_ellipse(
+            gcrop,
+            gx0,
+            gy0
+        )
+
+        if gellipse is not None:
+
+            ep = np.array(
+                [
+                    gellipse[0],
+                    gellipse[1],
+                ],
+                dtype=np.float64,
             )
 
-    if best is None:
+            if np.all(
+                np.isfinite(ep)
+            ):
 
-        if (
-            hole_last_valid_center is not None
-            and
-            hole_last_valid_time is not None
-        ):
-
-            lost_time = (
-                time.time()
-                -
-                hole_last_valid_time
-            )
-
-            if lost_time <= HOLE_HOLD_S:
-
-                predicted = (
-                    hole_last_valid_center
-                    +
-                    hole_velocity
-                    *
-                    lost_time
+                ed = float(
+                    np.linalg.norm(
+                        ep
+                        -
+                        template_center
+                    )
                 )
 
-                if np.all(
-                    np.isfinite(predicted)
+                if (
+                    ed
+                    <=
+                    GLOBAL_GEOM_MAX_OFFSET_PX
                 ):
 
-                    hole_center = (
-                        int(round(predicted[0])),
-                        int(round(predicted[1]))
+                    geom_candidates.append(
+                        (
+                            ed,
+                            ep,
+                            "ELLIPSE",
+                        )
                     )
 
-                    return hole_center
+        # ----------------------------------------------------
+        # Geometry B: radius-constrained Hough
+        # ----------------------------------------------------
 
+        gblur = cv2.GaussianBlur(
+            gcrop,
+            (5, 5),
+            0
+        )
+
+        gcircles = cv2.HoughCircles(
+            gblur,
+            cv2.HOUGH_GRADIENT,
+            dp=1,
+            minDist=15,
+            param1=80,
+            param2=12,
+            minRadius=
+            HOUGH_MIN_RADIUS,
+            maxRadius=
+            HOUGH_MAX_RADIUS,
+        )
+
+        if gcircles is not None:
+
+            for c in np.round(
+                gcircles[0]
+            ).astype(int):
+
+                hp = np.array(
+                    [
+                        float(
+                            c[0]
+                            +
+                            gx0
+                        ),
+                        float(
+                            c[1]
+                            +
+                            gy0
+                        ),
+                    ],
+                    dtype=np.float64,
+                )
+
+                hd = float(
+                    np.linalg.norm(
+                        hp
+                        -
+                        template_center
+                    )
+                )
+
+                if (
+                    hd
+                    <=
+                    GLOBAL_GEOM_MAX_OFFSET_PX
+                ):
+
+                    geom_candidates.append(
+                        (
+                            hd,
+                            hp,
+                            "HOUGH",
+                        )
+                    )
+
+        if not geom_candidates:
+            return None, None
+
+        geom_candidates.sort(
+            key=lambda item: item[0]
+        )
+
+        (
+            _dist,
+            best_geom,
+            source,
+        ) = geom_candidates[0]
+
+        return (
+            best_geom.copy(),
+            source,
+        )
+
+    # ========================================================
+    # Evaluate template peaks.
+    #
+    # Also use a very conservative motion plausibility gate.
+    # This is NOT a ROI: the whole frame is searched.
+    # It only prevents a target from teleporting hundreds of
+    # pixels immediately after a short 0.30 s loss.
+    # ========================================================
+
+    if hole_last_valid_center is not None:
+
+        motion_anchor = np.array(
+            hole_last_valid_center,
+            dtype=np.float64,
+        )
+
+        # Predict only a short horizon. The filtered velocity
+        # cannot recursively update itself because prediction
+        # is not treated as a visual measurement.
+        if np.all(
+            np.isfinite(
+                velocity
+            )
+        ):
+
+            motion_anchor = (
+                motion_anchor
+                +
+                velocity
+                *
+                min(
+                    lost_time,
+                    0.50
+                )
+            )
+
+    else:
+
+        motion_anchor = reference.copy()
+
+    if (
+        lost_time
+        <=
+        GLOBAL_NEAR_LOSS_S
+    ):
+
+        motion_limit = (
+            GLOBAL_NEAR_MOTION_LIMIT_PX
+        )
+
+    else:
+
+        # If the target has been missing for longer, gradually
+        # permit a true global recovery.
+        motion_limit = min(
+            700.0,
+            90.0
+            +
+            180.0
+            *
+            (
+                lost_time
+                -
+                GLOBAL_NEAR_LOSS_S
+            )
+        )
+
+    verified = []
+
+    for (
+        tm_score,
+        tm_center,
+    ) in peak_candidates:
+
+        motion_dist = float(
+            np.linalg.norm(
+                tm_center
+                -
+                motion_anchor
+            )
+        )
+
+        if (
+            motion_dist
+            >
+            motion_limit
+        ):
+
+            continue
+
+        (
+            geom_center,
+            geom_source,
+        ) = verify_global_geometry(
+            tm_center
+        )
+
+        if geom_center is None:
+            continue
+
+        # Small spatial prior is only a ranking term.
+        # It does not define the search region.
+        rank_score = (
+            float(tm_score)
+            -
+            0.00025
+            *
+            motion_dist
+        )
+
+        verified.append(
+            (
+                rank_score,
+                float(tm_score),
+                motion_dist,
+                geom_center,
+                geom_source,
+                tm_center,
+            )
+        )
+
+    if not verified:
+
+        track_hole._tm_misses += 1
+
+        if (
+            track_hole._tm_misses
+            >
+            GLOBAL_MAX_MISSES
+        ):
+
+            track_hole._tm_candidates = []
+            track_hole._tm_misses = 0
+
+        if (
+            now_track
+            -
+            track_hole._tm_last_print
+            >
+            0.30
+        ):
+
+            print(
+                "[HOLE GLOBAL TM] "
+                f"NO GEOM "
+                f"best_score="
+                f"{best_raw_score:.3f} "
+                f"peaks="
+                f"{len(peak_candidates)} "
+                f"motion_limit="
+                f"{motion_limit:.1f}",
+                flush=True,
+            )
+
+            track_hole._tm_last_print = (
+                now_track
+            )
 
         return None
+
+    verified.sort(
+        key=lambda item: item[0],
+        reverse=True,
+    )
+
+    (
+        _rank_score,
+        tm_score,
+        motion_dist,
+        best_global,
+        geom_source,
+        raw_tm_center,
+    ) = verified[0]
+
+    track_hole._tm_misses = 0
+
+    # ========================================================
+    # Temporal consistency check
+    # ========================================================
+
+    if track_hole._tm_candidates:
+
+        previous_global = (
+            track_hole
+            ._tm_candidates[-1]
+        )
+
+        global_step = float(
+            np.linalg.norm(
+                best_global
+                -
+                previous_global
+            )
+        )
+
+        if (
+            global_step
+            >
+            GLOBAL_RELOCK_MAX_STEP_PX
+        ):
+
+            track_hole._tm_candidates = [
+                best_global.copy()
+            ]
+
+            print(
+                "[HOLE GLOBAL TM] RESET "
+                f"score={tm_score:.3f} "
+                f"geom={geom_source} "
+                f"H=("
+                f"{best_global[0]:.1f},"
+                f"{best_global[1]:.1f}) "
+                f"step={global_step:.1f}px "
+                f"motion={motion_dist:.1f}px",
+                flush=True,
+            )
+
+            return None
+
+    else:
+
+        track_hole._tm_candidates = []
+
+    track_hole._tm_candidates.append(
+        best_global.copy()
+    )
+
+    if (
+        len(
+            track_hole._tm_candidates
+        )
+        >
+        GLOBAL_RELOCK_FRAMES
+    ):
+
+        track_hole._tm_candidates = (
+            track_hole
+            ._tm_candidates[
+                -GLOBAL_RELOCK_FRAMES:
+            ]
+        )
+
+    confirm_count = len(
+        track_hole._tm_candidates
+    )
+
+    print(
+        "[HOLE GLOBAL TM] candidate "
+        f"score={tm_score:.3f} "
+        f"geom={geom_source} "
+        f"TM=("
+        f"{raw_tm_center[0]:.1f},"
+        f"{raw_tm_center[1]:.1f}) "
+        f"H=("
+        f"{best_global[0]:.1f},"
+        f"{best_global[1]:.1f}) "
+        f"motion={motion_dist:.1f}px "
+        f"confirm="
+        f"{confirm_count}/"
+        f"{GLOBAL_RELOCK_FRAMES}",
+        flush=True,
+    )
+
+    if (
+        confirm_count
+        <
+        GLOBAL_RELOCK_FRAMES
+    ):
+        return None
+
+    # ========================================================
+    # Use the mean of the verified sequence, not one frame.
+    # ========================================================
+
+    relock_stack = np.stack(
+        track_hole._tm_candidates,
+        axis=0,
+    )
+
+    relock_center = np.mean(
+        relock_stack,
+        axis=0,
+    )
+
+    print(
+        "[HOLE GLOBAL TM RELOCK] "
+        f"H=("
+        f"{relock_center[0]:.1f},"
+        f"{relock_center[1]:.1f}) "
+        f"score={tm_score:.3f} "
+        "waiting for local verification",
+        flush=True,
+    )
+
+    # --------------------------------------------------------
+    # Establish the new local-search center but DO NOT return
+    # it to IBVS yet.
+    #
+    # Velocity is reset so the long LOST interval cannot
+    # create an enormous prediction velocity.
+    # --------------------------------------------------------
+
     hole_center = (
-        int(best[0]),
-        int(best[1])
+        int(
+            round(
+                relock_center[0]
+            )
+        ),
+        int(
+            round(
+                relock_center[1]
+            )
+        ),
+    )
+
+    hole_last_valid_center = np.array(
+        hole_center,
+        dtype=np.float64,
     )
 
     hole_last_valid_time = time.time()
 
-    return hole_center
+    hole_velocity = np.zeros(
+        2,
+        dtype=np.float64,
+    )
+
+    hole_ema = np.array(
+        hole_center,
+        dtype=np.float64,
+    )
+
+    track_hole._tm_active = False
+    track_hole._tm_candidates = []
+    track_hole._tm_misses = 0
+
+    track_hole._post_relock_remaining = (
+        POST_RELOCK_LOCAL_FRAMES
+    )
+
+    # Critical:
+    # no IBVS output from the global candidate itself.
+    return None
 
 
 # ============================================================
@@ -1471,13 +3275,41 @@ def main():
 
     initialized = False
 
+    perf_last_report = time.perf_counter()
+    perf_frames = 0
+    perf_sum_wait_ms = 0.0
+    perf_sum_convert_ms = 0.0
+    perf_sum_tip_detect_ms = 0.0
+    perf_sum_tip_refine_ms = 0.0
+    perf_sum_hole_ms = 0.0
+    perf_sum_rest_ms = 0.0
+    perf_sum_total_ms = 0.0
+    perf_max_total_ms = 0.0
+    perf_refine_calls = 0
+    perf_hole_calls = 0
+
+    tip_detect_frame_counter = 0
+
     try:
 
         while True:
 
+            perf_loop_t0 = time.perf_counter()
+            perf_tip_detect_ms = 0.0
+            perf_tip_refine_ms = 0.0
+            perf_hole_ms = 0.0
+            perf_refine_called = False
+            perf_hole_called = False
+
+            perf_t0 = time.perf_counter()
+
             frames = pipeline.wait_for_frames(
                 1000
             )
+
+            perf_wait_ms = (
+                time.perf_counter() - perf_t0
+            ) * 1000.0
 
             if frames is None:
 
@@ -1493,6 +3325,8 @@ def main():
 
                 continue
 
+            perf_t0 = time.perf_counter()
+
             frame = hc.color_frame_to_bgr(
                 color
             )
@@ -1500,6 +3334,28 @@ def main():
             gray = cv2.cvtColor(
                 frame,
                 cv2.COLOR_BGR2GRAY
+            )
+
+            perf_convert_ms = (
+                time.perf_counter() - perf_t0
+            ) * 1000.0
+
+            tip_detect_frame_counter += 1
+
+            run_tip_detector = (
+                tip_ema is None
+                or
+                wrist_last_valid_tip is None
+                or
+                wrist_last_valid_time is None
+                or
+                (
+                    tip_detect_frame_counter
+                    %
+                    TIP_DETECT_EVERY_N_FRAMES
+                    ==
+                    0
+                )
             )
 
             # ------------------------------------------------
@@ -1510,224 +3366,543 @@ def main():
             tip_raw_pixel = None
             tip_status = "LOST"
 
-            try:
+            if run_tip_detector:
+                try:
 
-                coarse_tip = (
-                    detector.detect(
-                        frame,
-                        box_xyxy=
-                        tip_box,
-                        tip_hint=
-                        tip_hint,
-                        positive_points=
-                        tip_positive_points,
-                    )
-                )
+                    perf_t0 = time.perf_counter()
 
-                if coarse_tip.get(
-                    "valid",
-                    False,
-                ):
-
-                    refined_tip = (
-                        refiner.refine(
+                    coarse_tip = (
+                        detector.detect(
                             frame,
-                            coarse_tip["mask"],
-                            coarse_tip["tip_uv"],
-                            coarse_tip["direction"],
+                            box_xyxy=
+                            tip_box,
+                            tip_hint=
+                            tip_hint,
+                            positive_points=
+                            tip_positive_points,
                         )
                     )
 
-                    if refined_tip.get(
+                    perf_tip_detect_ms = (
+                        time.perf_counter() - perf_t0
+                    ) * 1000.0
+
+                    if coarse_tip.get(
                         "valid",
                         False,
                     ):
 
-                        raw_tip = np.asarray(
-                            refined_tip[
-                                "refined_tip_uv"
-                            ],
-                            dtype=np.float64,
+                        perf_t0 = time.perf_counter()
+                        perf_refine_called = True
+
+                        refined_tip = (
+                            refiner.refine(
+                                frame,
+                                coarse_tip["mask"],
+                                coarse_tip["tip_uv"],
+                                coarse_tip["direction"],
+                            )
                         )
 
-                        tip_raw_pixel = (
-                            int(
-                                round(
-                                    raw_tip[0]
-                                )
-                            ),
-                            int(
-                                round(
-                                    raw_tip[1]
-                                )
-                            ),
-                        )
+                        perf_tip_refine_ms = (
+                            time.perf_counter() - perf_t0
+                        ) * 1000.0
 
-                        tip_accept = False
+                        if refined_tip.get(
+                            "valid",
+                            False,
+                        ):
 
-                        if tip_ema is None:
-
-                            tip_ema = (
-                                raw_tip.copy()
+                            raw_tip = np.asarray(
+                                refined_tip[
+                                    "refined_tip_uv"
+                                ],
+                                dtype=np.float64,
                             )
 
-                            relock_candidates.clear()
-
-                            tip_accept = True
-
-                            tip_status = "INIT"
-
-                        else:
-
-                            tip_jump = float(
-                                np.linalg.norm(
-                                    raw_tip
-                                    -
-                                    tip_ema
-                                )
+                            tip_raw_pixel = (
+                                int(
+                                    round(
+                                        raw_tip[0]
+                                    )
+                                ),
+                                int(
+                                    round(
+                                        raw_tip[1]
+                                    )
+                                ),
                             )
 
-                            # ====================================
-                            # NORMAL TRACKING
-                            #
-                            # Keep the original strict 8 px gate.
-                            # ====================================
+                            tip_accept = False
 
-                            if (
-                                tip_jump
-                                <=
-                                TIP_MAX_JUMP_PX
-                            ):
+                            if tip_ema is None:
 
                                 tip_ema = (
-                                    TIP_EMA_ALPHA
-                                    *
-                                    raw_tip
-                                    +
-                                    (
-                                        1.0
-                                        -
-                                        TIP_EMA_ALPHA
-                                    )
-                                    *
-                                    tip_ema
+                                    raw_tip.copy()
                                 )
 
                                 relock_candidates.clear()
 
                                 tip_accept = True
 
-                                tip_status = (
-                                    f"OK jump="
-                                    f"{tip_jump:.1f}"
-                                )
-
-                            # ====================================
-                            # AUTO RELOCK
-                            #
-                            # Do NOT use a single large jump.
-                            # Require three consecutive refined
-                            # candidates to form a tight cluster.
-                            # ====================================
+                                tip_status = "INIT"
 
                             else:
 
-                                relock_candidates.append(
-                                    raw_tip.copy()
+                                # ====================================
+                                # MOTION-AWARE VISUAL GATE
+                                #
+                                # tip_ema remains the last accepted visual
+                                # state.  A short prediction is used ONLY
+                                # as the expected position for jump testing.
+                                # ====================================
+
+                                tip_gate_reference = np.array(
+                                    tip_ema,
+                                    dtype=np.float64,
                                 )
 
                                 if (
-                                    len(relock_candidates)
-                                    >
-                                    TIP_RELOCK_FRAMES
+                                    wrist_last_valid_tip is not None
+                                    and
+                                    wrist_last_valid_time is not None
+                                    and
+                                    wrist_tip_velocity is not None
                                 ):
-                                    del relock_candidates[
-                                        :-
-                                        TIP_RELOCK_FRAMES
-                                    ]
 
-                                tip_status = (
-                                    f"RELOCK WAIT "
-                                    f"{len(relock_candidates)}/"
-                                    f"{TIP_RELOCK_FRAMES} "
-                                    f"jump={tip_jump:.1f}"
+                                    gate_dt = max(
+                                        0.0,
+                                        time.time()
+                                        -
+                                        wrist_last_valid_time
+                                    )
+
+                                    gate_dt = min(
+                                        gate_dt,
+                                        TIP_HOLD_S
+                                    )
+
+                                    gate_velocity = np.array(
+                                        wrist_tip_velocity,
+                                        dtype=np.float64,
+                                    )
+
+                                    if np.all(
+                                        np.isfinite(
+                                            gate_velocity
+                                        )
+                                    ):
+
+                                        predicted_gate = (
+                                            np.array(
+                                                wrist_last_valid_tip,
+                                                dtype=np.float64,
+                                            )
+                                            +
+                                            gate_velocity
+                                            *
+                                            gate_dt
+                                        )
+
+                                        if np.all(
+                                            np.isfinite(
+                                                predicted_gate
+                                            )
+                                        ):
+
+                                            tip_gate_reference = (
+                                                predicted_gate
+                                            )
+
+                                tip_jump = float(
+                                    np.linalg.norm(
+                                        raw_tip
+                                        -
+                                        tip_gate_reference
+                                    )
                                 )
 
+                                # ====================================
+                                # NORMAL TRACKING
+                                #
+                                # Keep the original strict 8 px gate.
+                                # ====================================
+
                                 if (
-                                    len(relock_candidates)
-                                    ==
-                                    TIP_RELOCK_FRAMES
+                                    tip_jump
+                                    <=
+                                    TIP_MAX_JUMP_PX
                                 ):
 
-                                    relock_array = np.stack(
-                                        relock_candidates,
-                                        axis=0,
-                                    )
-
-                                    relock_center = np.mean(
-                                        relock_array,
-                                        axis=0,
-                                    )
-
-                                    relock_distances = (
-                                        np.linalg.norm(
-                                            relock_array
+                                    tip_ema = (
+                                        TIP_EMA_ALPHA
+                                        *
+                                        raw_tip
+                                        +
+                                        (
+                                            1.0
                                             -
-                                            relock_center,
-                                            axis=1,
+                                            TIP_EMA_ALPHA
                                         )
+                                        *
+                                        tip_ema
                                     )
 
-                                    relock_spread = float(
-                                        np.max(
-                                            relock_distances
-                                        )
+                                    relock_candidates.clear()
+
+                                    tip_accept = True
+
+                                    tip_status = (
+                                        f"OK jump="
+                                        f"{tip_jump:.1f}"
+                                    )
+
+                                # ====================================
+                                # AUTO RELOCK
+                                #
+                                # Do NOT use a single large jump.
+                                # Require three consecutive refined
+                                # candidates to form a tight cluster.
+                                # ====================================
+
+                                else:
+
+                                    relock_candidates.append(
+                                        raw_tip.copy()
                                     )
 
                                     if (
-                                        relock_spread
-                                        <=
-                                        TIP_RELOCK_CLUSTER_RADIUS_PX
+                                        len(relock_candidates)
+                                        >
+                                        TIP_RELOCK_FRAMES
+                                    ):
+                                        del relock_candidates[
+                                            :-
+                                            TIP_RELOCK_FRAMES
+                                        ]
+
+                                    tip_status = (
+                                        f"RELOCK WAIT "
+                                        f"{len(relock_candidates)}/"
+                                        f"{TIP_RELOCK_FRAMES} "
+                                        f"jump={tip_jump:.1f}"
+                                    )
+
+                                    if (
+                                        len(relock_candidates)
+                                        ==
+                                        TIP_RELOCK_FRAMES
                                     ):
 
-                                        tip_ema = (
-                                            relock_center.copy()
+                                        relock_array = np.stack(
+                                            relock_candidates,
+                                            axis=0,
                                         )
 
-                                        relock_candidates.clear()
-
-                                        tip_accept = True
-
-                                        tip_status = (
-                                            f"RELOCK "
-                                            f"spread="
-                                            f"{relock_spread:.1f}"
+                                        relock_center = np.mean(
+                                            relock_array,
+                                            axis=0,
                                         )
 
-                                        print(
-                                            "[TIP RELOCK] "
-                                            f"tip="
-                                            f"({tip_ema[0]:.1f},"
-                                            f"{tip_ema[1]:.1f}) "
-                                            f"spread="
-                                            f"{relock_spread:.1f}px",
-                                            flush=True,
+                                        relock_distances = (
+                                            np.linalg.norm(
+                                                relock_array
+                                                -
+                                                relock_center,
+                                                axis=1,
+                                            )
+                                        )
+
+                                        relock_spread = float(
+                                            np.max(
+                                                relock_distances
+                                            )
+                                        )
+
+                                        # --------------------------------
+                                        # Relock identity / motion continuity
+                                        #
+                                        # Do not trust "3 stable points" alone.
+                                        # Compare the cluster center against
+                                        # the most recent reliable Tip
+                                        # trajectory.
+                                        # --------------------------------
+
+                                        relock_anchor_dist = 0.0
+
+                                        if (
+                                            wrist_last_valid_tip
+                                            is not None
+                                        ):
+
+                                            relock_anchor = np.array(
+                                                wrist_last_valid_tip,
+                                                dtype=np.float64,
+                                            )
+
+                                            if (
+                                                wrist_last_valid_time
+                                                is not None
+                                                and
+                                                wrist_tip_velocity
+                                                is not None
+                                            ):
+
+                                                relock_age = max(
+                                                    0.0,
+                                                    time.time()
+                                                    -
+                                                    wrist_last_valid_time
+                                                )
+
+                                                relock_velocity = np.array(
+                                                    wrist_tip_velocity,
+                                                    dtype=np.float64,
+                                                )
+
+                                                if np.all(
+                                                    np.isfinite(
+                                                        relock_velocity
+                                                    )
+                                                ):
+
+                                                    relock_anchor = (
+                                                        relock_anchor
+                                                        +
+                                                        relock_velocity
+                                                        *
+                                                        min(
+                                                            relock_age,
+                                                            TIP_HOLD_S
+                                                        )
+                                                    )
+
+                                            relock_anchor_dist = float(
+                                                np.linalg.norm(
+                                                    relock_center
+                                                    -
+                                                    relock_anchor
+                                                )
+                                            )
+
+                                        if (
+                                            relock_spread
+                                            <=
+                                            TIP_RELOCK_CLUSTER_RADIUS_PX
+                                            and
+                                            relock_anchor_dist
+                                            <=
+                                            TIP_RELOCK_MAX_ANCHOR_DIST_PX
+                                        ):
+
+                                            tip_ema = (
+                                                relock_center.copy()
+                                            )
+
+                                            relock_candidates.clear()
+
+                                            tip_accept = True
+
+                                            tip_status = (
+                                                f"RELOCK "
+                                                f"spread="
+                                                f"{relock_spread:.1f}"
+                                            )
+
+                                            print(
+                                                "[TIP RELOCK] "
+                                                f"tip="
+                                                f"({tip_ema[0]:.1f},"
+                                                f"{tip_ema[1]:.1f}) "
+                                                f"spread="
+                                                f"{relock_spread:.1f}px",
+                                                flush=True,
+                                            )
+
+                                        else:
+
+                                            if (
+                                                relock_anchor_dist
+                                                >
+                                                TIP_RELOCK_MAX_ANCHOR_DIST_PX
+                                            ):
+
+                                                tip_status = (
+                                                    f"RELOCK REJECT "
+                                                    f"anchor="
+                                                    f"{relock_anchor_dist:.1f} "
+                                                    f"spread="
+                                                    f"{relock_spread:.1f}"
+                                                )
+
+                                                print(
+                                                    "[TIP RELOCK REJECT] "
+                                                    f"candidate="
+                                                    f"({relock_center[0]:.1f},"
+                                                    f"{relock_center[1]:.1f}) "
+                                                    f"anchor_dist="
+                                                    f"{relock_anchor_dist:.1f}px "
+                                                    f"spread="
+                                                    f"{relock_spread:.1f}px",
+                                                    flush=True,
+                                                )
+
+                                                # Require a completely new
+                                                # candidate sequence.
+                                                relock_candidates.clear()
+
+                                            else:
+
+                                                tip_status = (
+                                                    f"RELOCK WAIT "
+                                                    f"{TIP_RELOCK_FRAMES}/"
+                                                    f"{TIP_RELOCK_FRAMES} "
+                                                    f"spread="
+                                                    f"{relock_spread:.1f}"
+                                                )
+
+                            if tip_accept:
+
+                                # Update wrist tip motion model
+                                now_tip_time = time.time()
+
+                                if (
+                                    wrist_last_valid_tip is not None
+                                    and
+                                    wrist_last_valid_time is not None
+                                ):
+
+                                    dt = max(
+                                        now_tip_time - wrist_last_valid_time,
+                                        1e-3
+                                    )
+
+                                    if tip_status.startswith(
+                                        "RELOCK"
+                                    ):
+
+                                        # A relock establishes a new visual
+                                        # state. Do not interpret the relock
+                                        # displacement as physical velocity.
+                                        wrist_tip_velocity = np.zeros(
+                                            2,
+                                            dtype=np.float64,
                                         )
 
                                     else:
 
-                                        tip_status = (
-                                            f"RELOCK WAIT "
-                                            f"{TIP_RELOCK_FRAMES}/"
-                                            f"{TIP_RELOCK_FRAMES} "
-                                            f"spread="
-                                            f"{relock_spread:.1f}"
+                                        measured_tip_velocity = (
+                                            tip_ema
+                                            -
+                                            wrist_last_valid_tip
+                                        ) / dt
+
+                                        if np.all(
+                                            np.isfinite(
+                                                measured_tip_velocity
+                                            )
+                                        ):
+
+                                            measured_speed = float(
+                                                np.linalg.norm(
+                                                    measured_tip_velocity
+                                                )
+                                            )
+
+                                            if (
+                                                measured_speed
+                                                >
+                                                TIP_PREDICT_MAX_SPEED_PX_S
+                                                and
+                                                measured_speed > 1e-6
+                                            ):
+
+                                                measured_tip_velocity = (
+                                                    measured_tip_velocity
+                                                    *
+                                                    (
+                                                        TIP_PREDICT_MAX_SPEED_PX_S
+                                                        /
+                                                        measured_speed
+                                                    )
+                                                )
+
+                                            if wrist_tip_velocity is None:
+
+                                                wrist_tip_velocity = (
+                                                    measured_tip_velocity
+                                                )
+
+                                            else:
+
+                                                previous_tip_velocity = (
+                                                    np.array(
+                                                        wrist_tip_velocity,
+                                                        dtype=np.float64,
+                                                    )
+                                                )
+
+                                                if np.all(
+                                                    np.isfinite(
+                                                        previous_tip_velocity
+                                                    )
+                                                ):
+
+                                                    wrist_tip_velocity = (
+                                                        TIP_VELOCITY_ALPHA
+                                                        *
+                                                        measured_tip_velocity
+                                                        +
+                                                        (
+                                                            1.0
+                                                            -
+                                                            TIP_VELOCITY_ALPHA
+                                                        )
+                                                        *
+                                                        previous_tip_velocity
+                                                    )
+
+                                                else:
+
+                                                    wrist_tip_velocity = (
+                                                        measured_tip_velocity
+                                                    )
+
+                                wrist_last_valid_tip = tip_ema.copy()
+                                wrist_last_valid_time = now_tip_time
+
+                                # Feed the confirmed filtered tip back
+                                # as the hint for the next frame.
+                                tip_hint = (
+                                    float(tip_ema[0]),
+                                    float(tip_ema[1]),
+                                )
+
+                                tip_pixel = (
+                                    int(
+                                        round(
+                                            tip_ema[0]
                                         )
+                                    ),
+                                    int(
+                                        round(
+                                            tip_ema[1]
+                                        )
+                                    ),
+                                )
 
-                        if tip_accept:
+                        else:
 
-                            # Update wrist tip motion model
-                            now_tip_time = time.time()
+                            relock_candidates.clear()
+
+                            # ====================================
+                            # WRIST TIP HOLD
+                            #
+                            # Refiner can lose the thin tweezer
+                            # tip for a few frames. Use the last
+                            # valid tip and motion prediction
+                            # instead of immediately disabling IBVS.
+                            # ====================================
 
                             if (
                                 wrist_last_valid_tip is not None
@@ -1735,90 +3910,47 @@ def main():
                                 wrist_last_valid_time is not None
                             ):
 
-                                dt = max(
-                                    now_tip_time - wrist_last_valid_time,
-                                    1e-3
-                                )
-
-                                wrist_tip_velocity = (
-                                    tip_ema
+                                lost_time = (
+                                    time.time()
                                     -
-                                    wrist_last_valid_tip
-                                ) / dt
+                                    wrist_last_valid_time
+                                )
 
-                            wrist_last_valid_tip = tip_ema.copy()
-                            wrist_last_valid_time = now_tip_time
+                                if lost_time < TIP_HOLD_S:
 
-                            # Feed the confirmed filtered tip back
-                            # as the hint for the next frame.
-                            tip_hint = (
-                                float(tip_ema[0]),
-                                float(tip_ema[1]),
-                            )
-
-                            tip_pixel = (
-                                int(
-                                    round(
-                                        tip_ema[0]
+                                    hold_tip = (
+                                        wrist_last_valid_tip
+                                        +
+                                        wrist_tip_velocity
+                                        *
+                                        lost_time
                                     )
-                                ),
-                                int(
-                                    round(
-                                        tip_ema[1]
+
+                                    # IMPORTANT:
+                                    # Keep tip_ema at the last accepted
+                                    # VISUAL Tip.  hold_tip is only a short
+                                    # prediction and must not move the
+                                    # tracking reference.
+
+                                    tip_pixel = (
+                                        int(round(float(hold_tip[0]))),
+                                        int(round(float(hold_tip[1])))
                                     )
-                                ),
-                            )
 
-                    else:
+                                    tip_hint = (
+                                        float(hold_tip[0]),
+                                        float(hold_tip[1]),
+                                    )
 
-                        relock_candidates.clear()
+                                    tip_status = (
+                                        f"HOLD {lost_time:.3f}s"
+                                    )
 
-                        # ====================================
-                        # WRIST TIP HOLD
-                        #
-                        # Refiner can lose the thin tweezer
-                        # tip for a few frames. Use the last
-                        # valid tip and motion prediction
-                        # instead of immediately disabling IBVS.
-                        # ====================================
+                                else:
 
-                        if (
-                            wrist_last_valid_tip is not None
-                            and
-                            wrist_last_valid_time is not None
-                        ):
-
-                            lost_time = (
-                                time.time()
-                                -
-                                wrist_last_valid_time
-                            )
-
-                            if lost_time < TIP_HOLD_S:
-
-                                hold_tip = (
-                                    wrist_last_valid_tip
-                                    +
-                                    wrist_tip_velocity
-                                    *
-                                    lost_time
-                                )
-
-                                tip_ema = hold_tip.copy()
-
-                                tip_pixel = (
-                                    int(round(float(hold_tip[0]))),
-                                    int(round(float(hold_tip[1])))
-                                )
-
-                                tip_hint = (
-                                    float(hold_tip[0]),
-                                    float(hold_tip[1]),
-                                )
-
-                                tip_status = (
-                                    f"HOLD {lost_time:.3f}s"
-                                )
+                                    tip_status = (
+                                        "REFINER LOST"
+                                    )
 
                             else:
 
@@ -1826,30 +3958,130 @@ def main():
                                     "REFINER LOST"
                                 )
 
-                        else:
+                    else:
 
-                            tip_status = (
-                                "REFINER LOST"
-                            )
+                        relock_candidates.clear()
 
-                else:
+                        tip_status = (
+                            "SAM2 LOST"
+                        )
 
+                except Exception as exc:
+
+                    tip_pixel = None
                     relock_candidates.clear()
 
                     tip_status = (
-                        "SAM2 LOST"
+                        "TIP ERROR: "
+                        +
+                        type(exc).__name__
                     )
 
-            except Exception as exc:
+            else:
 
-                tip_pixel = None
-                relock_candidates.clear()
+                # --------------------------------------------
+                # Lightweight intermediate-frame Tip estimate
+                # --------------------------------------------
+                now_tip_time = time.time()
 
-                tip_status = (
-                    "TIP ERROR: "
-                    +
-                    type(exc).__name__
-                )
+                if (
+                    wrist_last_valid_tip is not None
+                    and
+                    wrist_last_valid_time is not None
+                ):
+                    predict_dt = max(
+                        0.0,
+                        now_tip_time
+                        -
+                        wrist_last_valid_time
+                    )
+
+                    # ============================================
+                    # SAFE SKIPPED-FRAME PREDICTION
+                    #
+                    # Prediction is allowed only for the same
+                    # short horizon as TIP_HOLD_S.
+                    #
+                    # IMPORTANT:
+                    # prediction must NOT overwrite tip_ema.
+                    # tip_ema remains the last accepted VISUAL
+                    # tracking reference.
+                    # ============================================
+
+                    if predict_dt < TIP_HOLD_S:
+
+                        predicted_tip = (
+                            wrist_last_valid_tip
+                            +
+                            wrist_tip_velocity
+                            *
+                            predict_dt
+                        )
+
+                        if np.all(
+                            np.isfinite(
+                                predicted_tip
+                            )
+                        ):
+
+                            tip_pixel = (
+                                int(
+                                    round(
+                                        float(
+                                            predicted_tip[0]
+                                        )
+                                    )
+                                ),
+                                int(
+                                    round(
+                                        float(
+                                            predicted_tip[1]
+                                        )
+                                    )
+                                ),
+                            )
+
+                            # Short-lived prediction may still
+                            # help the next heavy detector frame.
+                            tip_hint = (
+                                float(predicted_tip[0]),
+                                float(predicted_tip[1]),
+                            )
+
+                            tip_status = (
+                                f"PREDICT "
+                                f"{predict_dt:.3f}s"
+                            )
+
+                        else:
+
+                            tip_pixel = None
+
+                            tip_status = (
+                                "PREDICT INVALID"
+                            )
+
+                    else:
+
+                        # Prediction has expired.
+                        #
+                        # Do not generate a Tip observation and
+                        # therefore do not allow Wrist IBVS to
+                        # use an arbitrarily old motion model.
+                        tip_pixel = None
+
+                        tip_status = (
+                            f"PREDICT EXPIRED "
+                            f"{predict_dt:.3f}s"
+                        )
+
+                else:
+
+                    tip_pixel = None
+
+                    tip_status = (
+                        "PREDICT NO STATE"
+                    )
 
             # ------------------------------------------------
             # New target selected -> initialize target
@@ -1875,9 +4107,16 @@ def main():
 
             if initialized:
 
+                perf_t0 = time.perf_counter()
+                perf_hole_called = True
+
                 H = track_hole(
                     gray
                 )
+
+                perf_hole_ms = (
+                    time.perf_counter() - perf_t0
+                ) * 1000.0
 
             else:
 
@@ -2199,6 +4438,86 @@ def main():
             )
 
             key = cv2.waitKey(1) & 0xFF
+
+            perf_total_ms = (
+                time.perf_counter() - perf_loop_t0
+            ) * 1000.0
+
+            perf_rest_ms = max(
+                0.0,
+                perf_total_ms
+                - perf_wait_ms
+                - perf_convert_ms
+                - perf_tip_detect_ms
+                - perf_tip_refine_ms
+                - perf_hole_ms
+            )
+
+            perf_frames += 1
+            perf_sum_wait_ms += perf_wait_ms
+            perf_sum_convert_ms += perf_convert_ms
+            perf_sum_tip_detect_ms += perf_tip_detect_ms
+            perf_sum_tip_refine_ms += perf_tip_refine_ms
+            perf_sum_hole_ms += perf_hole_ms
+            perf_sum_rest_ms += perf_rest_ms
+            perf_sum_total_ms += perf_total_ms
+            perf_max_total_ms = max(
+                perf_max_total_ms,
+                perf_total_ms
+            )
+
+            if perf_refine_called:
+                perf_refine_calls += 1
+
+            if perf_hole_called:
+                perf_hole_calls += 1
+
+            perf_now = time.perf_counter()
+            perf_elapsed = perf_now - perf_last_report
+
+            if perf_elapsed >= 1.0 and perf_frames > 0:
+                n = float(perf_frames)
+
+                refine_call_ms = (
+                    perf_sum_tip_refine_ms / perf_refine_calls
+                    if perf_refine_calls > 0 else 0.0
+                )
+
+                hole_call_ms = (
+                    perf_sum_hole_ms / perf_hole_calls
+                    if perf_hole_calls > 0 else 0.0
+                )
+
+                print(
+                    "[WRIST PERF] "
+                    f"fps={perf_frames / perf_elapsed:.2f} "
+                    f"total={perf_sum_total_ms / n:.2f}ms "
+                    f"max={perf_max_total_ms:.2f}ms "
+                    f"wait={perf_sum_wait_ms / n:.2f}ms "
+                    f"convert={perf_sum_convert_ms / n:.2f}ms "
+                    f"tip_detect={perf_sum_tip_detect_ms / n:.2f}ms "
+                    f"tip_refine_frame={perf_sum_tip_refine_ms / n:.2f}ms "
+                    f"tip_refine_call={refine_call_ms:.2f}ms "
+                    f"hole_frame={perf_sum_hole_ms / n:.2f}ms "
+                    f"hole_call={hole_call_ms:.2f}ms "
+                    f"rest={perf_sum_rest_ms / n:.2f}ms "
+                    f"refine={perf_refine_calls}/{perf_frames} "
+                    f"hole={perf_hole_calls}/{perf_frames}",
+                    flush=True,
+                )
+
+                perf_last_report = perf_now
+                perf_frames = 0
+                perf_sum_wait_ms = 0.0
+                perf_sum_convert_ms = 0.0
+                perf_sum_tip_detect_ms = 0.0
+                perf_sum_tip_refine_ms = 0.0
+                perf_sum_hole_ms = 0.0
+                perf_sum_rest_ms = 0.0
+                perf_sum_total_ms = 0.0
+                perf_max_total_ms = 0.0
+                perf_refine_calls = 0
+                perf_hole_calls = 0
 
             # ------------------------------------------------
             # M -> reinitialize LIVE tweezer tip

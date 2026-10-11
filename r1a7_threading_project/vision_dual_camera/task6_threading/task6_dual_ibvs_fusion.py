@@ -20,6 +20,10 @@ OUT_FILE = Path("/tmp/r1a7_dual_ibvs_velocity.json")
 # After confirming state switching, change to False.
 SHADOW_MODE = False
 
+# Global Cartesian speed limit for normal visual servo motion.
+# Limits the 3D velocity norm, not each axis independently.
+GLOBAL_MAX_SPEED_MM_S = 50.0
+
 EXT_MAX_AGE_S = 0.35
 WRIST_MAX_AGE_S = 0.35
 
@@ -497,6 +501,21 @@ def main():
                 proposed_vz = 0.0
 
                 ready = False
+
+        # ----------------------------------------------------
+        # Global 3D Cartesian velocity limit.
+        #
+        # External/Wrist apply per-axis limits independently.
+        # This guarantees that the final Cartesian velocity
+        # magnitude never exceeds GLOBAL_MAX_SPEED_MM_S.
+        # ----------------------------------------------------
+
+        proposed_vx, proposed_vy, proposed_vz = vector_limit(
+            proposed_vx,
+            proposed_vy,
+            proposed_vz,
+            GLOBAL_MAX_SPEED_MM_S,
+        )
 
         # ----------------------------------------------------
         # Save last reliable velocity.
