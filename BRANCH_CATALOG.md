@@ -3,7 +3,7 @@
 仓库：[`sbboys/r1a7-quest3-vr-teleop-demo`](https://github.com/sbboys/r1a7-quest3-vr-teleop-demo)
 
 本表基于 2026-10-11 对远端 `demo` 的实时核验。整理前共有 12 条远端分支、0 个 tag；
-本次新增统一工作分支 `codex/r1a7-workspace-2026-10-11`，不删除、不改写任何历史分支。
+本次新增统一工作分支 `codex/r1a7-workspace-2026-10-11`，并为 12 个历史节点和当前统一节点建立 `snapshot/*` 标签；不删除、不改写任何历史分支。
 
 ## 当前推荐分支
 
@@ -27,6 +27,24 @@
 | `codex/repository-management-2026-09-29` | `fccc0aa1` | 895 | 首轮仓库管理索引 | 已被统一工作区覆盖 |
 | `codex/r1a7-unified-workspace-2026-09-29` | `3cced5f2` | 1105 | 首轮跨项目统一工作区 | 本次整合基线 |
 | `codex/r1a7-visual-servo-control-2026-10-10` | `e703b9f0` | 931 | 最新视觉伺服与低速控制成果 | 已合并到统一工作线 |
+
+## 快照标签
+
+| 标签 | 指向提交 |
+|---|---:|
+| `snapshot/quest3-demo-2026-07-28` | `e365fa81` |
+| `snapshot/quest3-handoff-2026-07-31` | `e903e919` |
+| `snapshot/camera-debug-runbook-2026-08-14` | `397dac04` |
+| `snapshot/wrench-baseline-2026-09-03` | `1c288c22` |
+| `snapshot/threading-project-2026-09-15` | `95aee60f` |
+| `snapshot/act-reproduction-2026-09-15` | `2a49fab3` |
+| `snapshot/threading-complete-2026-09-22` | `d156f3cd` |
+| `snapshot/dual-camera-visual-servo-2026-09-29` | `621e53d5` |
+| `snapshot/repository-management-2026-09-29` | `fccc0aa1` |
+| `snapshot/unified-workspace-2026-09-29` | `3cced5f2` |
+| `snapshot/arm-console-fix-2026-09-30` | `b1608303` |
+| `snapshot/visual-servo-control-2026-10-10` | `e703b9f0` |
+| `snapshot/r1a7-workspace-2026-10-11` | 当前统一工作节点 |
 
 ## 谱系结论
 
