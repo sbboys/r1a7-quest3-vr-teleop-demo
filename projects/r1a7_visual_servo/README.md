@@ -11,6 +11,12 @@
 - 标定结果：`r1a7_threading_project/calibration/`
 - 相机配置：`r1a7_threading_project/config/cameras.yaml`
 - 阶段记录：`docs/r1a7_camera_*.md`
+- 当前启动栈：`r1a7_threading_project/run_task6_visual_stack.sh`
+- 2026-10-10 交接：`r1a7_threading_project/docs/r1a7_visual_servo_control_handoff_2026-10-10_zh.md`
+
+## 当前状态
+
+2026-10-10 的 Wrist Hole/Tip 跟踪、视觉状态机和低速控制衔接工作已进入统一工作线。记录确认的基线为 10 mm/s；15/25 mm/s 仍需在修正后的状态机上重新做真机资格验证。
 
 标定 JSON 和少量复核结果可以提交；原始标定图像和视频应按数据清单管理。
 

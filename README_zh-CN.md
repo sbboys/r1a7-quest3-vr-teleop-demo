@@ -16,6 +16,8 @@
 - [项目总索引](PROJECT_INDEX.md)
 - [GitHub 分支目录表](BRANCH_CATALOG.md)
 - [仓库审查与数据管理方案](docs/repository_management_zh.md)
+- [2026-10-11 GitHub 全面整理报告](docs/r1a7_github_reorganization_2026-10-11_zh.md)
+- [贡献与提交规范](CONTRIBUTING_zh.md)
 - [交互式代码架构解析报告](r1a7_threading_project/docs/r1a7_threading_code_architecture_report_2026-09-29.html)
 - [统一项目分类入口](projects/README.md)
 - [统一仓库来源矩阵](docs/unified_source_matrix_zh.md)

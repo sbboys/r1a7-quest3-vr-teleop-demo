@@ -1,0 +1,28 @@
+name: Repository sanity
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run repository checks
+        shell: bash
+        run: |
+          base="$(git rev-parse HEAD^ 2>/dev/null || true)"
+          R1A7_DIFF_BASE="$base" bash scripts/repository_sanity_check.sh
