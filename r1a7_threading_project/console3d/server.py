@@ -30,6 +30,8 @@ def command_allowed(command: str) -> bool:
     parts = command.split(":")
     if parts == ["jog", "stop"]:
         return True
+    if len(parts) == 2 and parts[0] == "cartesian-arm":
+        return parts[1] in ("left", "right")
     if len(parts) == 3 and parts[0] == "jog":
         return parts[1] in ("start", "keepalive") and parts[2] in JOG_DIRECTIONS
     if len(parts) != 3:

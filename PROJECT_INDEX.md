@@ -18,7 +18,7 @@
 | 05 | 细线镊子穿孔 | `r1a7_threading_project/` | 当前主研究项目 | [细线项目入口](projects/r1a7_threading/README.md) |
 | 06 | 双相机视觉伺服 | `r1a7_threading_project/vision_dual_camera/` | 2026-10-10 已衔接 | [视觉伺服入口](projects/r1a7_visual_servo/README.md) |
 | 07 | 低速平滑控制 | `r1a7_threading_project/transfer_control/` | 10 mm/s 基线已记录 | [控制交接](r1a7_threading_project/docs/r1a7_visual_servo_control_handoff_2026-10-10_zh.md) |
-| 08 | 手臂 3D 控制台 | `r1a7_threading_project/console3d*/` | 方向切换修正已纳入 | [控制台入口](projects/r1a7_arm_console/README.md) |
+| 08 | 手臂 3D 控制台 | `r1a7_threading_project/console3d*/` | 低速控制与六路相机已衔接 | [控制台入口](projects/r1a7_arm_console/README.md) |
 | 09 | ACT 复现与迁移 | `act_reproduction/` | 独立复现线 | [ACT 入口](projects/r1a7_act_reproduction/README.md) |
 
 ## 稳定入口和实验入口

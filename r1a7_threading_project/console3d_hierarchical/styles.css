@@ -1,0 +1,122 @@
+#control-panel { overflow: auto; }
+
+.control-grid {
+  flex: none;
+  grid-template-rows: 200px minmax(410px, calc(100vh - 435px)) 150px auto;
+  grid-template-areas:
+    "connection connection"
+    "motion joints"
+    "gripper gripper"
+    "cameras cameras";
+}
+
+.camera-control {
+  grid-area: cameras;
+  overflow: visible;
+}
+
+.camera-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 9px;
+}
+
+.camera-title h2 { margin-bottom: 2px; }
+.camera-title p { margin: 0; color: #71818c; font-size: 9px; }
+
+.camera-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.camera-toolbar button { min-height: 28px; padding: 0 8px; font-size: 10px; }
+
+.camera-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.camera-card {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #2a343c;
+  border-radius: 5px;
+  background: #0b1115;
+}
+
+.camera-card[data-running="true"] {
+  border-color: #337b57;
+  box-shadow: inset 3px 0 #4bc083;
+}
+
+.camera-card[data-detected="false"] { border-color: #6c3c3f; }
+
+.camera-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.camera-card h3 { margin: 0; font-size: 11px; font-weight: 600; }
+.camera-status { padding: 2px 5px; border-radius: 3px; background: #303940; color: #aebbc3; font-size: 9px; }
+.camera-status.running { background: #164c31; color: #8de8b8; }
+.camera-status.missing { background: #642529; color: #ffb4b9; }
+.camera-meta { min-height: 28px; margin: 5px 0; color: #7f919d; font: 9px/1.45 ui-monospace, monospace; overflow-wrap: anywhere; }
+.camera-error { margin: 4px 0; color: #ff979d; font-size: 9px; }
+.camera-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.camera-actions button { min-height: 29px; font-size: 10px; }
+
+@media (max-width: 1120px) {
+  .camera-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 840px), (max-height: 680px) {
+  .control-grid {
+    grid-template-rows: auto;
+    grid-template-areas: "connection motion" "joints joints" "gripper gripper" "cameras cameras";
+  }
+  .camera-title { display: block; }
+  .camera-toolbar { justify-content: flex-start; margin-top: 8px; }
+}
+
+@media (max-width: 620px) {
+  .camera-list { grid-template-columns: 1fr; }
+}
+
+/* A desktop browser can be wide but short (for example the in-app 1024×576
+   panel).  Keep the two-column console in that case; only narrow screens use
+   the stacked mobile layout inherited from the base stylesheet. */
+@media (min-width: 841px) and (max-height: 680px) {
+  body { overflow: hidden; }
+  main {
+    height: 100vh;
+    min-height: 0;
+    grid-template-columns: clamp(360px, min(45vw, 67vh), 900px) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+  }
+  #model-rail { height: 100vh; min-height: 0; }
+  #viewport { width: 100%; }
+  .rail-log { height: auto; flex: 1; }
+  #control-panel {
+    height: 100vh;
+    overflow: auto;
+    border-top: 0;
+    border-left: 1px solid #2a343c;
+  }
+  .control-grid {
+    grid-template-columns: minmax(260px, .95fr) minmax(280px, 1.05fr);
+    grid-template-rows: 200px 410px 150px auto;
+    grid-template-areas:
+      "connection connection"
+      "motion joints"
+      "gripper gripper"
+      "cameras cameras";
+  }
+  .connection-panel .settings { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

@@ -49,6 +49,12 @@ can be launched with `run_task6_visual_stack.sh`. The 10 mm/s configuration was
 confirmed in the recorded test; 15 and 25 mm/s require new qualification after
 the visual-state-machine fixes.
 
+The port-8098 console now uses that controller at 100 Hz IK / 500 Hz LowCmd,
+supports left/right Cartesian selection and both grippers, and dynamically
+discovers six preview sources: JR0001, JR0002, the external USB zoom camera,
+both Gemini 336L color streams, and the robot head VideoClient. See
+`console3d_hierarchical/README_zh.md` for operation and validation boundaries.
+
 ## Complete project snapshot
 
 The complete engineering snapshot is documented in

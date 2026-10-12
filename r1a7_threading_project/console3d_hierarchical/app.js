@@ -57,7 +57,7 @@ function renderJointControls() {
 }
 
 document.querySelectorAll('[data-arm]').forEach((button) => {
-  button.onclick = () => {
+  button.onclick = async () => {
     releaseJog();
     selectedArm = button.dataset.arm;
     document.querySelectorAll('[data-arm]').forEach((tab) => {
@@ -66,6 +66,11 @@ document.querySelectorAll('[data-arm]').forEach((button) => {
       tab.setAttribute('aria-selected', String(selected));
     });
     renderJointControls();
+    $('active-arm').textContent = selectedArm === 'left' ? '左臂' : '右臂';
+    if (enabled) {
+      await sendCommand(`cartesian-arm:${selectedArm}`);
+      appendLog(`[控制] 末端控制切换为${selectedArm === 'left' ? '左臂' : '右臂'}`);
+    }
   };
 });
 
@@ -197,6 +202,7 @@ function appendLog(line) {
 $('clear-log').onclick = () => { logsEl.textContent = ''; };
 
 function setPhase(phase) {
+  const wasEnabled = enabled;
   const labels = {stopped:'系统待机', starting:'正在连接', enabling:'正在授权', waiting_enable:'等待授权', enabled:'控制已连接', stopping:'正在断开', fault:'系统异常'};
   stateEl.textContent = labels[phase] || phase;
   stateEl.dataset.state = phase;
@@ -206,7 +212,8 @@ function setPhase(phase) {
   $('motion-stop').disabled = !enabled;
   $('stop').disabled = phase === 'stopped';
   document.querySelectorAll('[data-command], [data-joint-command]').forEach((b) => { b.disabled = !enabled; });
-  document.querySelectorAll('[data-gripper-command]').forEach((b) => { b.disabled = true; });
+  document.querySelectorAll('[data-gripper-command]').forEach((b) => { b.disabled = !enabled; });
+  if (enabled && !wasEnabled) sendCommand(`cartesian-arm:${selectedArm}`);
 }
 
 async function api(path, body={}) {
@@ -418,6 +425,8 @@ function updateTelemetry(t) {
   const directionLabels = {w:'前 +X', s:'后 -X', a:'左 +Y', d:'右 -Y', u:'上 +Z', j:'下 -Z', i:'前上 +X+Z'};
   const motionLabels = {continuous_jog:'连续点动', decelerating:'平滑减速', holding:'位置保持'};
   const baseMode = t.control_mode === 'joint' ? '关节控制' : t.control_mode === 'cartesian' ? '末端控制' : '--';
+  const telemetryArm = t.cartesian_arm === 'left' ? '左臂' : t.cartesian_arm === 'right' ? '右臂' : null;
+  if (telemetryArm) $('active-arm').textContent = telemetryArm;
   $('control-mode').textContent = t.jog_direction
     ? `${baseMode} · ${directionLabels[t.jog_direction] || t.jog_direction}`
     : `${baseMode}${t.motion_state ? ` · ${motionLabels[t.motion_state] || t.motion_state}` : ''}`;
@@ -430,13 +439,96 @@ function updateTelemetry(t) {
   if ($('orientation-error')) $('orientation-error').textContent = Number.isFinite(t.orientation_error_deg) ? `${t.orientation_error_deg.toFixed(2)}°` : '--';
   if ($('command-speed')) $('command-speed').textContent = Number.isFinite(t.command_velocity_mm_s) ? `${t.command_velocity_mm_s.toFixed(1)} mm/s` : '--';
   if ($('jacobian-condition')) {
-    const condition = t.right_jacobian_condition;
+    const condition = t.active_jacobian_condition ?? (selectedArm === 'left' ? t.left_jacobian_condition : t.right_jacobian_condition);
     $('jacobian-condition').textContent = Number.isFinite(condition) ? condition.toFixed(0) : '--';
     $('jacobian-condition').dataset.level = Number.isFinite(condition) && condition >= 500 ? 'critical' : Number.isFinite(condition) && condition >= 250 ? 'warning' : 'normal';
   }
   if (Array.isArray(t.actual_xyz_mm)) { actualMarker.position.fromArray(t.actual_xyz_mm.map(x=>x/1000)); actualMarker.visible=true; }
   if (Array.isArray(t.command_xyz_mm)) { commandMarker.position.fromArray(t.command_xyz_mm.map(x=>x/1000)); commandMarker.visible=true; }
 }
+
+function cameraStatusLabel(camera) {
+  if (camera.running && camera.kind === 'head' && !camera.ready) return '等待图像';
+  if (camera.running) return '预览中';
+  if (!camera.detected) return '未检测到';
+  return '已就绪';
+}
+
+function renderCameras(payload) {
+  const cameras = payload?.cameras || [];
+  $('camera-list').innerHTML = cameras.map((camera) => {
+    const stateClass = camera.running && camera.ready ? 'running' : camera.detected ? 'ready' : 'missing';
+    const source = camera.kind === 'head'
+      ? 'VideoClient · enp6s0'
+      : `${camera.node || '无采集节点'} · ${camera.pixel_format || camera.formats?.[0] || '--'}`;
+    const identity = camera.serial ? `SN ${camera.serial}` : camera.description;
+    return `<article class="camera-card" data-running="${camera.running}" data-detected="${camera.detected}">
+      <div class="camera-card-head"><h3>${camera.label}</h3><span class="camera-status ${stateClass}">${cameraStatusLabel(camera)}</span></div>
+      <div class="camera-meta">${identity}<br>${source}${camera.pid ? ` · PID ${camera.pid}` : ''}</div>
+      ${camera.last_error ? `<div class="camera-error">${camera.last_error}</div>` : ''}
+      <div class="camera-actions">
+        <button data-camera-id="${camera.id}" data-camera-action="start" ${!camera.detected || camera.running ? 'disabled' : ''}>启动预览</button>
+        <button data-camera-id="${camera.id}" data-camera-action="stop" ${camera.running ? '' : 'disabled'}>停止预览</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+async function cameraRequest(path, body=null) {
+  const options = body === null ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)};
+  const response = await fetch(path, options);
+  if (!response.ok) throw new Error(await response.text());
+  const payload = await response.json();
+  renderCameras(payload);
+  if (payload.errors && Object.keys(payload.errors).length) {
+    appendLog(`[相机] 部分预览启动失败: ${Object.values(payload.errors).join('；')}`);
+  }
+  return payload;
+}
+
+async function refreshCameraStatus() {
+  try {
+    await cameraRequest('/api/cameras');
+  } catch (error) {
+    appendLog(`[相机] 状态读取失败: ${error.message}`);
+  }
+}
+
+$('camera-list').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-camera-id]');
+  if (!button) return;
+  button.disabled = true;
+  const {cameraId, cameraAction} = button.dataset;
+  try {
+    await cameraRequest(`/api/cameras/${cameraId}/${cameraAction}`, {interface:$('interface').value});
+  } catch (error) {
+    appendLog(`[相机] ${cameraId} ${cameraAction} 失败: ${error.message}`);
+    await refreshCameraStatus();
+  }
+});
+
+$('camera-rescan').onclick = async () => {
+  try {
+    await cameraRequest('/api/cameras/rescan', {});
+    appendLog('[相机] 已重新检测所有视频设备');
+  } catch (error) { appendLog(`[相机] 重新检测失败: ${error.message}`); }
+};
+
+document.querySelectorAll('[data-camera-group]').forEach((button) => {
+  button.onclick = async () => {
+    const {cameraGroup, cameraAction} = button.dataset;
+    try {
+      await cameraRequest(`/api/cameras/groups/${cameraGroup}/${cameraAction}`, {interface:$('interface').value});
+    } catch (error) { appendLog(`[相机] ${cameraGroup} ${cameraAction} 失败: ${error.message}`); }
+  };
+});
+
+$('camera-stop-all').onclick = async () => {
+  try {
+    await cameraRequest('/api/cameras/stop-all', {});
+    appendLog('[相机] 已停止本控制台启动的全部预览');
+  } catch (error) { appendLog(`[相机] 停止全部预览失败: ${error.message}`); }
+};
 
 const wsProtocol = location.protocol === 'https:' ? 'wss' : 'ws';
 const ws = new WebSocket(`${wsProtocol}://${location.host}/ws`);
@@ -449,3 +541,5 @@ ws.onmessage = (event) => {
 ws.onclose = () => { setPhase('fault'); appendLog('控制服务连接已断开'); };
 renderJointControls();
 setPhase('stopped');
+refreshCameraStatus();
+setInterval(refreshCameraStatus, 2500);

@@ -9,6 +9,10 @@ import importlib.util
 import os
 from pathlib import Path
 
+from aiohttp import web
+
+from camera_manager import CameraManager
+
 
 HERE = Path(__file__).resolve().parent
 PROJECT = HERE.parent
@@ -17,9 +21,10 @@ BASELINE_CONTROL = (
     PROJECT
     / "transfer_control"
     / "experimental"
-    / "r1a7_cartesian_stream_control_experimental.py"
+    / "r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_v1.py"
 )
 CONTROL_TOOLS = PROJECT / "transfer_control" / "tools"
+CAMERAS = CameraManager(PROJECT.parent)
 
 
 def load_base_server():
@@ -45,6 +50,9 @@ def load_base_server():
             joint_step = max(
                 0.1, min(2.0, float(config.get("joint_step_deg", 0.5)))
             )
+            gripper_speed = max(
+                0.1, min(2.0, float(config.get("gripper_speed", 0.6)))
+            )
             cartesian_speed = max(
                 1.0, min(12.0, float(config.get("cartesian_speed_mm_s", 10.0)))
             )
@@ -62,7 +70,19 @@ def load_base_server():
                 "0",
                 "--host-ip",
                 host_ip,
-                "--no-enable-gripper",
+                "--ik-frequency",
+                "100",
+                "--publish-frequency",
+                "500",
+                "--max-joint-speed",
+                "0.8",
+                "--enable-gripper",
+                "--gripper-initial-mode",
+                "current",
+                "--right-gripper-open-cap-current",
+                "--gripper-speed",
+                str(gripper_speed),
+                "--no-record-d435i",
                 "--print-period",
                 "0.5",
                 "--jog-step-mm",
@@ -76,9 +96,9 @@ def load_base_server():
                 "--cartesian-jog-accel-mm-s2",
                 str(cartesian_accel),
                 "--right-arm-gravity-feedforward-scale",
-                "0.25",
+                "0.0",
                 "--gravity-feedforward-max-torque",
-                "2.0",
+                "2.8",
                 "--gravity-feedforward-slew",
                 "2.0",
             ]
@@ -112,6 +132,68 @@ def load_base_server():
     return module
 
 
+def camera_id(request: web.Request) -> str:
+    value = request.match_info["camera_id"]
+    if value not in CAMERAS.specs:
+        raise web.HTTPNotFound(text="unknown camera")
+    return value
+
+
+async def cameras_status(_request: web.Request) -> web.Response:
+    return web.json_response(CAMERAS.snapshot())
+
+
+async def cameras_rescan(_request: web.Request) -> web.Response:
+    return web.json_response(await CAMERAS.rescan())
+
+
+async def camera_start(request: web.Request) -> web.Response:
+    body = await request.json() if request.can_read_body else {}
+    try:
+        result = await CAMERAS.start(
+            camera_id(request), str(body.get("interface", "enp6s0"))
+        )
+    except RuntimeError as exc:
+        raise web.HTTPConflict(text=str(exc)) from exc
+    return web.json_response(result)
+
+
+async def camera_stop(request: web.Request) -> web.Response:
+    return web.json_response(await CAMERAS.stop(camera_id(request)))
+
+
+async def camera_group_start(request: web.Request) -> web.Response:
+    body = await request.json() if request.can_read_body else {}
+    return web.json_response(
+        await CAMERAS.start_group(
+            request.match_info["group"], str(body.get("interface", "enp6s0"))
+        )
+    )
+
+
+async def camera_group_stop(request: web.Request) -> web.Response:
+    return web.json_response(await CAMERAS.stop_group(request.match_info["group"]))
+
+
+async def cameras_stop_all(_request: web.Request) -> web.Response:
+    return web.json_response(await CAMERAS.stop_all())
+
+
+async def camera_cleanup(_app: web.Application) -> None:
+    await CAMERAS.stop_all()
+
+
+def add_camera_routes(app: web.Application) -> None:
+    app.router.add_get("/api/cameras", cameras_status)
+    app.router.add_post("/api/cameras/rescan", cameras_rescan)
+    app.router.add_post("/api/cameras/{camera_id}/start", camera_start)
+    app.router.add_post("/api/cameras/{camera_id}/stop", camera_stop)
+    app.router.add_post("/api/cameras/groups/{group}/start", camera_group_start)
+    app.router.add_post("/api/cameras/groups/{group}/stop", camera_group_stop)
+    app.router.add_post("/api/cameras/stop-all", cameras_stop_all)
+    app.on_cleanup.append(camera_cleanup)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="R1-A7 terminal-baseline web console"
@@ -121,6 +203,7 @@ def main() -> None:
     args = parser.parse_args()
     base = load_base_server()
     app = base.create_app()
+    add_camera_routes(app)
     app.router.add_static("/experiment", HERE, show_index=False)
     base.web.run_app(
         app,

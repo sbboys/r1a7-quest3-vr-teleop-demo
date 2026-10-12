@@ -1,26 +1,49 @@
-# R1-A7 手臂控制台（终端基线）
+# R1-A7 手臂与视觉控制台（8098 当前基线）
 
-该控制台将网页操作映射到已验证的终端控制基线，不修改
-`r1a7_cartesian_stream_control.py`、官方 `robot_arm_ik.py` 或低层控制逻辑。
+该控制台把网页操作映射到 2026-10-10 的低速控制基线，并把夹爪、双腕、
+外部、双奥比中光和机器人头部相机统一到一个本地界面。网页服务只监听
+`127.0.0.1:8098`。
 
-后台固定使用：
+## 当前控制基线
 
-- 原加权 IK，不注入分层 IK。
-- 右臂重力补偿 `0.25`。
+- 控制器：`transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_v1.py`。
+- 加权 DQIK：IK `100 Hz`，LowCmd `500 Hz`。
+- 右肩俯仰使用已验证的 `Kp=100 / Kd=30` 参数。
+- 右臂重力前馈保持 `0.0`，尚未完成全工作区资格验证。
 - 末端速度默认 `10 mm/s`，加速度默认 `30 mm/s²`。
-- 不传 `--max-joint-speed`，使用控制器默认 `2.0 rad/s`。
-- 夹爪暂时禁用，先保证手臂轨迹可与终端基线直接比较。
+- 网页手动控制把最大关节速度限制为 `0.8 rad/s`。
+- 左右末端可独立选择；切换时发送 `cartesian-arm:left/right`。
+- 双夹爪从实测当前位置初始化，右夹爪保留启动位置开度上限和接触保持。
+- D435i 记录默认关闭；相机面板只负责实时预览。
 
 启动网页服务：
 
 ```bash
-cd /home/robot/unitree_sim_isaaclab_threading
-PYTHONNOUSERSITE=1 /home/robot/miniconda3/envs/tv/bin/python -u \
-  r1a7_threading_project/console3d_hierarchical/server.py \
-  --host 127.0.0.1 --port 8098
+cd /home/robot/unitree_sim_isaaclab_console
+./r1a7_threading_project/console3d_hierarchical/start_console_8098.sh
 ```
 
 打开 `http://127.0.0.1:8098/`。
+
+启动脚本使用用户级临时服务 `r1a7-console-8098.service` 托管网页进程，
+日志位于 `~/.cache/r1a7-console/console-8098.log`。这样桌面启动器退出后服务
+仍会保持运行，异常退出时由用户级服务自动重启。
+
+## 相机面板
+
+相机节点每次启动前重新枚举，不依赖固定的 `/dev/videoN`：
+
+| 控件 | 稳定身份 | 预览方式 |
+|---|---|---|
+| 左腕 | `JR0001` | UVC MJPEG 640×480@30 |
+| 右腕 | `JR0002` | UVC MJPEG 640×480@30 |
+| 外部相机 | `20685204b12d5283` | UVC MJPEG 640×480@30 |
+| 奥比中光 007Z | `CPCBC530007Z` | Gemini 336L 彩色节点 |
+| 奥比中光 00C5 | `CPCBC53000C5` | Gemini 336L 彩色节点 |
+| 头部相机 | Unitree `VideoClient` | `enp6s0` DDS 图像 |
+
+“启动双腕”和“启动双奥比”支持成组预览。停止操作只会结束由当前控制台
+创建的进程，不会使用 `fuser -k` 等方式影响其他视觉任务。
 
 ## 末端运动方式
 
@@ -45,3 +68,11 @@ PYTHONNOUSERSITE=1 /home/robot/miniconda3/envs/tv/bin/python -u \
 3. 点击“断开连接”：先停止运动，再发送退出命令并释放 `rt/lowcmd` 控制锁。
 
 窗口失焦或页面切到后台时，控制台也会自动发送停止运动命令。
+
+## 验证边界
+
+- 相机动态识别、UVC 实时启停和 API 已在当前工作站验证。
+- 最新控制器的参数解析和网页命令白名单已做离线验证。
+- 切换桌面入口时检测到一次已由页面授权的真实连接；它处于零速保持，随后按
+  `jog:stop`、正常断开路径释放 LowCmd。未执行方向点动或夹爪开合。
+- 10 mm/s 是已有记录的已验证速度；15/25 mm/s 仍需重新资格验证。

@@ -4,13 +4,14 @@ import time
 import zlib
 import math
 import json
+import os
 from pathlib import Path
 
 from unitree_sdk2py.core.channel import ChannelFactoryInitialize
 from unitree_sdk2py.go2.video.video_client import VideoClient
 
 
-INTERFACE = "enp6s0"
+INTERFACE = os.environ.get("R1A7_INTERFACE", "enp6s0")
 WINDOW = "R1-A7 Head Visual Baseline"
 
 # 孔板 ROI：优先读取上一次手工标定结果
@@ -434,6 +435,7 @@ duplicate_frames = 0
 
 t0 = time.time()
 last_print = t0
+head_ready_reported = False
 
 print()
 print("====================================")
@@ -480,6 +482,10 @@ while True:
 
     if frame is None:
         continue
+
+    if not head_ready_reported:
+        print(f"[HEAD FRAME READY] {frame.shape[1]}x{frame.shape[0]}")
+        head_ready_reported = True
 
     latest_frame = frame
 

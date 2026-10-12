@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>R1-A7 手臂控制台</title>
   <link rel="stylesheet" href="/static/styles.css?v=20260920-motion-stop">
+  <link rel="stylesheet" href="/experiment/styles.css?v=20261012-responsive">
   <script type="importmap">
     {"imports":{"three":"/static/vendor/three/three.module.js","three/addons/":"/static/vendor/three/addons/","three/examples/jsm/":"/static/vendor/three/addons/"}}
   </script>
@@ -25,6 +26,7 @@
       </section>
       <div class="telemetry-strip">
         <span>控制模式 <b id="control-mode">--</b></span>
+        <span>当前末端 <b id="active-arm">右臂</b></span>
         <span>实际末端 <b id="actual-xyz">--</b></span>
         <span>目标末端 <b id="command-xyz">--</b></span>
         <span>跟踪误差 <b id="lag">--</b></span>
@@ -42,7 +44,7 @@
 
     <aside id="control-panel">
       <header>
-        <div><h1>R1-A7 手臂控制台</h1><p>终端基线 · 加权 IK · 位置保持</p></div>
+        <div><h1>R1-A7 手臂与视觉控制台</h1><p>双臂末端 · 夹爪 · 六路相机 · 100 Hz IK / 500 Hz LowCmd</p></div>
         <span id="state" data-state="stopped">系统待机</span>
       </header>
 
@@ -58,7 +60,7 @@
             <label>夹爪速度 (q/s)<input id="gripper-speed" type="number" min="0.1" max="2" step="0.1" value="0.6"></label>
             <label>末端速度 (mm/s)<input id="cartesian-speed" type="number" min="1" max="12" step="1" value="10"></label>
             <label>末端加速度 (mm/s²)<input id="cartesian-accel" type="number" min="5" max="40" step="5" value="30"></label>
-            <label>右臂重力补偿<input id="gravity-ff-scale" type="number" value="0.25" readonly></label>
+            <label>右臂重力补偿<input id="gravity-ff-scale" type="number" value="0.0" readonly></label>
             <label>关节连动周期 (ms)<input id="repeat-ms" type="number" min="120" max="1000" step="20" value="250"></label>
           </div>
           <div class="session-actions four-actions">
@@ -128,9 +130,24 @@
         <div id="joint-jog-list"></div>
       </section>
 
+      <section class="camera-control panel" aria-label="相机预览控制">
+        <div class="camera-title">
+          <div><h2>视觉相机</h2><p>按序列号动态识别；预览只管理本控制台启动的进程</p></div>
+          <div class="camera-toolbar">
+            <button id="camera-rescan">重新检测</button>
+            <button data-camera-group="wrist" data-camera-action="start">启动双腕</button>
+            <button data-camera-group="wrist" data-camera-action="stop">停止双腕</button>
+            <button data-camera-group="orbbec" data-camera-action="start">启动双奥比</button>
+            <button data-camera-group="orbbec" data-camera-action="stop">停止双奥比</button>
+            <button id="camera-stop-all" class="danger">停止全部预览</button>
+          </div>
+        </div>
+        <div id="camera-list" class="camera-list" aria-live="polite"></div>
+      </section>
+
       </div>
     </aside>
   </main>
-  <script type="module" src="/experiment/app.js?v=20260930-direction-switch"></script>
+  <script type="module" src="/experiment/app.js?v=20261011-camera-suite"></script>
 </body>
 </html>
