@@ -80,6 +80,24 @@ USB 相机优先采用 MJPEG 640×480@30，支持单路启停、双腕成组启�
 “等待图像”和错误提示，不把“进程仍在运行”误报为“图像正常”。后续需要
 在机器人头部视频服务在线时复测。
 
+2026-10-12 补充：宇树官方 SDK 仍提供
+`unitree_sdk2py.go2.video.VideoClient.GetImageSample()`，项目在 2026-09-30
+的 GitHub 工作记录中也已使用该路径收到 1280×720 RGB。官方新版
+`xr_teleoperate` 另推荐由 PC2（默认 `192.168.123.164`）运行 TeleImager，
+但本机当前无可达 PC2 图像服务，因此控制台仍保留已验证的
+VideoClient 主路径，不将未验证的 TeleImager 标记为可用。
+
+启动头部相机时，控制台只确保 `video_hub` 运行，不再关闭
+`videohub_rtsp_server` / WebRTC App 链路。启动后 12 秒仍没有收到首帧时，
+界面显示“未收到画面”，避免把 DDS 子进程存活误判为相机就绪。
+
+核对来源：
+
+- [Unitree SDK2 VideoClient 官方接口](https://github.com/unitreerobotics/unitree_sdk2/blob/main/include/unitree/robot/go2/video/video_client.hpp)
+- [Unitree SDK2 官方 GetImageSample 示例](https://github.com/unitreerobotics/unitree_sdk2/blob/main/example/go2/go2_video_client.cpp)
+- [xr_teleoperate 官方实机图像服务流程](https://github.com/unitreerobotics/xr_teleoperate#31-图像服务)
+- [本项目已验证的头部相机控制台提交](https://github.com/sbboys/r1a7-quest3-vr-teleop-demo/commit/e627515e0c54c863562c8bb20f5a00da177c797f)
+
 补充网络核验：`enp6s0` 为 `192.168.123.223/24`，机器人
 `192.168.123.161` 连续 ping 成功（约 0.34 ms），邻居表也存在机器人 MAC。
 因此本次头部图像失败不是网卡未启用或三层路由中断，现象与既有相机手册中

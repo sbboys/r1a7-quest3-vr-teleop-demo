@@ -15,6 +15,7 @@ import re
 import shutil
 import signal
 import subprocess
+import time
 from typing import Any
 
 
@@ -48,6 +49,7 @@ class CameraRuntime:
     node: str | None = None
     pixel_format: str | None = None
     ready: bool = False
+    started_at: float | None = None
 
 
 CAMERAS: tuple[CameraSpec, ...] = (
@@ -56,7 +58,7 @@ CAMERAS: tuple[CameraSpec, ...] = (
         "头部相机",
         "head",
         "head",
-        description="机器人 VideoClient 图像与视觉测量基线",
+        description="GitHub 已验证 Unitree SDK VideoClient（1280×720 RGB）",
     ),
     CameraSpec(
         "wrist_left",
@@ -214,6 +216,12 @@ class CameraManager:
         self.head_script = (
             project_root / "r1a7_threading_project" / "vision" / "r1a7_head_visual_baseline.py"
         )
+        self.head_service_prepare = (
+            project_root
+            / "r1a7_threading_project"
+            / "vision"
+            / "r1a7_head_service_prepare.py"
+        )
         self.specs = {spec.camera_id: spec for spec in CAMERAS}
         self.runtime = {camera_id: CameraRuntime() for camera_id in self.specs}
         self.devices: list[VideoDevice] = []
@@ -230,12 +238,26 @@ class CameraManager:
             runtime.process = None
             runtime.node = None
             runtime.pixel_format = None
+            runtime.started_at = None
 
     def snapshot(self) -> dict[str, Any]:
         items = []
         for spec in CAMERAS:
             runtime = self.runtime[spec.camera_id]
             self._refresh_process(runtime)
+            if (
+                spec.kind == "head"
+                and runtime.process
+                and runtime.process.returncode is None
+                and not runtime.ready
+                and runtime.started_at is not None
+                and time.monotonic() - runtime.started_at >= 12.0
+                and not runtime.last_error
+            ):
+                runtime.last_error = (
+                    "video_hub 已启动，但 12 秒内未收到 JPEG；"
+                    "请先检查手机 App 与机器人头部相机"
+                )
             device = choose_device(spec, self.devices) if spec.kind == "uvc" else None
             detected = (
                 bool(device)
@@ -250,6 +272,12 @@ class CameraManager:
                     "kind": spec.kind,
                     "serial": spec.serial,
                     "description": spec.description,
+                    "source": (
+                        "Unitree SDK VideoClient · enp6s0 · 目标 1280×720 RGB"
+                        if spec.kind == "head"
+                        else "USB UVC"
+                    ),
+                    "backend": "sdk_videoclient" if spec.kind == "head" else "uvc",
                     "detected": detected,
                     "node": runtime.node or (device.node if device else None),
                     "formats": list(device.formats) if device else [],
@@ -290,6 +318,38 @@ class CameraManager:
                 elif camera_id == "head" and "send request error" in text.lower():
                     runtime.last_error = "VideoClient 已启动，但暂未收到头部图像"
 
+    async def _prepare_head_camera(
+        self,
+        runtime: CameraRuntime,
+        head_interface: str,
+        env: dict[str, str],
+    ) -> None:
+        if not self.head_service_prepare.exists():
+            raise RuntimeError("头部相机服务准备程序不存在")
+        process = await asyncio.create_subprocess_exec(
+            str(TV_PYTHON),
+            "-u",
+            str(self.head_service_prepare),
+            "--interface",
+            head_interface,
+            cwd=str(self.project_root),
+            env=env,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+        try:
+            output, _ = await asyncio.wait_for(process.communicate(), timeout=35.0)
+        except asyncio.TimeoutError as exc:
+            process.kill()
+            await process.wait()
+            raise RuntimeError("头部相机服务准备超时") from exc
+        lines = output.decode("utf-8", errors="replace").splitlines()
+        runtime.logs.extend(line for line in lines if line)
+        del runtime.logs[:-40]
+        if process.returncode != 0:
+            detail = lines[-1] if lines else f"返回码 {process.returncode}"
+            raise RuntimeError(f"头部相机服务准备失败：{detail}")
+
     async def start(self, camera_id: str, head_interface: str = "enp6s0") -> dict[str, Any]:
         if camera_id not in self.specs:
             raise KeyError(camera_id)
@@ -308,13 +368,23 @@ class CameraManager:
             runtime.node = None
             runtime.pixel_format = None
             runtime.ready = False
+            runtime.started_at = None
 
             if spec.kind == "head":
-                if not self.head_script.exists() or not TV_PYTHON.exists():
+                if (
+                    not self.head_script.exists()
+                    or not self.head_service_prepare.exists()
+                    or not TV_PYTHON.exists()
+                ):
                     runtime.last_error = "头部相机程序或 tv Python 环境不存在"
                     raise RuntimeError(runtime.last_error)
                 env["R1A7_INTERFACE"] = head_interface
                 env["PYTHONNOUSERSITE"] = "1"
+                try:
+                    await self._prepare_head_camera(runtime, head_interface, env)
+                except RuntimeError as exc:
+                    runtime.last_error = str(exc)
+                    raise
                 command = [str(TV_PYTHON), "-u", str(self.head_script)]
             else:
                 device = choose_device(spec, self.devices)
@@ -335,6 +405,7 @@ class CameraManager:
                 stderr=asyncio.subprocess.STDOUT,
                 start_new_session=True,
             )
+            runtime.started_at = time.monotonic()
             runtime.reader_task = asyncio.create_task(
                 self._read_output(camera_id, runtime.process)
             )
@@ -345,6 +416,7 @@ class CameraManager:
                 runtime.node = None
                 runtime.pixel_format = None
                 runtime.ready = False
+                runtime.started_at = None
                 runtime.last_error = (
                     runtime.logs[-1] if runtime.logs else f"预览启动失败，返回码 {returncode}"
                 )
@@ -366,6 +438,7 @@ class CameraManager:
             runtime.node = None
             runtime.pixel_format = None
             runtime.ready = False
+            runtime.started_at = None
             return
         try:
             os.killpg(process.pid, signal.SIGINT)
@@ -388,6 +461,7 @@ class CameraManager:
         runtime.node = None
         runtime.pixel_format = None
         runtime.ready = False
+        runtime.started_at = None
 
     async def start_group(self, group: str, head_interface: str = "enp6s0") -> dict[str, Any]:
         errors: dict[str, str] = {}

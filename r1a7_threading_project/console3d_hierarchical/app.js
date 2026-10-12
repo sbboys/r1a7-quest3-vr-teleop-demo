@@ -448,6 +448,7 @@ function updateTelemetry(t) {
 }
 
 function cameraStatusLabel(camera) {
+  if (camera.kind === 'head' && camera.last_error && !camera.ready) return '未收到画面';
   if (camera.running && camera.kind === 'head' && !camera.ready) return '等待图像';
   if (camera.running) return '预览中';
   if (!camera.detected) return '未检测到';
@@ -457,9 +458,11 @@ function cameraStatusLabel(camera) {
 function renderCameras(payload) {
   const cameras = payload?.cameras || [];
   $('camera-list').innerHTML = cameras.map((camera) => {
-    const stateClass = camera.running && camera.ready ? 'running' : camera.detected ? 'ready' : 'missing';
+    const stateClass = camera.last_error && !camera.ready
+      ? 'missing'
+      : camera.running && camera.ready ? 'running' : camera.detected ? 'ready' : 'missing';
     const source = camera.kind === 'head'
-      ? 'VideoClient · enp6s0'
+      ? camera.source
       : `${camera.node || '无采集节点'} · ${camera.pixel_format || camera.formats?.[0] || '--'}`;
     const identity = camera.serial ? `SN ${camera.serial}` : camera.description;
     return `<article class="camera-card" data-running="${camera.running}" data-detected="${camera.detected}">
