@@ -118,6 +118,27 @@ def parse_cartesian_jog_command(command: str) -> Optional[tuple[str, Optional[st
     return None
 
 
+def parse_cartesian_jog_tuning(command: str) -> Optional[tuple[str, float]]:
+    """Parse bounded live speed/acceleration updates from the web console."""
+    parts = command.strip().casefold().split(":")
+    if len(parts) != 3 or parts[0] != "jog":
+        return None
+    limits = {
+        "speed": (1.0, 12.0),
+        "accel": (5.0, 40.0),
+    }
+    if parts[1] not in limits:
+        return None
+    try:
+        value = float(parts[2])
+    except ValueError:
+        return None
+    minimum, maximum = limits[parts[1]]
+    if not minimum <= value <= maximum:
+        return None
+    return parts[1], value
+
+
 def parse_cartesian_arm_command(command: str) -> Optional[str]:
     """Parse cartesian-arm:<left|right> commands from the web console."""
     parts = command.strip().casefold().split(":")
@@ -2223,8 +2244,11 @@ def main() -> int:
                 joint_jog = parse_joint_jog_command(command)
                 gripper_command = parse_gripper_command(command)
                 cartesian_arm_command = parse_cartesian_arm_command(command)
+                cartesian_jog_tuning = parse_cartesian_jog_tuning(command)
 
-                if cartesian_arm_command is not None:
+                if cartesian_jog_tuning is not None:
+                    cartesian_jog = None
+                elif cartesian_arm_command is not None:
                     cartesian_jog = None
                 elif command in direction_delta_mm:
                     if active_cartesian_jog is None:
@@ -2270,7 +2294,24 @@ def main() -> int:
                         command
                     )
 
-                if cartesian_arm_command is not None:
+                if cartesian_jog_tuning is not None:
+                    tuning_name, tuning_value = cartesian_jog_tuning
+                    if tuning_name == "speed":
+                        VIRTUAL_VR_MAX_SPEED_M_S = tuning_value / 1000.0
+                        print(
+                            "[CARTESIAN TUNING] max speed="
+                            f"{tuning_value:g} mm/s (live)",
+                            flush=True,
+                        )
+                    else:
+                        VIRTUAL_VR_MAX_ACCEL_M_S2 = tuning_value / 1000.0
+                        print(
+                            "[CARTESIAN TUNING] max acceleration="
+                            f"{tuning_value:g} mm/s^2 (live)",
+                            flush=True,
+                        )
+
+                elif cartesian_arm_command is not None:
                     if motion is not None:
                         print(
                             "[CARTESIAN ARM] switch ignored while HOME is active.",
@@ -2342,6 +2383,25 @@ def main() -> int:
                     elif jog_action == "keepalive":
                         if active_cartesian_jog == jog_direction:
                             active_cartesian_jog_seen_at = now
+                    elif active_cartesian_jog is not None:
+                        # Web-console direction changes arrive as
+                        # jog:start:<direction>.  Preserve the current target,
+                        # joint stream, tool orientation, and velocity state so
+                        # the acceleration limiter blends directly into the new
+                        # direction instead of re-anchoring and stopping first.
+                        if active_cartesian_jog == jog_direction:
+                            active_cartesian_jog_seen_at = now
+                        else:
+                            previous_jog = active_cartesian_jog
+                            active_cartesian_jog = jog_direction
+                            active_cartesian_jog_seen_at = now
+                            print(
+                                "[CARTESIAN JOG] SWITCH "
+                                f"{previous_jog.upper()} -> "
+                                f"{jog_direction.upper()} "
+                                "(continuous; no re-anchor)",
+                                flush=True,
+                            )
                     else:
                         if control_mode != "cartesian":
                             synced_left_pose, synced_right_pose = get_ee_poses_from_q(arm_q)

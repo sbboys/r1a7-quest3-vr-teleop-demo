@@ -33,7 +33,17 @@ def command_allowed(command: str) -> bool:
     if len(parts) == 2 and parts[0] == "cartesian-arm":
         return parts[1] in ("left", "right")
     if len(parts) == 3 and parts[0] == "jog":
-        return parts[1] in ("start", "keepalive") and parts[2] in JOG_DIRECTIONS
+        if parts[1] in ("start", "keepalive"):
+            return parts[2] in JOG_DIRECTIONS
+        try:
+            value = float(parts[2])
+        except ValueError:
+            return False
+        if parts[1] == "speed":
+            return 1.0 <= value <= 12.0
+        if parts[1] == "accel":
+            return 5.0 <= value <= 40.0
+        return False
     if len(parts) != 3:
         return False
     if parts[0] == "gripper":

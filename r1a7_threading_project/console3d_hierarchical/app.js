@@ -248,6 +248,25 @@ $('stop').onclick = async () => {
 };
 $('motion-stop').onclick = () => stopMotion('按钮');
 
+function applyLiveCartesianTuning() {
+  const speed = Number($('cartesian-speed').value);
+  const accel = Number($('cartesian-accel').value);
+  if (!Number.isFinite(speed) || speed < 1 || speed > 12) {
+    appendLog('[参数] 末端速度必须在 1–12 mm/s 范围内');
+    return;
+  }
+  if (!Number.isFinite(accel) || accel < 5 || accel > 40) {
+    appendLog('[参数] 末端加速度必须在 5–40 mm/s² 范围内');
+    return;
+  }
+  if (!enabled) return;
+  sendCommand(`jog:speed:${speed}`);
+  sendCommand(`jog:accel:${accel}`);
+  appendLog(`[参数] 已实时更新：末端速度 ${speed} mm/s，加速度 ${accel} mm/s²`);
+}
+$('cartesian-speed').addEventListener('change', applyLiveCartesianTuning);
+$('cartesian-accel').addEventListener('change', applyLiveCartesianTuning);
+
 function sendCommand(command) {
   if (!enabled) return Promise.resolve();
   commandQueue = commandQueue

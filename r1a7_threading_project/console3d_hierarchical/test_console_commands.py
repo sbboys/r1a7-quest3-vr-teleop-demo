@@ -18,6 +18,17 @@ class ConsoleCommandTests(unittest.TestCase):
         self.assertFalse(command_allowed("joint:14:+"))
         self.assertFalse(command_allowed("gripper:left:calibrate"))
 
+    def test_live_cartesian_tuning_is_bounded(self) -> None:
+        self.assertTrue(command_allowed("jog:speed:1"))
+        self.assertTrue(command_allowed("jog:speed:7.5"))
+        self.assertTrue(command_allowed("jog:speed:12"))
+        self.assertFalse(command_allowed("jog:speed:0"))
+        self.assertFalse(command_allowed("jog:speed:13"))
+        self.assertFalse(command_allowed("jog:speed:nan"))
+        self.assertTrue(command_allowed("jog:accel:5"))
+        self.assertTrue(command_allowed("jog:accel:40"))
+        self.assertFalse(command_allowed("jog:accel:41"))
+
 
 if __name__ == "__main__":
     unittest.main()
