@@ -6,12 +6,14 @@ SERVER="$CONSOLE_ROOT/r1a7_threading_project/console3d_hierarchical/server.py"
 PYTHON_BIN="/home/robot/miniconda3/envs/tv/bin/python"
 LOG_DIR="/home/robot/.cache/r1a7-console"
 LOG_FILE="$LOG_DIR/console-8098.log"
-URL="http://127.0.0.1:8098"
+BASE_URL="http://127.0.0.1:8098"
+UI_BUILD="20261012-head-camera-source"
+UI_URL="$BASE_URL/?build=$UI_BUILD"
 UNIT="r1a7-console-8098.service"
 
 mkdir -p "$LOG_DIR"
 
-if ! curl -fsS --max-time 1 "$URL/api/cameras" >/dev/null 2>&1; then
+if ! curl -fsS --max-time 1 "$BASE_URL/api/cameras" >/dev/null 2>&1; then
   systemctl --user stop "$UNIT" >/dev/null 2>&1 || true
   systemctl --user reset-failed "$UNIT" >/dev/null 2>&1 || true
   : >"$LOG_FILE"
@@ -27,15 +29,15 @@ if ! curl -fsS --max-time 1 "$URL/api/cameras" >/dev/null 2>&1; then
     >/dev/null
 
   for _attempt in $(seq 1 30); do
-    if curl -fsS --max-time 1 "$URL/api/cameras" >/dev/null 2>&1; then
+    if curl -fsS --max-time 1 "$BASE_URL/api/cameras" >/dev/null 2>&1; then
       break
     fi
     sleep 0.2
   done
 fi
 
-if curl -fsS --max-time 1 "$URL/api/cameras" >/dev/null 2>&1; then
-  xdg-open "$URL/" >/dev/null 2>&1 || true
+if curl -fsS --max-time 1 "$BASE_URL/api/cameras" >/dev/null 2>&1; then
+  xdg-open "$UI_URL" >/dev/null 2>&1 || true
   exit 0
 fi
 

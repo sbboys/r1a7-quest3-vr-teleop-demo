@@ -27,6 +27,19 @@ CONTROL_TOOLS = PROJECT / "transfer_control" / "tools"
 CAMERAS = CameraManager(PROJECT.parent)
 
 
+@web.middleware
+async def no_cache_console_ui(
+    request: web.Request, handler: web.RequestHandler
+) -> web.StreamResponse:
+    """Keep the desktop launcher from reusing an obsolete console bundle."""
+    response = await handler(request)
+    if request.path == "/" or request.path.startswith("/experiment/"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
 def load_base_server():
     spec = importlib.util.spec_from_file_location(
         "r1a7_console3d_base_server",
@@ -203,6 +216,7 @@ def main() -> None:
     args = parser.parse_args()
     base = load_base_server()
     app = base.create_app()
+    app.middlewares.append(no_cache_console_ui)
     add_camera_routes(app)
     app.router.add_static("/experiment", HERE, show_index=False)
     base.web.run_app(
