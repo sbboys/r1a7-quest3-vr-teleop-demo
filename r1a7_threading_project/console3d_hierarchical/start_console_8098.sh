@@ -7,7 +7,7 @@ PYTHON_BIN="/home/robot/miniconda3/envs/tv/bin/python"
 LOG_DIR="/home/robot/.cache/r1a7-console"
 LOG_FILE="$LOG_DIR/console-8098.log"
 BASE_URL="http://127.0.0.1:8098"
-UI_BUILD="20261012-live-motion-tuning"
+UI_BUILD="20261013-terminal-baseline"
 UI_URL="$BASE_URL/?build=$UI_BUILD"
 UNIT="r1a7-console-8098.service"
 

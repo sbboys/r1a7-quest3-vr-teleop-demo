@@ -27,6 +27,43 @@ CONTROL_TOOLS = PROJECT / "transfer_control" / "tools"
 CAMERAS = CameraManager(PROJECT.parent)
 
 
+def build_control_arguments(config: dict[str, object]) -> list[str]:
+    """Build only the web-facing overrides on top of the verified CLI defaults."""
+    interface = str(config.get("interface", "enp6s0"))
+    host_ip = str(config.get("host_ip", "192.168.123.223"))
+    xy_step = max(0.5, min(30.0, float(config.get("xy_step_mm", 30.0))))
+    z_step = max(0.5, min(10.0, float(config.get("z_step_mm", 10.0))))
+    joint_step = max(0.1, min(2.0, float(config.get("joint_step_deg", 1.0))))
+    gripper_speed = max(0.1, min(2.0, float(config.get("gripper_speed", 1.5))))
+    cartesian_speed = max(
+        1.0, min(12.0, float(config.get("cartesian_speed_mm_s", 10.0)))
+    )
+    cartesian_accel = max(
+        5.0, min(40.0, float(config.get("cartesian_accel_mm_s2", 20.0)))
+    )
+    return [
+        "--interface",
+        interface,
+        "--domain-id",
+        "0",
+        "--host-ip",
+        host_ip,
+        "--gripper-speed",
+        str(gripper_speed),
+        "--no-record-d435i",
+        "--jog-step-mm",
+        str(xy_step),
+        "--jog-vertical-step-mm",
+        str(z_step),
+        "--joint-jog-step-deg",
+        str(joint_step),
+        "--cartesian-jog-speed-mm-s",
+        str(cartesian_speed),
+        "--cartesian-jog-accel-mm-s2",
+        str(cartesian_accel),
+    ]
+
+
 @web.middleware
 async def no_cache_console_ui(
     request: web.Request, handler: web.RequestHandler
@@ -56,64 +93,11 @@ def load_base_server():
             if self.process and self.process.returncode is None:
                 raise module.web.HTTPConflict(text="controller already running")
 
-            interface = str(config.get("interface", "enp6s0"))
-            host_ip = str(config.get("host_ip", "192.168.123.223"))
-            xy_step = max(0.5, min(10.0, float(config.get("xy_step_mm", 5.0))))
-            z_step = max(0.5, min(5.0, float(config.get("z_step_mm", 2.0))))
-            joint_step = max(
-                0.1, min(2.0, float(config.get("joint_step_deg", 0.5)))
-            )
-            gripper_speed = max(
-                0.1, min(2.0, float(config.get("gripper_speed", 0.6)))
-            )
-            cartesian_speed = max(
-                1.0, min(12.0, float(config.get("cartesian_speed_mm_s", 10.0)))
-            )
-            cartesian_accel = max(
-                5.0, min(40.0, float(config.get("cartesian_accel_mm_s2", 30.0)))
-            )
-
             command = [
                 str(module.TV_PYTHON),
                 "-u",
                 str(module.CONTROL),
-                "--interface",
-                interface,
-                "--domain-id",
-                "0",
-                "--host-ip",
-                host_ip,
-                "--ik-frequency",
-                "100",
-                "--publish-frequency",
-                "500",
-                "--max-joint-speed",
-                "0.8",
-                "--enable-gripper",
-                "--gripper-initial-mode",
-                "current",
-                "--right-gripper-open-cap-current",
-                "--gripper-speed",
-                str(gripper_speed),
-                "--no-record-d435i",
-                "--print-period",
-                "0.5",
-                "--jog-step-mm",
-                str(xy_step),
-                "--jog-vertical-step-mm",
-                str(z_step),
-                "--joint-jog-step-deg",
-                str(joint_step),
-                "--cartesian-jog-speed-mm-s",
-                str(cartesian_speed),
-                "--cartesian-jog-accel-mm-s2",
-                str(cartesian_accel),
-                "--right-arm-gravity-feedforward-scale",
-                "0.0",
-                "--gravity-feedforward-max-torque",
-                "2.8",
-                "--gravity-feedforward-slew",
-                "2.0",
+                *build_control_arguments(config),
             ]
             env = os.environ.copy()
             env["PYTHONNOUSERSITE"] = "1"
