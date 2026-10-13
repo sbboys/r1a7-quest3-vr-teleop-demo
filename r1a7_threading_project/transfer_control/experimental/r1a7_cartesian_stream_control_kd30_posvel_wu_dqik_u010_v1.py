@@ -266,6 +266,36 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cartesian-jog-accel-mm-s2", type=float, default=20.0,
                         help="Cartesian acceleration/deceleration limit for console jog")
     parser.add_argument(
+        "--ibvs-command-path",
+        type=Path,
+        default=Path("/tmp/r1a7_dual_ibvs_velocity.json"),
+        help="JSON velocity command read by the visual-servo input",
+    )
+    parser.add_argument(
+        "--ibvs-max-age-s",
+        type=float,
+        default=0.35,
+        help="Reject visual-servo JSON older than this many seconds",
+    )
+    parser.add_argument(
+        "--ibvs-max-speed-mm-s",
+        type=float,
+        default=6.0,
+        help="Independent resultant speed limit for visual servoing",
+    )
+    parser.add_argument(
+        "--ibvs-min-speed-mm-s",
+        type=float,
+        default=1.0,
+        help="Optional minimum resultant speed for non-zero visual commands",
+    )
+    parser.add_argument(
+        "--udp-visual-servo",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable the legacy UDP delta receiver on port 5005",
+    )
+    parser.add_argument(
         "--ik-joint-accel-rad-s2",
         type=float,
         default=2.0,
@@ -359,6 +389,8 @@ def parse_args() -> argparse.Namespace:
         "max_joint_speed",
         "cartesian_jog_speed_mm_s",
         "cartesian_jog_accel_mm_s2",
+        "ibvs_max_age_s",
+        "ibvs_max_speed_mm_s",
         "ik_joint_accel_rad_s2",
         "gravity_feedforward_max_torque",
         "gravity_feedforward_slew",
@@ -369,6 +401,10 @@ def parse_args() -> argparse.Namespace:
         parser.error("this debug-mode executor only permits --command-topic rt/lowcmd")
     if args.jog_step_mm <= 0.0 or args.jog_vertical_step_mm <= 0.0:
         parser.error("jog step sizes must be greater than zero")
+    if args.ibvs_min_speed_mm_s < 0.0:
+        parser.error("--ibvs-min-speed-mm-s must be zero or greater")
+    if args.ibvs_min_speed_mm_s > args.ibvs_max_speed_mm_s:
+        parser.error("--ibvs-min-speed-mm-s cannot exceed --ibvs-max-speed-mm-s")
     if not 0.1 <= args.joint_jog_step_deg <= 5.0:
         parser.error("--joint-jog-step-deg must be within [0.1, 5.0]")
     if not 0.0 <= args.right_arm_gravity_feedforward_scale <= 1.0:
@@ -1716,8 +1752,12 @@ def main() -> int:
         hold_right_target = startup_right_pose.copy()
 
         # Visual servo XY input
-        visual_servo_receiver = VisualServoReceiver()
-        visual_servo_enable = True
+        visual_servo_receiver = (
+            VisualServoReceiver()
+            if args.udp_visual_servo
+            else None
+        )
+        visual_servo_enable = args.udp_visual_servo
 
         cartesian_left_orientation = startup_left_pose[:3, :3].copy()
         cartesian_right_orientation = startup_right_pose[:3, :3].copy()
@@ -1881,7 +1921,7 @@ def main() -> int:
         #
         # Applied only when IBVS already reports a non-zero
         # valid velocity.
-        IBVS_MIN_SPEED_MM_S = 1.0
+        IBVS_MIN_SPEED_MM_S = args.ibvs_min_speed_mm_s
 
         # The nominal IK target is generated from the commanded Cartesian
         # path.  On the real arm, gravity, gearbox compliance, and small model
@@ -2080,9 +2120,7 @@ def main() -> int:
         # This is only another Cartesian velocity source.
         # The existing acceleration limiter, IK and LowCmd path
         # remain unchanged.
-        ibvs_command_path = Path(
-            "/tmp/r1a7_dual_ibvs_velocity.json"
-        )
+        ibvs_command_path = args.ibvs_command_path.expanduser().resolve()
         ibvs_velocity_active = False
         ibvs_velocity_m_s = np.zeros(
             3,
@@ -3602,6 +3640,19 @@ def main() -> int:
                             )
                         ):
 
+                            ibvs_timestamp = float(
+                                ibvs_data.get("timestamp", 0.0)
+                            )
+                            ibvs_age_s = time.time() - ibvs_timestamp
+                            if (
+                                not np.isfinite(ibvs_age_s)
+                                or ibvs_age_s < -0.05
+                                or ibvs_age_s > args.ibvs_max_age_s
+                            ):
+                                raise ValueError(
+                                    f"stale IBVS command: {ibvs_age_s:.3f}s"
+                                )
+
                             candidate_velocity_m_s = (
                                 np.array(
                                     [
@@ -3635,25 +3686,24 @@ def main() -> int:
                                 )
                             ):
 
-                                # Reuse the EXISTING Cartesian
-                                # maximum speed setting.
+                                # Enforce both the ordinary Cartesian limit and
+                                # an independent visual-servo limit.
                                 candidate_speed_m_s = float(
                                     np.linalg.norm(
                                         candidate_velocity_m_s
                                     )
                                 )
 
+                                ibvs_speed_limit_m_s = min(
+                                    VIRTUAL_VR_MAX_SPEED_M_S,
+                                    args.ibvs_max_speed_mm_s / 1000.0,
+                                )
                                 if (
-                                    candidate_speed_m_s
-                                    >
-                                    VIRTUAL_VR_MAX_SPEED_M_S
-                                    and
-                                    candidate_speed_m_s
-                                    >
-                                    0.0
+                                    candidate_speed_m_s > ibvs_speed_limit_m_s
+                                    and candidate_speed_m_s > 0.0
                                 ):
                                     candidate_velocity_m_s *= (
-                                        VIRTUAL_VR_MAX_SPEED_M_S
+                                        ibvs_speed_limit_m_s
                                         /
                                         candidate_speed_m_s
                                     )
@@ -3997,6 +4047,8 @@ def main() -> int:
 
                 visual_delta = (
                     visual_servo_receiver.update()
+                    if visual_servo_receiver is not None
+                    else [0.0, 0.0, 0.0]
                 )
 
 
@@ -4609,15 +4661,24 @@ def main() -> int:
                                 "control_mode": "cartesian",
                                 "cartesian_arm": cartesian_arm,
                                 "motion_state": (
-                                    "continuous_jog"
-                                    if active_cartesian_jog is not None
+                                    "visual_servo"
+                                    if ibvs_velocity_active
                                     else (
-                                        "decelerating"
-                                        if float(np.linalg.norm(cartesian_velocity_m_s)) >= 5.0e-4
-                                        else "holding"
+                                        "continuous_jog"
+                                        if active_cartesian_jog is not None
+                                        else (
+                                            "decelerating"
+                                            if float(np.linalg.norm(cartesian_velocity_m_s)) >= 5.0e-4
+                                            else "holding"
+                                        )
                                     )
                                 ),
                                 "jog_direction": active_cartesian_jog,
+                                "ibvs_active": ibvs_velocity_active,
+                                "ibvs_velocity_mm_s": np.round(
+                                    ibvs_velocity_m_s * 1000.0,
+                                    3,
+                                ).tolist(),
                                 "command_velocity_mm_s": round(
                                     float(np.linalg.norm(cartesian_velocity_m_s)) * 1000.0,
                                     3,

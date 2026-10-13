@@ -16,6 +16,8 @@ let cartesianStreaming = false;
 let cartesianInputMode = 'hold';
 let latchedCartesianCommand = null;
 let commandQueue = Promise.resolve();
+let visualServoHeld = false;
+let visualServoKeepaliveTimer = null;
 let selectedArm = 'right';
 let latestTelemetry = {};
 const dexModels = [null, null];
@@ -58,6 +60,7 @@ function renderJointControls() {
 
 document.querySelectorAll('[data-arm]').forEach((button) => {
   button.onclick = async () => {
+    await stopVisualServoDeadman('切换手臂', false);
     releaseJog();
     selectedArm = button.dataset.arm;
     document.querySelectorAll('[data-arm]').forEach((tab) => {
@@ -240,6 +243,7 @@ $('enable').onclick = async () => {
 };
 $('stop').onclick = async () => {
   releaseJog(false);
+  await stopVisualServoDeadman('控制断开', false);
   try {
     if (enabled) await api('/api/command', {command:'jog:stop'});
     await api('/api/stop');
@@ -343,6 +347,7 @@ function releaseJog(sendClick=true) {
 function stopMotion(source) {
   releaseJog(false);
   clearLatchedCartesian();
+  void stopVisualServoDeadman(source, false);
   sendCommand('jog:stop');
   appendLog(`[停止运动] ${source}触发，速度归零并保持当前位置`);
 }
@@ -378,6 +383,7 @@ window.addEventListener('blur', () => {
 });
 window.addEventListener('pointerup', () => {
   if (cartesianInputMode === 'hold') releaseJog(true);
+  void stopVisualServoDeadman('松开执行按钮', false);
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && enabled) stopMotion('页面切换');
@@ -442,7 +448,7 @@ function updateTelemetry(t) {
   updateJointReadouts(t);
   updateGripperReadouts(t);
   const directionLabels = {w:'前 +X', s:'后 -X', a:'左 +Y', d:'右 -Y', u:'上 +Z', j:'下 -Z', i:'前上 +X+Z'};
-  const motionLabels = {continuous_jog:'连续点动', decelerating:'平滑减速', holding:'位置保持'};
+  const motionLabels = {continuous_jog:'连续点动', visual_servo:'视觉伺服', decelerating:'平滑减速', holding:'位置保持'};
   const baseMode = t.control_mode === 'joint' ? '关节控制' : t.control_mode === 'cartesian' ? '末端控制' : '--';
   const telemetryArm = t.cartesian_arm === 'left' ? '左臂' : t.cartesian_arm === 'right' ? '右臂' : null;
   if (telemetryArm) $('active-arm').textContent = telemetryArm;
@@ -477,9 +483,15 @@ function cameraStatusLabel(camera) {
 function renderThreadingVision(vision={}) {
   const container = $('threading-vision');
   if (!container) return;
+  // Preserve pointer capture while the deadman button is held. Replacing its
+  // DOM node during the 2.5 s status refresh could otherwise lose pointerup.
+  if (visualServoHeld && container.querySelector('[data-servo-action="hold"]')) return;
   const running = Boolean(vision.running);
   const ready = Boolean(vision.ready);
   const guidanceReady = Boolean(vision.ready_for_guidance);
+  const servo = vision.servo || {};
+  const servoEnabled = Boolean(servo.enabled);
+  const servoReady = ready && guidanceReady && enabled && selectedArm === 'right';
   const velocity = Array.isArray(vision.proposed_velocity_mm_s)
     ? vision.proposed_velocity_mm_s.map((value) => Number(value || 0).toFixed(2))
     : ['0.00', '0.00', '0.00'];
@@ -488,7 +500,16 @@ function renderThreadingVision(vision={}) {
     : !running ? '未启动' : !ready ? '启动中' : guidanceReady ? '引导有效' : '等待选点/识别';
   const stateClass = vision.last_error ? 'missing' : guidanceReady ? 'running' : ready ? 'ready' : '';
   const sources = `外部 ${vision.external_valid ? '有效' : '等待'} · 腕部 ${vision.wrist_valid ? '有效' : '等待'} · 融合 ${vision.mode || 'WAITING'}`;
-  container.innerHTML = `<article class="threading-card" data-running="${running}">
+  const servoReasonLabels = {
+    not_authorized:'等待按住授权', deadman_released:'等待按住授权', server_start:'等待按住授权', server_stop:'服务已停止',
+    operator_stop:'操作员停止', controller_not_enabled:'机器人控制未授权', controller_not_cartesian:'控制器不在笛卡尔模式',
+    right_arm_not_selected:'未选择右臂', controller_telemetry_missing:'控制遥测缺失', controller_telemetry_stale:'控制遥测超时',
+    manual_motion_not_stopped:'请先停止手动运动', tracking_lag_too_large:'机械臂跟踪误差过大', vision_stack_not_ready:'视觉进程未就绪', fusion_stale:'融合数据超时',
+    guidance_not_ready:'识别引导未就绪', dual_camera_required:'需要双相机同时有效', dual_fusion_mode_required:'需要双相机融合模式',
+    deadman_active:'按住执行中', deadman_stop_settling:'停止保护中，请重新按住', camera_stop_all:'相机已停止', vision_stopped:'穿孔识别已停止'
+  };
+  const servoState = servoEnabled ? '执行中' : (servoReasonLabels[servo.reason] || servo.reason || '等待授权');
+  container.innerHTML = `<article class="threading-card" data-running="${running}" data-servo="${servoEnabled}">
     <div class="camera-card-head">
       <h3>细线穿孔识别与引导</h3>
       <span class="camera-status ${stateClass}">${stateLabel}</span>
@@ -497,15 +518,70 @@ function renderThreadingVision(vision={}) {
       <div>
         <div class="camera-meta">External V4 + Wrist SAM2 + Dual Fusion<br>${sources}</div>
         <div class="guidance-vector">建议速度 [X, Y, Z]：<b>[${velocity.join(', ')}] mm/s</b></div>
+        <div class="servo-state">机械臂视觉伺服：<b>${servoState}</b> · 双相机必需 · 限速 ${Number(servo.max_speed_mm_s || 2).toFixed(1)} mm/s</div>
         ${vision.last_error ? `<div class="camera-error">${vision.last_error}</div>` : ''}
       </div>
-      <div class="threading-help">启动后会打开外部和腕部识别窗口：先完成镊尖初始化，再点击目标孔。当前为只读影子模式，建议量不会驱动机械臂。</div>
+      <div class="threading-help">先完成镊尖和孔初始化，再连接并授权机器人、选择右臂。只有持续按住“执行视觉伺服”才会运动；松开、页面失焦、任一相机失效或融合数据超时都会停止。</div>
       <div class="camera-actions threading-actions">
         <button data-threading-action="start" ${!vision.available || running ? 'disabled' : ''}>启动穿孔识别</button>
         <button data-threading-action="stop" ${running ? '' : 'disabled'}>停止穿孔识别</button>
+        <button class="servo-hold ${servoEnabled ? 'active' : ''}" data-servo-action="hold" ${servoReady ? '' : 'disabled'}>按住执行视觉伺服</button>
+        <button class="danger" data-servo-action="stop" ${servo.deadman_active || servoEnabled ? '' : 'disabled'}>立即停止视觉运动</button>
       </div>
     </div>
   </article>`;
+}
+
+async function visualServoRequest(path) {
+  const response = await fetch(path, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:'{}'
+  });
+  if (!response.ok) throw new Error(await response.text());
+  return response.json();
+}
+
+async function sendVisualServoKeepalive() {
+  try {
+    await visualServoRequest('/api/threading-vision/servo/keepalive');
+  } catch (error) {
+    const wasHeld = visualServoHeld;
+    visualServoHeld = false;
+    if (visualServoKeepaliveTimer) clearInterval(visualServoKeepaliveTimer);
+    visualServoKeepaliveTimer = null;
+    document.querySelectorAll('[data-servo-action="hold"]').forEach((button) => button.classList.remove('active'));
+    if (wasHeld) appendLog(`[视觉伺服] 安全门拒绝执行：${error.message}`);
+    await refreshCameraStatus();
+  }
+}
+
+function startVisualServoDeadman(button) {
+  if (!enabled || visualServoHeld) return;
+  releaseJog(false);
+  clearLatchedCartesian();
+  sendCommand('jog:stop');
+  visualServoHeld = true;
+  button.classList.add('active');
+  appendLog('[视觉伺服] 按住授权开始，松开即停止');
+  void sendVisualServoKeepalive();
+  visualServoKeepaliveTimer = setInterval(() => {
+    if (visualServoHeld) void sendVisualServoKeepalive();
+  }, 250);
+}
+
+async function stopVisualServoDeadman(reason='操作员停止', log=true, force=false) {
+  if (!force && !visualServoHeld && !visualServoKeepaliveTimer) return;
+  visualServoHeld = false;
+  if (visualServoKeepaliveTimer) clearInterval(visualServoKeepaliveTimer);
+  visualServoKeepaliveTimer = null;
+  document.querySelectorAll('[data-servo-action="hold"]').forEach((button) => button.classList.remove('active'));
+  try {
+    await visualServoRequest('/api/threading-vision/servo/stop');
+    if (log) appendLog(`[视觉伺服] ${reason}，速度归零`);
+  } catch (error) {
+    appendLog(`[视觉伺服] 停止请求失败：${error.message}`);
+  }
 }
 
 function renderCameras(payload) {
@@ -565,6 +641,12 @@ $('camera-list').addEventListener('click', async (event) => {
 });
 
 $('threading-vision').addEventListener('click', async (event) => {
+  const servoButton = event.target.closest('[data-servo-action="stop"]');
+  if (servoButton) {
+    await stopVisualServoDeadman('立即停止按钮', true, true);
+    await refreshCameraStatus();
+    return;
+  }
   const button = event.target.closest('[data-threading-action]');
   if (!button) return;
   button.disabled = true;
@@ -576,6 +658,18 @@ $('threading-vision').addEventListener('click', async (event) => {
     appendLog(`[穿孔视觉] ${action === 'start' ? '启动' : '停止'}失败: ${error.message}`);
     await refreshCameraStatus();
   }
+});
+
+$('threading-vision').addEventListener('pointerdown', (event) => {
+  const button = event.target.closest('[data-servo-action="hold"]');
+  if (!button || button.disabled) return;
+  event.preventDefault();
+  button.setPointerCapture(event.pointerId);
+  startVisualServoDeadman(button);
+});
+
+$('threading-vision').addEventListener('pointercancel', () => {
+  void stopVisualServoDeadman('指针取消');
 });
 
 $('camera-rescan').onclick = async () => {
