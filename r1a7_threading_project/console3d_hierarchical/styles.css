@@ -35,6 +35,27 @@
 
 .camera-toolbar button { min-height: 28px; padding: 0 8px; font-size: 10px; }
 
+.threading-vision { margin-bottom: 8px; }
+
+.threading-card {
+  padding: 9px;
+  border: 1px solid #385466;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #0d171d, #0b1115);
+}
+
+.threading-card[data-running="true"] {
+  border-color: #337b57;
+  box-shadow: inset 3px 0 #4bc083;
+}
+
+.threading-card h3 { margin: 0; font-size: 11px; font-weight: 600; }
+.threading-layout { display: grid; grid-template-columns: 1.25fr 1fr 220px; gap: 10px; align-items: center; }
+.threading-help { color: #91a4af; font-size: 9px; line-height: 1.45; }
+.guidance-vector { color: #b7cbd7; font: 10px/1.4 ui-monospace, monospace; }
+.guidance-vector b { color: #74d7a6; }
+.threading-actions { grid-template-columns: 1fr 1fr; }
+
 .camera-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -83,10 +104,14 @@
   }
   .camera-title { display: block; }
   .camera-toolbar { justify-content: flex-start; margin-top: 8px; }
+  .threading-layout { grid-template-columns: 1fr 1fr; }
+  .threading-actions { grid-column: 1 / -1; }
 }
 
 @media (max-width: 620px) {
   .camera-list { grid-template-columns: 1fr; }
+  .threading-layout { grid-template-columns: 1fr; }
+  .threading-actions { grid-column: auto; }
 }
 
 /* A desktop browser can be wide but short (for example the in-app 1024×576

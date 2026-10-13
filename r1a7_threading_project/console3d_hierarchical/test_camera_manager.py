@@ -2,7 +2,13 @@
 from pathlib import Path
 import unittest
 
-from camera_manager import CAMERAS, VideoDevice, choose_device, preview_command
+from camera_manager import (
+    CAMERAS,
+    VideoDevice,
+    choose_device,
+    preview_command,
+    threading_vision_commands,
+)
 
 
 class CameraManagerTests(unittest.TestCase):
@@ -29,6 +35,12 @@ class CameraManagerTests(unittest.TestCase):
         self.assertEqual(pixel_format, "MJPG")
         self.assertIn("image/jpeg,width=640,height=480,framerate=30/1", command)
         self.assertIn("device=/dev/video18", command)
+
+    def test_threading_vision_uses_dynamic_external_node_and_shadow_fusion(self) -> None:
+        commands = threading_vision_commands(Path("/project"), "/dev/video42")
+        self.assertEqual(commands["external"][-1], "/dev/video42")
+        self.assertIn("task6_wrist_ibvs_controller_v2_tip.py", commands["wrist"][2])
+        self.assertEqual(commands["fusion"][-1], "--shadow-mode")
 
 
 if __name__ == "__main__":

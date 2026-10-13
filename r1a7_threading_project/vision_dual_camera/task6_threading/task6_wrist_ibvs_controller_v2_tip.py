@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import cv2
 import json
@@ -49,12 +50,11 @@ TWEEZER_DIR = (
     "tweezer_tip"
 )
 
-SAM2_REPO = (
-    ROOT
-    /
-    "third_party"
-    /
-    "sam2"
+SAM2_REPO = Path(
+    os.environ.get(
+        "R1A7_SAM2_ROOT",
+        str(ROOT / "third_party" / "sam2"),
+    )
 )
 
 sys.path.insert(
@@ -76,16 +76,11 @@ from tip_refiner_v2 import (
 )
 
 
-SAM2_CHECKPOINT = (
-    ROOT
-    /
-    "third_party"
-    /
-    "sam2"
-    /
-    "checkpoints"
-    /
-    "sam2.1_hiera_small.pt"
+SAM2_CHECKPOINT = Path(
+    os.environ.get(
+        "R1A7_SAM2_CHECKPOINT",
+        str(SAM2_REPO / "checkpoints" / "sam2.1_hiera_small.pt"),
+    )
 )
 
 

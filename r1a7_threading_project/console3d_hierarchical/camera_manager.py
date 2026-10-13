@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+import json
 import os
 from pathlib import Path
 import re
@@ -20,6 +21,24 @@ from typing import Any
 
 
 TV_PYTHON = Path("/home/robot/miniconda3/envs/tv/bin/python")
+SAM2_PYTHON = Path(
+    os.environ.get(
+        "R1A7_SAM2_PYTHON",
+        "/home/robot/miniconda3/envs/tv_sam2/bin/python",
+    )
+)
+SAM2_RUNTIME_ROOT = Path(
+    os.environ.get(
+        "R1A7_SAM2_ROOT",
+        "/home/robot/unitree_sim_isaaclab_threading/"
+        "r1a7_threading_project/third_party/sam2",
+    )
+)
+THREADING_OUTPUTS = {
+    "external": Path("/tmp/r1a7_ibvs_velocity.json"),
+    "wrist": Path("/tmp/r1a7_wrist_ibvs_velocity.json"),
+    "fusion": Path("/tmp/r1a7_dual_ibvs_velocity.json"),
+}
 
 
 @dataclass(frozen=True)
@@ -49,6 +68,15 @@ class CameraRuntime:
     node: str | None = None
     pixel_format: str | None = None
     ready: bool = False
+    started_at: float | None = None
+
+
+@dataclass
+class ThreadingVisionRuntime:
+    processes: dict[str, asyncio.subprocess.Process] = field(default_factory=dict)
+    reader_tasks: dict[str, asyncio.Task[None]] = field(default_factory=dict)
+    logs: list[str] = field(default_factory=list)
+    last_error: str = ""
     started_at: float | None = None
 
 
@@ -210,6 +238,38 @@ def preview_command(device: VideoDevice) -> tuple[list[str], str]:
     )
 
 
+def threading_vision_commands(
+    project_root: Path, external_node: str
+) -> dict[str, list[str]]:
+    """Build the latest Task 6 perception stack in read-only shadow mode."""
+    task_dir = (
+        project_root
+        / "r1a7_threading_project"
+        / "vision_dual_camera"
+        / "task6_threading"
+    )
+    return {
+        "external": [
+            str(SAM2_PYTHON),
+            "-u",
+            str(task_dir / "task6_external_ibvs_v4_aruco_edge.py"),
+            "--device",
+            external_node,
+        ],
+        "wrist": [
+            str(SAM2_PYTHON),
+            "-u",
+            str(task_dir / "task6_wrist_ibvs_controller_v2_tip.py"),
+        ],
+        "fusion": [
+            str(SAM2_PYTHON),
+            "-u",
+            str(task_dir / "task6_dual_ibvs_fusion.py"),
+            "--shadow-mode",
+        ],
+    }
+
+
 class CameraManager:
     def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
@@ -224,6 +284,7 @@ class CameraManager:
         )
         self.specs = {spec.camera_id: spec for spec in CAMERAS}
         self.runtime = {camera_id: CameraRuntime() for camera_id in self.specs}
+        self.threading_vision = ThreadingVisionRuntime()
         self.devices: list[VideoDevice] = []
         self.lock = asyncio.Lock()
         self.rescan_sync()
@@ -239,6 +300,94 @@ class CameraManager:
             runtime.node = None
             runtime.pixel_format = None
             runtime.started_at = None
+
+    def _threading_requirements(self) -> tuple[bool, str]:
+        commands = threading_vision_commands(self.project_root, "/dev/video0")
+        required = [SAM2_PYTHON, *[Path(command[2]) for command in commands.values()]]
+        required.extend(
+            [
+                SAM2_RUNTIME_ROOT,
+                SAM2_RUNTIME_ROOT / "checkpoints" / "sam2.1_hiera_small.pt",
+            ]
+        )
+        missing = [str(path) for path in required if not path.exists()]
+        if missing:
+            return False, "缺少视觉运行文件：" + "；".join(missing)
+        external = choose_device(self.specs["external"], self.devices)
+        if external is None:
+            return False, "未检测到外部相机彩色节点"
+        return True, ""
+
+    @staticmethod
+    def _read_json(path: Path) -> dict[str, Any]:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def _refresh_threading_vision(self) -> None:
+        runtime = self.threading_vision
+        for name, process in list(runtime.processes.items()):
+            if process.returncode is None:
+                continue
+            if not runtime.last_error:
+                tail = runtime.logs[-1] if runtime.logs else "无日志"
+                runtime.last_error = f"{name} 识别进程退出（{process.returncode}）：{tail}"
+            runtime.processes.pop(name, None)
+
+    def threading_vision_snapshot(self) -> dict[str, Any]:
+        self._refresh_threading_vision()
+        runtime = self.threading_vision
+        available, requirement_error = self._threading_requirements()
+        expected = {"external", "wrist", "fusion"}
+        running_names = {
+            name
+            for name, process in runtime.processes.items()
+            if process.returncode is None
+        }
+        fusion = self._read_json(THREADING_OUTPUTS["fusion"])
+        external = self._read_json(THREADING_OUTPUTS["external"])
+        wrist = self._read_json(THREADING_OUTPUTS["wrist"])
+        proposed = [
+            fusion.get("proposed_vx_mm_s"),
+            fusion.get("proposed_vy_mm_s"),
+            fusion.get("proposed_vz_mm_s"),
+        ]
+        proposed = [
+            float(value) if isinstance(value, (int, float)) else 0.0
+            for value in proposed
+        ]
+        external_valid = bool(fusion.get("external_valid", False))
+        wrist_valid = bool(fusion.get("wrist_valid", False))
+        sources_live = bool(running_names)
+        return {
+            "available": available,
+            "running": bool(running_names),
+            "ready": running_names == expected,
+            "processes": sorted(running_names),
+            "pids": {
+                name: process.pid
+                for name, process in runtime.processes.items()
+                if process.returncode is None
+            },
+            "mode": fusion.get("fusion_mode", "WAITING"),
+            "shadow_mode": True,
+            "motion_output_enabled": False,
+            "ready_for_guidance": bool(fusion.get("ready_for_motion", False))
+            and (external_valid or wrist_valid),
+            "external_valid": external_valid,
+            "wrist_valid": wrist_valid,
+            # Do not present detections left behind by a previous manual run as
+            # current console data when this stack is stopped.
+            "external_tip": external.get("tweezer_tip_pixel") if sources_live else None,
+            "external_hole": external.get("hole_pixel") if sources_live else None,
+            "wrist_tip": wrist.get("tweezer_tip_pixel") if sources_live else None,
+            "wrist_hole": wrist.get("hole_pixel") if sources_live else None,
+            "proposed_velocity_mm_s": proposed,
+            "last_error": runtime.last_error or requirement_error,
+            "logs": runtime.logs[-12:],
+        }
 
     def snapshot(self) -> dict[str, Any]:
         items = []
@@ -297,7 +446,10 @@ class CameraManager:
                     "logs": runtime.logs[-8:],
                 }
             )
-        return {"cameras": items}
+        return {
+            "cameras": items,
+            "threading_vision": self.threading_vision_snapshot(),
+        }
 
     async def rescan(self) -> dict[str, Any]:
         async with self.lock:
@@ -317,6 +469,145 @@ class CameraManager:
                     runtime.last_error = ""
                 elif camera_id == "head" and "send request error" in text.lower():
                     runtime.last_error = "VideoClient 已启动，但暂未收到头部图像"
+
+    async def _read_threading_output(
+        self, name: str, process: asyncio.subprocess.Process
+    ) -> None:
+        assert process.stdout is not None
+        runtime = self.threading_vision
+        while line := await process.stdout.readline():
+            message = line.decode("utf-8", errors="replace").rstrip()
+            if message:
+                runtime.logs.append(f"[{name}] {message}")
+                del runtime.logs[:-120]
+
+    @staticmethod
+    def _write_threading_disabled_outputs(reason: str) -> None:
+        now = time.time()
+        source_payload = {
+            "enabled": False,
+            "timestamp": now,
+            "reason": reason,
+        }
+        fusion_payload = {
+            **source_payload,
+            "shadow_mode": True,
+            "ready_for_motion": False,
+            "fusion_mode": "STOP",
+            "external_valid": False,
+            "wrist_valid": False,
+            "vx_mm_s": 0.0,
+            "vy_mm_s": 0.0,
+            "vz_mm_s": 0.0,
+            "proposed_vx_mm_s": 0.0,
+            "proposed_vy_mm_s": 0.0,
+            "proposed_vz_mm_s": 0.0,
+        }
+        for name, path in THREADING_OUTPUTS.items():
+            payload = fusion_payload if name == "fusion" else source_payload
+            temporary = path.with_suffix(path.suffix + ".console.tmp")
+            temporary.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            os.replace(temporary, path)
+
+    async def start_threading_vision(self) -> dict[str, Any]:
+        """Start Task 6 recognition and guidance with robot output forced off."""
+        async with self.lock:
+            self._refresh_threading_vision()
+            if self.threading_vision.processes:
+                return self.snapshot()
+
+            self.rescan_sync()
+            available, requirement_error = self._threading_requirements()
+            if not available:
+                self.threading_vision.last_error = requirement_error
+                raise RuntimeError(requirement_error)
+            external = choose_device(self.specs["external"], self.devices)
+            assert external is not None
+
+            # These two ordinary previews compete with the Task 6 capture
+            # backends. Only stop preview processes owned by this console.
+            await self._stop_unlocked("external")
+            await self._stop_unlocked("orbbec_right")
+
+            runtime = self.threading_vision
+            runtime.logs.clear()
+            runtime.last_error = ""
+            runtime.started_at = time.monotonic()
+            self._write_threading_disabled_outputs("recognition_starting")
+
+            env = os.environ.copy()
+            env.setdefault("DISPLAY", ":0")
+            env["PYTHONNOUSERSITE"] = "1"
+            env["R1A7_SAM2_ROOT"] = str(SAM2_RUNTIME_ROOT)
+            env["R1A7_SAM2_CHECKPOINT"] = str(
+                SAM2_RUNTIME_ROOT / "checkpoints" / "sam2.1_hiera_small.pt"
+            )
+            commands = threading_vision_commands(self.project_root, external.node)
+            vision_workdir = self.project_root / "r1a7_threading_project"
+
+            try:
+                for name in ("external", "wrist", "fusion"):
+                    process = await asyncio.create_subprocess_exec(
+                        *commands[name],
+                        # The validated Task 6 scripts resolve calibration files
+                        # relative to r1a7_threading_project.
+                        cwd=str(vision_workdir),
+                        env=env,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.STDOUT,
+                        start_new_session=True,
+                    )
+                    runtime.processes[name] = process
+                    runtime.reader_tasks[name] = asyncio.create_task(
+                        self._read_threading_output(name, process)
+                    )
+                    await asyncio.sleep(0.25)
+                    if process.returncode is not None:
+                        raise RuntimeError(
+                            f"{name} 识别进程启动失败，返回码 {process.returncode}"
+                        )
+            except Exception as exc:
+                await self._stop_threading_unlocked("recognition_start_failed")
+                runtime.last_error = str(exc)
+                raise
+            return self.snapshot()
+
+    async def stop_threading_vision(self) -> dict[str, Any]:
+        async with self.lock:
+            await self._stop_threading_unlocked("operator_stop")
+            return self.snapshot()
+
+    async def _stop_threading_unlocked(self, reason: str) -> None:
+        runtime = self.threading_vision
+        for process in list(runtime.processes.values()):
+            if process.returncode is not None:
+                continue
+            try:
+                os.killpg(process.pid, signal.SIGINT)
+            except ProcessLookupError:
+                pass
+        for process in list(runtime.processes.values()):
+            if process.returncode is not None:
+                continue
+            try:
+                await asyncio.wait_for(process.wait(), timeout=3.0)
+            except asyncio.TimeoutError:
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                try:
+                    await asyncio.wait_for(process.wait(), timeout=2.0)
+                except asyncio.TimeoutError:
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    await process.wait()
+        runtime.processes.clear()
+        runtime.reader_tasks.clear()
+        runtime.started_at = None
+        self._write_threading_disabled_outputs(reason)
 
     async def _prepare_head_camera(
         self,
@@ -359,6 +650,10 @@ class CameraManager:
             self._refresh_process(runtime)
             if runtime.process:
                 return self.snapshot()
+            self._refresh_threading_vision()
+            if camera_id in ("external", "orbbec_right") and self.threading_vision.processes:
+                runtime.last_error = "细线穿孔识别正在占用此相机，请先停止识别"
+                raise RuntimeError(runtime.last_error)
 
             self.rescan_sync()
             env = os.environ.copy()
@@ -483,6 +778,7 @@ class CameraManager:
         return self.snapshot()
 
     async def stop_all(self) -> dict[str, Any]:
+        await self.stop_threading_vision()
         for spec in CAMERAS:
             await self.stop(spec.camera_id)
         return self.snapshot()

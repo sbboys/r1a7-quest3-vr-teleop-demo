@@ -176,6 +176,18 @@ async def cameras_stop_all(_request: web.Request) -> web.Response:
     return web.json_response(await CAMERAS.stop_all())
 
 
+async def threading_vision_start(_request: web.Request) -> web.Response:
+    try:
+        result = await CAMERAS.start_threading_vision()
+    except RuntimeError as exc:
+        raise web.HTTPConflict(text=str(exc)) from exc
+    return web.json_response(result)
+
+
+async def threading_vision_stop(_request: web.Request) -> web.Response:
+    return web.json_response(await CAMERAS.stop_threading_vision())
+
+
 async def camera_cleanup(_app: web.Application) -> None:
     await CAMERAS.stop_all()
 
@@ -188,6 +200,8 @@ def add_camera_routes(app: web.Application) -> None:
     app.router.add_post("/api/cameras/groups/{group}/start", camera_group_start)
     app.router.add_post("/api/cameras/groups/{group}/stop", camera_group_stop)
     app.router.add_post("/api/cameras/stop-all", cameras_stop_all)
+    app.router.add_post("/api/threading-vision/start", threading_vision_start)
+    app.router.add_post("/api/threading-vision/stop", threading_vision_stop)
     app.on_cleanup.append(camera_cleanup)
 
 

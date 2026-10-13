@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 import math
 import os
@@ -216,6 +217,15 @@ def atomic_write(data):
 
 
 def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--shadow-mode",
+        action=argparse.BooleanOptionalAction,
+        default=SHADOW_MODE,
+        help="publish proposed guidance while forcing enabled=false",
+    )
+    args = parser.parse_args()
 
     print(
         "[FAULT-TOLERANT DUAL IBVS START]",
@@ -545,7 +555,7 @@ def main():
         # Actual output
         # ----------------------------------------------------
 
-        if SHADOW_MODE or not ready:
+        if args.shadow_mode or not ready:
 
             enabled = False
 
@@ -565,7 +575,7 @@ def main():
             "timestamp": now,
 
             "enabled": enabled,
-            "shadow_mode": SHADOW_MODE,
+            "shadow_mode": args.shadow_mode,
             "ready_for_motion": ready,
 
             "fusion_mode": mode,

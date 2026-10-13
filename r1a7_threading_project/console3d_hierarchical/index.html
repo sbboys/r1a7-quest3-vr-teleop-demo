@@ -132,7 +132,7 @@
 
       <section class="camera-control panel" aria-label="相机预览控制">
         <div class="camera-title">
-          <div><h2>视觉相机</h2><p>按序列号动态识别；预览只管理本控制台启动的进程</p></div>
+          <div><h2>视觉相机与细线穿孔引导</h2><p>按序列号动态识别；穿孔识别默认只输出引导量，不向机器人发送运动</p></div>
           <div class="camera-toolbar">
             <button id="camera-rescan">重新检测</button>
             <button data-camera-group="wrist" data-camera-action="start">启动双腕</button>
@@ -142,12 +142,13 @@
             <button id="camera-stop-all" class="danger">停止全部预览</button>
           </div>
         </div>
+        <div id="threading-vision" class="threading-vision" aria-live="polite"></div>
         <div id="camera-list" class="camera-list" aria-live="polite"></div>
       </section>
 
       </div>
     </aside>
   </main>
-  <script type="module" src="/experiment/app.js?v=20261013-terminal-baseline"></script>
+  <script type="module" src="/experiment/app.js?v=20261013-threading-vision"></script>
 </body>
 </html>

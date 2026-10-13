@@ -474,8 +474,43 @@ function cameraStatusLabel(camera) {
   return '已就绪';
 }
 
+function renderThreadingVision(vision={}) {
+  const container = $('threading-vision');
+  if (!container) return;
+  const running = Boolean(vision.running);
+  const ready = Boolean(vision.ready);
+  const guidanceReady = Boolean(vision.ready_for_guidance);
+  const velocity = Array.isArray(vision.proposed_velocity_mm_s)
+    ? vision.proposed_velocity_mm_s.map((value) => Number(value || 0).toFixed(2))
+    : ['0.00', '0.00', '0.00'];
+  const stateLabel = !vision.available
+    ? '环境不完整'
+    : !running ? '未启动' : !ready ? '启动中' : guidanceReady ? '引导有效' : '等待选点/识别';
+  const stateClass = vision.last_error ? 'missing' : guidanceReady ? 'running' : ready ? 'ready' : '';
+  const sources = `外部 ${vision.external_valid ? '有效' : '等待'} · 腕部 ${vision.wrist_valid ? '有效' : '等待'} · 融合 ${vision.mode || 'WAITING'}`;
+  container.innerHTML = `<article class="threading-card" data-running="${running}">
+    <div class="camera-card-head">
+      <h3>细线穿孔识别与引导</h3>
+      <span class="camera-status ${stateClass}">${stateLabel}</span>
+    </div>
+    <div class="threading-layout">
+      <div>
+        <div class="camera-meta">External V4 + Wrist SAM2 + Dual Fusion<br>${sources}</div>
+        <div class="guidance-vector">建议速度 [X, Y, Z]：<b>[${velocity.join(', ')}] mm/s</b></div>
+        ${vision.last_error ? `<div class="camera-error">${vision.last_error}</div>` : ''}
+      </div>
+      <div class="threading-help">启动后会打开外部和腕部识别窗口：先完成镊尖初始化，再点击目标孔。当前为只读影子模式，建议量不会驱动机械臂。</div>
+      <div class="camera-actions threading-actions">
+        <button data-threading-action="start" ${!vision.available || running ? 'disabled' : ''}>启动穿孔识别</button>
+        <button data-threading-action="stop" ${running ? '' : 'disabled'}>停止穿孔识别</button>
+      </div>
+    </div>
+  </article>`;
+}
+
 function renderCameras(payload) {
   const cameras = payload?.cameras || [];
+  renderThreadingVision(payload?.threading_vision || {});
   $('camera-list').innerHTML = cameras.map((camera) => {
     const stateClass = camera.last_error && !camera.ready
       ? 'missing'
@@ -525,6 +560,20 @@ $('camera-list').addEventListener('click', async (event) => {
     await cameraRequest(`/api/cameras/${cameraId}/${cameraAction}`, {interface:$('interface').value});
   } catch (error) {
     appendLog(`[相机] ${cameraId} ${cameraAction} 失败: ${error.message}`);
+    await refreshCameraStatus();
+  }
+});
+
+$('threading-vision').addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-threading-action]');
+  if (!button) return;
+  button.disabled = true;
+  const action = button.dataset.threadingAction;
+  try {
+    await cameraRequest(`/api/threading-vision/${action}`, {});
+    appendLog(`[穿孔视觉] ${action === 'start' ? '识别与只读引导已启动' : '已停止'}`);
+  } catch (error) {
+    appendLog(`[穿孔视觉] ${action === 'start' ? '启动' : '停止'}失败: ${error.message}`);
     await refreshCameraStatus();
   }
 });
