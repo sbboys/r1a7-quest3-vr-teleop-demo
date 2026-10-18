@@ -143,11 +143,6 @@ TIP_RELOCK_CLUSTER_RADIUS_PX = 5.0
 # false jump from roughly (840,575) toward (880,644).
 TIP_RELOCK_MAX_ANCHOR_DIST_PX = 45.0
 
-# Tip motion model is used only for short-term gate prediction.
-# It is NOT itself treated as a visual observation.
-TIP_VELOCITY_ALPHA = 0.25
-TIP_PREDICT_MAX_SPEED_PX_S = 250.0
-
 # Wrist tip short-time hold
 TIP_HOLD_S = 0.30
 
@@ -3444,76 +3439,11 @@ def main():
 
                             else:
 
-                                # ====================================
-                                # MOTION-AWARE VISUAL GATE
-                                #
-                                # tip_ema remains the last accepted visual
-                                # state.  A short prediction is used ONLY
-                                # as the expected position for jump testing.
-                                # ====================================
-
-                                tip_gate_reference = np.array(
-                                    tip_ema,
-                                    dtype=np.float64,
-                                )
-
-                                if (
-                                    wrist_last_valid_tip is not None
-                                    and
-                                    wrist_last_valid_time is not None
-                                    and
-                                    wrist_tip_velocity is not None
-                                ):
-
-                                    gate_dt = max(
-                                        0.0,
-                                        time.time()
-                                        -
-                                        wrist_last_valid_time
-                                    )
-
-                                    gate_dt = min(
-                                        gate_dt,
-                                        TIP_HOLD_S
-                                    )
-
-                                    gate_velocity = np.array(
-                                        wrist_tip_velocity,
-                                        dtype=np.float64,
-                                    )
-
-                                    if np.all(
-                                        np.isfinite(
-                                            gate_velocity
-                                        )
-                                    ):
-
-                                        predicted_gate = (
-                                            np.array(
-                                                wrist_last_valid_tip,
-                                                dtype=np.float64,
-                                            )
-                                            +
-                                            gate_velocity
-                                            *
-                                            gate_dt
-                                        )
-
-                                        if np.all(
-                                            np.isfinite(
-                                                predicted_gate
-                                            )
-                                        ):
-
-                                            tip_gate_reference = (
-                                                predicted_gate
-                                            )
-
                                 tip_jump = float(
                                     np.linalg.norm(
                                         raw_tip
                                         -
-                                        tip_gate_reference
+                                        tip_ema
                                     )
                                 )
 
@@ -3772,96 +3702,11 @@ def main():
                                         1e-3
                                     )
 
-                                    if tip_status.startswith(
-                                        "RELOCK"
-                                    ):
-
-                                        # A relock establishes a new visual
-                                        # state. Do not interpret the relock
-                                        # displacement as physical velocity.
-                                        wrist_tip_velocity = np.zeros(
-                                            2,
-                                            dtype=np.float64,
-                                        )
-
-                                    else:
-
-                                        measured_tip_velocity = (
-                                            tip_ema
-                                            -
-                                            wrist_last_valid_tip
-                                        ) / dt
-
-                                        if np.all(
-                                            np.isfinite(
-                                                measured_tip_velocity
-                                            )
-                                        ):
-
-                                            measured_speed = float(
-                                                np.linalg.norm(
-                                                    measured_tip_velocity
-                                                )
-                                            )
-
-                                            if (
-                                                measured_speed
-                                                >
-                                                TIP_PREDICT_MAX_SPEED_PX_S
-                                                and
-                                                measured_speed > 1e-6
-                                            ):
-
-                                                measured_tip_velocity = (
-                                                    measured_tip_velocity
-                                                    *
-                                                    (
-                                                        TIP_PREDICT_MAX_SPEED_PX_S
-                                                        /
-                                                        measured_speed
-                                                    )
-                                                )
-
-                                            if wrist_tip_velocity is None:
-
-                                                wrist_tip_velocity = (
-                                                    measured_tip_velocity
-                                                )
-
-                                            else:
-
-                                                previous_tip_velocity = (
-                                                    np.array(
-                                                        wrist_tip_velocity,
-                                                        dtype=np.float64,
-                                                    )
-                                                )
-
-                                                if np.all(
-                                                    np.isfinite(
-                                                        previous_tip_velocity
-                                                    )
-                                                ):
-
-                                                    wrist_tip_velocity = (
-                                                        TIP_VELOCITY_ALPHA
-                                                        *
-                                                        measured_tip_velocity
-                                                        +
-                                                        (
-                                                            1.0
-                                                            -
-                                                            TIP_VELOCITY_ALPHA
-                                                        )
-                                                        *
-                                                        previous_tip_velocity
-                                                    )
-
-                                                else:
-
-                                                    wrist_tip_velocity = (
-                                                        measured_tip_velocity
-                                                    )
+                                    wrist_tip_velocity = (
+                                        tip_ema
+                                        -
+                                        wrist_last_valid_tip
+                                    ) / dt
 
                                 wrist_last_valid_tip = tip_ema.copy()
                                 wrist_last_valid_time = now_tip_time

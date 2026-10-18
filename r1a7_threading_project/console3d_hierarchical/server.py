@@ -31,11 +31,20 @@ CONTROL_TOOLS = PROJECT / "transfer_control" / "tools"
 CAMERAS = CameraManager(PROJECT.parent)
 FUSION_GUIDANCE_PATH = Path("/tmp/r1a7_dual_ibvs_velocity.json")
 CONSOLE_IBVS_PATH = Path("/tmp/r1a7_console_ibvs_velocity.json")
-VISUAL_SERVO_MAX_SPEED_MM_S = 2.0
+VISUAL_SERVO_DUAL_MAX_SPEED_MM_S = 10.0
+VISUAL_SERVO_SINGLE_MAX_SPEED_MM_S = 2.0
+VISUAL_SERVO_BLIND_MAX_SPEED_MM_S = 0.5
+VISUAL_SERVO_MODE_SPEED_LIMITS = {
+    "DUAL": VISUAL_SERVO_DUAL_MAX_SPEED_MM_S,
+    "DUAL_EXT_PRIORITY": VISUAL_SERVO_DUAL_MAX_SPEED_MM_S,
+    "DUAL_WRIST_PRIORITY": VISUAL_SERVO_DUAL_MAX_SPEED_MM_S,
+    "EXTERNAL_ONLY": VISUAL_SERVO_SINGLE_MAX_SPEED_MM_S,
+    "WRIST_ONLY": VISUAL_SERVO_SINGLE_MAX_SPEED_MM_S,
+    "BLIND_GRACE": VISUAL_SERVO_BLIND_MAX_SPEED_MM_S,
+}
 VISUAL_SERVO_MAX_SOURCE_AGE_S = 0.20
-VISUAL_SERVO_DEADMAN_S = 0.75
+VISUAL_SERVO_TOGGLE_LEASE_S = 0.75
 VISUAL_SERVO_MAX_TELEMETRY_AGE_S = 1.0
-VISUAL_SERVO_MAX_TRACKING_LAG_MM = 15.0
 VISUAL_SERVO_DUAL_MODES = {
     "DUAL",
     "DUAL_EXT_PRIORITY",
@@ -59,6 +68,8 @@ class VisualServoGate:
         self.enabled = False
         self.last_reason = "not_authorized"
         self.last_velocity = [0.0, 0.0, 0.0]
+        self.last_mode = "STOP"
+        self.last_speed_limit_mm_s = 0.0
         self.task: asyncio.Task[None] | None = None
 
     def bind_control_snapshot(
@@ -95,71 +106,78 @@ class VisualServoGate:
             "source": "console_visual_servo_gate",
         }
 
-    def _evaluate(self, require_deadman: bool = True) -> tuple[bool, str, list[float]]:
+    def _evaluate(
+        self, require_authorization: bool = True
+    ) -> tuple[bool, str, list[float], str, float]:
+        rejected = (False, "", [0.0, 0.0, 0.0], "STOP", 0.0)
+
+        def reject(reason: str) -> tuple[bool, str, list[float], str, float]:
+            return rejected[0], reason, rejected[2], rejected[3], rejected[4]
+
         now_monotonic = time.monotonic()
         if now_monotonic < self.inhibit_until:
-            return False, "deadman_stop_settling", [0.0, 0.0, 0.0]
-        if require_deadman and now_monotonic >= self.authorized_until:
-            return False, "deadman_released", [0.0, 0.0, 0.0]
+            return reject("toggle_stop_settling")
+        if require_authorization and now_monotonic >= self.authorized_until:
+            return reject("toggle_off")
 
         if self.control_snapshot is None:
-            return False, "controller_unavailable", [0.0, 0.0, 0.0]
+            return reject("controller_unavailable")
         control = self.control_snapshot()
         telemetry = control.get("telemetry") or {}
         if control.get("phase") != "enabled" or not control.get("running"):
-            return False, "controller_not_enabled", [0.0, 0.0, 0.0]
+            return reject("controller_not_enabled")
         if telemetry.get("control_mode") != "cartesian":
-            return False, "controller_not_cartesian", [0.0, 0.0, 0.0]
+            return reject("controller_not_cartesian")
         if telemetry.get("cartesian_arm") != "right":
-            return False, "right_arm_not_selected", [0.0, 0.0, 0.0]
+            return reject("right_arm_not_selected")
         try:
             telemetry_age_s = time.time() - float(telemetry["timestamp"])
         except (KeyError, TypeError, ValueError):
-            return False, "controller_telemetry_missing", [0.0, 0.0, 0.0]
+            return reject("controller_telemetry_missing")
         if (
             not math.isfinite(telemetry_age_s)
             or telemetry_age_s < -0.05
             or telemetry_age_s > VISUAL_SERVO_MAX_TELEMETRY_AGE_S
         ):
-            return False, "controller_telemetry_stale", [0.0, 0.0, 0.0]
+            return reject("controller_telemetry_stale")
         if telemetry.get("motion_state") not in ("holding", "visual_servo"):
-            return False, "manual_motion_not_stopped", [0.0, 0.0, 0.0]
-        try:
-            tracking_lag_mm = float(telemetry.get("lag_mm", float("inf")))
-        except (TypeError, ValueError):
-            tracking_lag_mm = float("inf")
-        if (
-            not math.isfinite(tracking_lag_mm)
-            or tracking_lag_mm > VISUAL_SERVO_MAX_TRACKING_LAG_MM
-        ):
-            return False, "tracking_lag_too_large", [0.0, 0.0, 0.0]
+            return reject("manual_motion_not_stopped")
 
         vision = CAMERAS.threading_vision_snapshot()
         if not vision.get("ready"):
-            return False, "vision_stack_not_ready", [0.0, 0.0, 0.0]
+            return reject("vision_stack_not_ready")
 
         fusion = self._read_json(self.source_path)
         try:
             age_s = time.time() - float(fusion["timestamp"])
         except (KeyError, TypeError, ValueError):
-            return False, "fusion_timestamp_missing", [0.0, 0.0, 0.0]
+            return reject("fusion_timestamp_missing")
         if (
             not math.isfinite(age_s)
             or age_s < -0.05
             or age_s > VISUAL_SERVO_MAX_SOURCE_AGE_S
         ):
-            return False, "fusion_stale", [0.0, 0.0, 0.0]
+            return reject("fusion_stale")
         if not bool(fusion.get("shadow_mode", False)):
-            return False, "fusion_not_shadow_mode", [0.0, 0.0, 0.0]
+            return reject("fusion_not_shadow_mode")
         if not bool(fusion.get("ready_for_motion", False)):
-            return False, "guidance_not_ready", [0.0, 0.0, 0.0]
-        if not (
-            bool(fusion.get("external_valid", False))
-            and bool(fusion.get("wrist_valid", False))
-        ):
-            return False, "dual_camera_required", [0.0, 0.0, 0.0]
-        if fusion.get("fusion_mode") not in VISUAL_SERVO_DUAL_MODES:
-            return False, "dual_fusion_mode_required", [0.0, 0.0, 0.0]
+            return reject("guidance_not_ready")
+
+        mode = str(fusion.get("fusion_mode", "STOP"))
+        mode_speed_limit = VISUAL_SERVO_MODE_SPEED_LIMITS.get(mode)
+        if mode_speed_limit is None:
+            return reject("unsupported_fusion_mode")
+
+        external_valid = bool(fusion.get("external_valid", False))
+        wrist_valid = bool(fusion.get("wrist_valid", False))
+        if mode in VISUAL_SERVO_DUAL_MODES and not (external_valid and wrist_valid):
+            return reject("fusion_source_mismatch")
+        if mode == "EXTERNAL_ONLY" and not (external_valid and not wrist_valid):
+            return reject("fusion_source_mismatch")
+        if mode == "WRIST_ONLY" and not (wrist_valid and not external_valid):
+            return reject("fusion_source_mismatch")
+        if mode == "BLIND_GRACE" and (external_valid or wrist_valid):
+            return reject("fusion_source_mismatch")
 
         try:
             velocity = [
@@ -168,20 +186,24 @@ class VisualServoGate:
                 float(fusion.get("proposed_vz_mm_s", 0.0)),
             ]
         except (TypeError, ValueError):
-            return False, "guidance_not_numeric", [0.0, 0.0, 0.0]
+            return reject("guidance_not_numeric")
         if not all(math.isfinite(value) for value in velocity):
-            return False, "guidance_not_finite", [0.0, 0.0, 0.0]
+            return reject("guidance_not_finite")
         norm = math.sqrt(sum(value * value for value in velocity))
-        if norm > VISUAL_SERVO_MAX_SPEED_MM_S and norm > 0.0:
-            scale = VISUAL_SERVO_MAX_SPEED_MM_S / norm
+        if norm > mode_speed_limit and norm > 0.0:
+            scale = mode_speed_limit / norm
             velocity = [value * scale for value in velocity]
-        return True, "deadman_active", velocity
+        return True, "toggle_active", velocity, mode, mode_speed_limit
 
     def publish_once(self) -> None:
-        enabled, reason, velocity = self._evaluate(require_deadman=True)
+        enabled, reason, velocity, mode, speed_limit = self._evaluate(
+            require_authorization=True
+        )
         self.enabled = enabled
         self.last_reason = reason
         self.last_velocity = velocity if enabled else [0.0, 0.0, 0.0]
+        self.last_mode = mode
+        self.last_speed_limit_mm_s = speed_limit
         payload = {
             "timestamp": time.time(),
             "enabled": enabled,
@@ -190,18 +212,21 @@ class VisualServoGate:
             "vy_mm_s": self.last_velocity[1],
             "vz_mm_s": self.last_velocity[2],
             "source": "console_visual_servo_gate",
-            "max_speed_mm_s": VISUAL_SERVO_MAX_SPEED_MM_S,
+            "fusion_mode": self.last_mode,
+            "max_speed_mm_s": self.last_speed_limit_mm_s,
         }
         self._write(payload)
 
     def keepalive(self) -> None:
         if time.monotonic() < self.inhibit_until:
-            raise RuntimeError("deadman_stop_settling")
-        available, reason, _velocity = self._evaluate(require_deadman=False)
+            raise RuntimeError("toggle_stop_settling")
+        available, reason, _velocity, _mode, _speed_limit = self._evaluate(
+            require_authorization=False
+        )
         if not available:
             self.stop(reason)
             raise RuntimeError(reason)
-        self.authorized_until = time.monotonic() + VISUAL_SERVO_DEADMAN_S
+        self.authorized_until = time.monotonic() + VISUAL_SERVO_TOGGLE_LEASE_S
         self.publish_once()
 
     def stop(self, reason: str = "operator_stop", inhibit_s: float = 0.0) -> None:
@@ -213,18 +238,22 @@ class VisualServoGate:
         self.enabled = False
         self.last_reason = reason
         self.last_velocity = [0.0, 0.0, 0.0]
+        self.last_mode = "STOP"
+        self.last_speed_limit_mm_s = 0.0
         self._write(self._disabled_payload(reason))
 
     def snapshot(self) -> dict[str, Any]:
         return {
             "enabled": self.enabled,
-            "deadman_active": time.monotonic() < self.authorized_until,
+            "toggle_active": time.monotonic() < self.authorized_until,
             "stop_settling": time.monotonic() < self.inhibit_until,
             "reason": self.last_reason,
             "velocity_mm_s": self.last_velocity,
-            "max_speed_mm_s": VISUAL_SERVO_MAX_SPEED_MM_S,
-            "requires_dual_camera": True,
-            "max_tracking_lag_mm": VISUAL_SERVO_MAX_TRACKING_LAG_MM,
+            "fusion_mode": self.last_mode,
+            "max_speed_mm_s": self.last_speed_limit_mm_s,
+            "configured_max_speed_mm_s": VISUAL_SERVO_DUAL_MAX_SPEED_MM_S,
+            "mode_speed_limits_mm_s": VISUAL_SERVO_MODE_SPEED_LIMITS,
+            "requires_dual_camera": False,
         }
 
     async def run(self) -> None:
@@ -269,6 +298,10 @@ def build_control_arguments(config: dict[str, object]) -> list[str]:
     z_step = max(0.5, min(10.0, float(config.get("z_step_mm", 10.0))))
     joint_step = max(0.1, min(2.0, float(config.get("joint_step_deg", 1.0))))
     gripper_speed = max(0.1, min(2.0, float(config.get("gripper_speed", 1.5))))
+    right_gripper_close_q = max(
+        -0.20,
+        min(-0.05, float(config.get("right_gripper_close_q", -0.20))),
+    )
     cartesian_speed = max(
         1.0, min(12.0, float(config.get("cartesian_speed_mm_s", 10.0)))
     )
@@ -284,6 +317,8 @@ def build_control_arguments(config: dict[str, object]) -> list[str]:
         host_ip,
         "--gripper-speed",
         str(gripper_speed),
+        "--right-gripper-close-q",
+        str(right_gripper_close_q),
         "--no-record-d435i",
         "--jog-step-mm",
         str(xy_step),
@@ -300,7 +335,7 @@ def build_control_arguments(config: dict[str, object]) -> list[str]:
         "--ibvs-max-age-s",
         str(VISUAL_SERVO_MAX_SOURCE_AGE_S),
         "--ibvs-max-speed-mm-s",
-        str(VISUAL_SERVO_MAX_SPEED_MM_S),
+        str(VISUAL_SERVO_DUAL_MAX_SPEED_MM_S),
         "--ibvs-min-speed-mm-s",
         "0.0",
         "--no-udp-visual-servo",
@@ -418,7 +453,7 @@ async def camera_group_stop(request: web.Request) -> web.Response:
 
 
 async def cameras_stop_all(_request: web.Request) -> web.Response:
-    SERVO.stop("camera_stop_all", inhibit_s=VISUAL_SERVO_DEADMAN_S)
+    SERVO.stop("camera_stop_all", inhibit_s=VISUAL_SERVO_TOGGLE_LEASE_S)
     return web.json_response(camera_payload(await CAMERAS.stop_all()))
 
 
@@ -431,7 +466,7 @@ async def threading_vision_start(_request: web.Request) -> web.Response:
 
 
 async def threading_vision_stop(_request: web.Request) -> web.Response:
-    SERVO.stop("vision_stopped", inhibit_s=VISUAL_SERVO_DEADMAN_S)
+    SERVO.stop("vision_stopped", inhibit_s=VISUAL_SERVO_TOGGLE_LEASE_S)
     return web.json_response(camera_payload(await CAMERAS.stop_threading_vision()))
 
 

@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import time
 import unittest
+from unittest.mock import patch
 
 from camera_manager import (
     CAMERAS,
+    CameraManager,
     VideoDevice,
     choose_device,
     preview_command,
@@ -35,6 +38,49 @@ class CameraManagerTests(unittest.TestCase):
         self.assertEqual(pixel_format, "MJPG")
         self.assertIn("image/jpeg,width=640,height=480,framerate=30/1", command)
         self.assertIn("device=/dev/video18", command)
+
+    def test_rescan_clears_only_recovered_missing_device_error(self) -> None:
+        with patch("camera_manager.discover_video_devices", return_value=[]):
+            manager = CameraManager(Path("/project"))
+        spec = next(item for item in CAMERAS if item.camera_id == "orbbec_right")
+        runtime = manager.runtime[spec.camera_id]
+        runtime.last_error = f"未检测到 {spec.label} 的彩色采集节点"
+        manager.devices = [
+            VideoDevice("/dev/video14", "Orbbec", spec.serial, ("YUYV", "MJPG"))
+        ]
+
+        camera = next(
+            item
+            for item in manager.snapshot()["cameras"]
+            if item["id"] == spec.camera_id
+        )
+
+        self.assertTrue(camera["detected"])
+        self.assertEqual(camera["node"], "/dev/video14")
+        self.assertEqual(camera["last_error"], "")
+
+        runtime.last_error = "预览启动失败，返回码 1"
+        camera = next(
+            item
+            for item in manager.snapshot()["cameras"]
+            if item["id"] == spec.camera_id
+        )
+        self.assertEqual(camera["last_error"], "预览启动失败，返回码 1")
+
+    def test_head_timeout_reports_missing_official_udp_frame(self) -> None:
+        with patch("camera_manager.discover_video_devices", return_value=[]):
+            manager = CameraManager(Path("/project"))
+        runtime = manager.runtime["head"]
+        runtime.process = unittest.mock.Mock(returncode=None, pid=123)
+        runtime.started_at = time.monotonic() - 13.0
+
+        camera = next(
+            item for item in manager.snapshot()["cameras"] if item["id"] == "head"
+        )
+
+        self.assertIn("UDP 5001", camera["last_error"])
+        self.assertIn("补丁版本", camera["last_error"])
+        self.assertEqual(camera["backend"], "unitree_udp_h264")
 
     def test_threading_vision_uses_dynamic_external_node_and_shadow_fusion(self) -> None:
         commands = threading_vision_commands(Path("/project"), "/dev/video42")

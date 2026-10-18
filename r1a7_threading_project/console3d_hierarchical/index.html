@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>R1-A7 手臂控制台</title>
   <link rel="stylesheet" href="/static/styles.css?v=20260920-motion-stop">
-  <link rel="stylesheet" href="/experiment/styles.css?v=20261012-responsive">
+  <link rel="stylesheet" href="/experiment/styles.css?v=20261018-console-work-summary">
   <script type="importmap">
     {"imports":{"three":"/static/vendor/three/three.module.js","three/addons/":"/static/vendor/three/addons/","three/examples/jsm/":"/static/vendor/three/addons/"}}
   </script>
@@ -44,7 +44,7 @@
 
     <aside id="control-panel">
       <header>
-        <div><h1>R1-A7 手臂与视觉控制台</h1><p>双臂末端 · 夹爪 · 六路相机 · 100 Hz IK / 500 Hz LowCmd</p></div>
+        <div><h1>R1-A7 手臂与视觉控制台</h1><p>双臂末端 · 夹爪 · 六路相机 · 30 Hz IK / 250 Hz LowCmd</p></div>
         <span id="state" data-state="stopped">系统待机</span>
       </header>
 
@@ -58,6 +58,7 @@
             <label>垂直步长 (mm)<input id="z-step" type="number" min="0.5" max="10" step="0.5" value="10"></label>
             <label>关节步长 (°)<input id="joint-step" type="number" min="0.1" max="2" step="0.1" value="1"></label>
             <label>夹爪速度 (q/s)<input id="gripper-speed" type="number" min="0.1" max="2" step="0.1" value="1.5"></label>
+            <label title="-0.20 为已验证最大闭合端点；调到 -0.05 会减少闭合程度">右夹爪闭合端点 q<input id="right-gripper-close-q" type="number" min="-0.20" max="-0.05" step="0.01" value="-0.20"></label>
             <label title="连接后修改也会立即生效">末端速度 (mm/s，实时)<input id="cartesian-speed" type="number" min="1" max="12" step="1" value="10"></label>
             <label title="连接后修改也会立即生效">末端加速度 (mm/s²，实时)<input id="cartesian-accel" type="number" min="5" max="40" step="5" value="20"></label>
             <label>右臂重力补偿<input id="gravity-ff-scale" type="number" value="0.0" readonly></label>
@@ -132,7 +133,7 @@
 
       <section class="camera-control panel" aria-label="相机预览控制">
         <div class="camera-title">
-          <div><h2>视觉相机与细线穿孔引导</h2><p>识别默认只输出引导；仅在双相机有效并持续按住授权时驱动右臂</p></div>
+          <div><h2>视觉相机与细线穿孔引导</h2><p>识别默认只输出引导；单击开启后按双目、单目与短时盲行分级驱动右臂</p></div>
           <div class="camera-toolbar">
             <button id="camera-rescan">重新检测</button>
             <button data-camera-group="wrist" data-camera-action="start">启动双腕</button>
@@ -149,6 +150,6 @@
       </div>
     </aside>
   </main>
-  <script type="module" src="/experiment/app.js?v=20261013-visual-servo-drive"></script>
+  <script type="module" src="/experiment/app.js?v=20261018-console-work-summary"></script>
 </body>
 </html>

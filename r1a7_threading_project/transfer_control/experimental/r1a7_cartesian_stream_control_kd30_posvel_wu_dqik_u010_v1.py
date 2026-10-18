@@ -23,6 +23,7 @@ import atexit
 from collections import deque
 import csv
 import fcntl
+import inspect
 import json
 import os
 from pathlib import Path
@@ -51,7 +52,12 @@ UPPER_BODY_INDICES = (13, *range(15, 31))
 GRIPPER_INDICES = (31, 33)
 GRIPPER_NAMES = ("LEFT", "RIGHT_TWEEZER")
 GRIPPER_OPEN_Q = np.asarray([4.86, 0.1585], dtype=float)
-GRIPPER_CLOSE_Q = np.asarray([-0.08, -0.0500], dtype=float)
+# The validated right-tweezer endpoint is -0.20 rad.  The previous console
+# restricted the close button to -0.05 rad, which left the tweezer partly open.
+GRIPPER_CLOSE_Q = np.asarray([-0.08, -0.20], dtype=float)
+RIGHT_GRIPPER_CLOSE_Q_MIN = -0.20
+RIGHT_GRIPPER_CLOSE_Q_MAX = -0.05
+CONTROLLER_PROFILE = "dual_arm_kd30_posvel_dqik_symmetric_v1"
 
 ARM_JOINT_NAMES = (
     "L_SHOULDER_PITCH", "L_SHOULDER_ROLL", "L_SHOULDER_YAW",
@@ -308,6 +314,15 @@ def parse_args() -> argparse.Namespace:
         help="Scale [0, 1] applied to model gravity torque on the right arm",
     )
     parser.add_argument(
+        "--left-arm-gravity-feedforward-scale",
+        type=float,
+        default=None,
+        help=(
+            "Scale [0, 1] applied to model gravity torque on the left arm; "
+            "defaults to the right-arm value so both arms use the same controller setting"
+        ),
+    )
+    parser.add_argument(
         "--gravity-feedforward-max-torque",
         type=float,
         default=2.0,
@@ -366,6 +381,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gripper-kp", type=float, default=8.0)
     parser.add_argument("--gripper-kd", type=float, default=1.5)
     parser.add_argument("--gripper-speed", type=float, default=1.5)
+    parser.add_argument(
+        "--right-gripper-close-q",
+        type=float,
+        default=float(GRIPPER_CLOSE_Q[1]),
+        help=(
+            "Right tweezer fully-closed target. The validated range is "
+            "-0.20 (maximum closure) through -0.05 rad."
+        ),
+    )
     parser.add_argument("--gripper-contact-hold", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--gripper-contact-error", type=float, default=0.08)
     parser.add_argument("--gripper-contact-stall-eps", type=float, default=0.004)
@@ -407,8 +431,27 @@ def parse_args() -> argparse.Namespace:
         parser.error("--ibvs-min-speed-mm-s cannot exceed --ibvs-max-speed-mm-s")
     if not 0.1 <= args.joint_jog_step_deg <= 5.0:
         parser.error("--joint-jog-step-deg must be within [0.1, 5.0]")
-    if not 0.0 <= args.right_arm_gravity_feedforward_scale <= 1.0:
-        parser.error("--right-arm-gravity-feedforward-scale must be within [0, 1]")
+    if not (
+        RIGHT_GRIPPER_CLOSE_Q_MIN
+        <= args.right_gripper_close_q
+        <= RIGHT_GRIPPER_CLOSE_Q_MAX
+    ):
+        parser.error(
+            "--right-gripper-close-q must be within "
+            f"[{RIGHT_GRIPPER_CLOSE_Q_MIN:.2f}, "
+            f"{RIGHT_GRIPPER_CLOSE_Q_MAX:.2f}] rad"
+        )
+    GRIPPER_CLOSE_Q[1] = float(args.right_gripper_close_q)
+    if args.left_arm_gravity_feedforward_scale is None:
+        args.left_arm_gravity_feedforward_scale = (
+            args.right_arm_gravity_feedforward_scale
+        )
+    for side in ("left", "right"):
+        value = getattr(args, f"{side}_arm_gravity_feedforward_scale")
+        if not 0.0 <= value <= 1.0:
+            parser.error(
+                f"--{side}-arm-gravity-feedforward-scale must be within [0, 1]"
+            )
     return args
 
 
@@ -871,6 +914,7 @@ class R1A7LowCmdOutput:
         gripper_contact_stall_eps: float = 0.004,
         gripper_contact_stall_time: float = 0.25,
         gripper_contact_hold_bias: float = 0.035,
+        left_arm_gravity_feedforward_scale: float = 0.0,
         right_arm_gravity_feedforward_scale: float = 0.0,
         gravity_feedforward_max_torque: float = 2.0,
         gravity_feedforward_slew: float = 2.0,
@@ -894,6 +938,9 @@ class R1A7LowCmdOutput:
         self.gripper_contact_stall_eps = float(gripper_contact_stall_eps)
         self.gripper_contact_stall_time = float(gripper_contact_stall_time)
         self.gripper_contact_hold_bias = float(gripper_contact_hold_bias)
+        self.left_arm_gravity_feedforward_scale = float(
+            left_arm_gravity_feedforward_scale
+        )
         self.right_arm_gravity_feedforward_scale = float(
             right_arm_gravity_feedforward_scale
         )
@@ -976,7 +1023,7 @@ class R1A7LowCmdOutput:
             if not np.all(np.isfinite(tau_goal)):
                 raise ValueError("refusing non-finite arm torque target")
             tau_goal = tau_goal.copy()
-            tau_goal[:7] = 0.0
+            tau_goal[:7] *= self.left_arm_gravity_feedforward_scale
             tau_goal[7:] *= self.right_arm_gravity_feedforward_scale
             tau_goal = np.clip(
                 tau_goal,
@@ -1005,9 +1052,6 @@ class R1A7LowCmdOutput:
 
             dq_goal = dq_goal.copy()
 
-            # This experiment modifies only the right arm.
-            dq_goal[:7] = 0.0
-
             # DQIK transport safety ceiling.
             #
             # Direction-specific clipping is applied upstream:
@@ -1016,8 +1060,11 @@ class R1A7LowCmdOutput:
             #
             # Keep this output-layer ceiling at the largest
             # currently permitted experimental value.
-            dq_goal[7:] = np.clip(
-                dq_goal[7:],
+            # The inactive arm is zeroed by the caller.  Apply the same
+            # transport ceiling to both arm slices so left/right behavior is
+            # selected solely by cartesian_arm, not by hard-coded indices.
+            dq_goal[:] = np.clip(
+                dq_goal,
                 -0.10,
                 0.10,
             )
@@ -1257,14 +1304,15 @@ class R1A7LowCmdOutput:
             motor.kp = float(UPPER_BODY_KP[local_index])
             motor.kd = float(UPPER_BODY_KD[local_index])
 
-            # R_SHOULDER_PITCH_KD20_V1
-            # UPPER_BODY local index 8
-            # = arm-local index 7
-            # = DDS motor 22
+            # DUAL_SHOULDER_PITCH_KD30_V1
+            # UPPER_BODY local indices 1/8
+            # = arm-local indices 0/7
+            # = DDS motors 15/22
             #
-            # Keep Kp unchanged. Only increase the velocity-feedback
-            # gain for right shoulder pitch.
-            if local_index == 8:
+            # Keep Kp unchanged. Apply the verified shoulder-pitch velocity
+            # feedback gain symmetrically: local index 1 is left shoulder
+            # pitch and local index 8 is right shoulder pitch.
+            if local_index in (1, 8):
                 motor.kd = 30.0
         if gripper_target is not None:
             for local_index, motor_index in enumerate(GRIPPER_INDICES):
@@ -1388,6 +1436,25 @@ def main() -> int:
     from unitree_sdk2py.utils.crc import CRC
     from r1a7_lowcmd_guard import acquire_lowcmd_guard, ensure_tcp_port_available
 
+    required_symmetric_ik_parameters = {
+        "left_wrist_pitch_weight",
+        "left_wrist_posture_weight",
+        "left_wrist_posture_ref",
+        "left_elbow_posture_weight",
+        "left_elbow_posture_ref",
+    }
+    available_ik_parameters = set(
+        inspect.signature(R1A7_ArmIK.solve_ik).parameters
+    )
+    missing_ik_parameters = sorted(
+        required_symmetric_ik_parameters - available_ik_parameters
+    )
+    if missing_ik_parameters:
+        raise RuntimeError(
+            "active R1A7_ArmIK lacks symmetric left-arm posture support: "
+            + ", ".join(missing_ik_parameters)
+        )
+
     ensure_tcp_port_available(8012)
     guard = acquire_lowcmd_guard(Path(__file__).name, topic=args.command_topic)
     tv = None
@@ -1463,6 +1530,9 @@ def main() -> int:
             gripper_contact_stall_eps=args.gripper_contact_stall_eps,
             gripper_contact_stall_time=args.gripper_contact_stall_time,
             gripper_contact_hold_bias=args.gripper_contact_hold_bias,
+            left_arm_gravity_feedforward_scale=(
+                args.left_arm_gravity_feedforward_scale
+            ),
             right_arm_gravity_feedforward_scale=(
                 args.right_arm_gravity_feedforward_scale
             ),
@@ -1473,11 +1543,22 @@ def main() -> int:
         )
 
         print("WARNING: real R1-A7 debug-mode control on rt/lowcmd.", flush=True)
+        print(
+            "Controller profile: "
+            f"{CONTROLLER_PROFILE}; shoulder_pitch_kd=30 (left/right); "
+            "DQIK/POSVEL follows selected arm; "
+            "gravity_scale="
+            f"left:{args.left_arm_gravity_feedforward_scale:.2f}/"
+            f"right:{args.right_arm_gravity_feedforward_scale:.2f}.",
+            flush=True,
+        )
         if args.enable_gripper:
             print(
                 "Internal DEX1 gripper enabled on LowCmd motors 31/33: "
                 f"initial_mode={args.gripper_initial_mode}; "
-                f"contact_hold={args.gripper_contact_hold}.",
+                f"contact_hold={args.gripper_contact_hold}; "
+                "right_tweezer_range="
+                f"{GRIPPER_OPEN_Q[1]:+.4f}..{GRIPPER_CLOSE_Q[1]:+.4f} rad.",
                 flush=True,
             )
         print("MuJoCo and rt/arm_sdk are not used.", flush=True)
@@ -1835,7 +1916,7 @@ def main() -> int:
         # It fights deliberate Pitch commands and only penalizes
         # q(k)-q(k-1), rather than a meaningful tool pose.
 
-        KEYBOARD_6DOF_RIGHT_WRIST_PITCH_WEIGHT = 0.0
+        KEYBOARD_6DOF_WRIST_PITCH_WEIGHT = 0.0
 
         # ====================================================
         # ARM_POSTURE_MODE_V1
@@ -1853,7 +1934,7 @@ def main() -> int:
 
         # ARM_POSTURE_V2
         #
-        # Keep right elbow configuration while moving.
+        # Keep the selected elbow configuration while moving.
 
         # ARM_POSTURE_V2
         #
@@ -1865,8 +1946,8 @@ def main() -> int:
         # Soft elbow preference, NOT an elbow lock.
         #
         # Real-robot test confirmed:
-        # +Z arm lift must bias right_elbow_joint toward
-        # decreasing q[10].
+        # +Z arm lift must bias the selected elbow joint toward
+        # decreasing q (q[3] left, q[10] right).
         ARM_POSTURE_ELBOW_POSTURE_WEIGHT = 0.5
 
         # Desired elbow change for every +10 mm of Z motion.
@@ -2078,23 +2159,19 @@ def main() -> int:
 
         # ARM_POSTURE_MODE_V1
         #
-        # Stored right wrist configuration.
+        # Stored wrist configurations for symmetric left/right posture control.
         # Large Cartesian motions keep this posture
         # instead of forcing world-frame tool orientation.
         #
-        # q[11] right_wrist_roll
-        # q[12] right_wrist_pitch
-        # q[13] right_wrist_yaw
-
+        left_wrist_posture_ref = arm_q[4:7].copy()
         right_wrist_posture_ref = arm_q[11:14].copy()
 
         # ARM_POSTURE_V2
         #
-        # Keep right elbow configuration.
+        # Keep the selected elbow configuration.
         #
         # R1-A7:
-        # q[10] = right_elbow_joint
-
+        left_elbow_posture_ref = arm_q[3]
         right_elbow_posture_ref = arm_q[10]
 
         joint_target_q = startup_arm_q.copy()
@@ -2380,6 +2457,7 @@ def main() -> int:
                         )
                         stream_joint_goal = arm_q.copy()
                         stream_joint_velocity_rad_s[:] = 0.0
+                        shoulder_posvel_history.clear()
                         joint_target_q = arm_q.copy()
                         tracking_lag_started_at = None
                         ik.reset_target_calibration(arm_q)
@@ -3384,6 +3462,7 @@ def main() -> int:
                         + json.dumps(
                             {
                                 "timestamp": time.time(),
+                                "controller_profile": CONTROLLER_PROFILE,
                                 "control_mode": "joint",
                                 "cartesian_arm": cartesian_arm,
                                 "active_joint_index": active_joint_index,
@@ -4130,36 +4209,43 @@ def main() -> int:
                 # Use the smoothed IK Cartesian target so the
                 # elbow reference moves continuously.
                 # =============================================
-                if cartesian_arm == "right":
+                if cartesian_arm == "left":
+                    elbow_z_delta_m = float(
+                        ik_left_target[2, 3]
+                        - startup_left_pose[2, 3]
+                    )
+                    active_elbow_start_q = float(startup_arm_q[3])
+                    active_elbow_lower_q = float(joint_soft_lower_q[3])
+                    active_elbow_upper_q = float(joint_soft_upper_q[3])
+                else:
                     elbow_z_delta_m = float(
                         ik_right_target[2, 3]
                         - startup_right_pose[2, 3]
                     )
+                    active_elbow_start_q = float(startup_arm_q[10])
+                    active_elbow_lower_q = float(joint_soft_lower_q[10])
+                    active_elbow_upper_q = float(joint_soft_upper_q[10])
 
-                    elbow_bias_rad = (
-                        -ARM_POSTURE_ELBOW_UP_PER_10MM_RAD
-                        * (elbow_z_delta_m / 0.010)
-                    )
+                elbow_bias_rad = (
+                    -ARM_POSTURE_ELBOW_UP_PER_10MM_RAD
+                    * (elbow_z_delta_m / 0.010)
+                )
 
-                    elbow_bias_rad = float(
-                        np.clip(
-                            elbow_bias_rad,
-                            -ARM_POSTURE_ELBOW_BIAS_MAX_RAD,
-                            +ARM_POSTURE_ELBOW_BIAS_MAX_RAD,
-                        )
+                elbow_bias_rad = float(
+                    np.clip(
+                        elbow_bias_rad,
+                        -ARM_POSTURE_ELBOW_BIAS_MAX_RAD,
+                        +ARM_POSTURE_ELBOW_BIAS_MAX_RAD,
                     )
+                )
 
-                    dynamic_right_elbow_posture_ref = float(
-                        np.clip(
-                            startup_arm_q[10] + elbow_bias_rad,
-                            joint_soft_lower_q[10],
-                            joint_soft_upper_q[10],
-                        )
+                dynamic_active_elbow_posture_ref = float(
+                    np.clip(
+                        active_elbow_start_q + elbow_bias_rad,
+                        active_elbow_lower_q,
+                        active_elbow_upper_q,
                     )
-                else:
-                    elbow_z_delta_m = 0.0
-                    elbow_bias_rad = 0.0
-                    dynamic_right_elbow_posture_ref = right_elbow_posture_ref
+                )
 
                 raw_stream_solution, raw_stream_tau_ff = ik.solve_ik(
                     ik_left_target,
@@ -4181,11 +4267,25 @@ def main() -> int:
 
                     rotation_weight=ARM_POSTURE_ROTATION_WEIGHT,
 
+                    left_wrist_pitch_weight=(
+                        KEYBOARD_6DOF_WRIST_PITCH_WEIGHT
+                        if cartesian_arm == "left"
+                        else 0.0
+                    ),
+
                     right_wrist_pitch_weight=(
-                        KEYBOARD_6DOF_RIGHT_WRIST_PITCH_WEIGHT
+                        KEYBOARD_6DOF_WRIST_PITCH_WEIGHT
                         if cartesian_arm == "right"
                         else 0.0
                     ),
+
+                    left_wrist_posture_weight=(
+                        ARM_POSTURE_WRIST_POSTURE_WEIGHT
+                        if cartesian_arm == "left"
+                        else 0.0
+                    ),
+
+                    left_wrist_posture_ref=left_wrist_posture_ref,
 
                     right_wrist_posture_weight=(
                         ARM_POSTURE_WRIST_POSTURE_WEIGHT
@@ -4198,13 +4298,29 @@ def main() -> int:
                     ),
 
                     # ARM_POSTURE_V2
+                    left_elbow_posture_weight=(
+                        ARM_POSTURE_ELBOW_POSTURE_WEIGHT
+                        if cartesian_arm == "left"
+                        else 0.0
+                    ),
+
+                    left_elbow_posture_ref=(
+                        dynamic_active_elbow_posture_ref
+                        if cartesian_arm == "left"
+                        else left_elbow_posture_ref
+                    ),
+
                     right_elbow_posture_weight=(
                         ARM_POSTURE_ELBOW_POSTURE_WEIGHT
                         if cartesian_arm == "right"
                         else 0.0
                     ),
 
-                    right_elbow_posture_ref=dynamic_right_elbow_posture_ref,
+                    right_elbow_posture_ref=(
+                        dynamic_active_elbow_posture_ref
+                        if cartesian_arm == "right"
+                        else right_elbow_posture_ref
+                    ),
                 )
                 ik_solve_ms = (
                     time.perf_counter() - ik_solve_started
@@ -4233,15 +4349,15 @@ def main() -> int:
 
                 # OFFICIAL_VR_TAUFF_V1
                 # The output layer applies:
-                #   - right-arm-only scaling
+                #   - independent left/right scaling (left mirrors right by default)
                 #   - finite-value checks
                 #   - torque clipping
                 #   - torque slew limiting
                 # DQIK_V1
                 #
-                # Preserve the original q trajectory completely.
-                # Only add velocity reference to the right arm
-                # while W Cartesian jogging is active.
+                # Preserve the original q trajectory completely. Add velocity
+                # reference only to the currently selected arm while W/U
+                # Cartesian jogging is active.
                 dqik_command = np.zeros(
                     len(ARM_INDICES),
                     dtype=float,
@@ -4260,8 +4376,13 @@ def main() -> int:
                         else 0.06
                     )
 
-                    dqik_command[7:14] = np.clip(
-                        stream_joint_velocity_rad_s[7:14],
+                    active_arm_slice = (
+                        slice(0, 7)
+                        if cartesian_arm == "left"
+                        else slice(7, 14)
+                    )
+                    dqik_command[active_arm_slice] = np.clip(
+                        stream_joint_velocity_rad_s[active_arm_slice],
                         -dqik_limit_rad_s,
                         +dqik_limit_rad_s,
                     )
@@ -4274,10 +4395,10 @@ def main() -> int:
                     ):
                         print(
                             "[DQIK]"
-                            " right_deg_s="
+                            f" {cartesian_arm}_deg_s="
                             + np.array2string(
                                 np.rad2deg(
-                                    dqik_command[7:14]
+                                    dqik_command[active_arm_slice]
                                 ),
                                 precision=3,
                                 suppress_small=True,
@@ -4304,7 +4425,8 @@ def main() -> int:
                 # ~= 30 * (dq_ref - dq_pos)
                 compensated_tau_ff = raw_stream_tau_ff.copy()
 
-                shoulder_q_now = float(arm_q[7])
+                active_shoulder_index = 0 if cartesian_arm == "left" else 7
+                shoulder_q_now = float(arm_q[active_shoulder_index])
 
                 shoulder_posvel_history.append(
                     (now, shoulder_q_now)
@@ -4333,8 +4455,8 @@ def main() -> int:
                         break
 
                 shoulder_posvel_corr_nm = 0.0
-                shoulder_dq_ref = float(dqik_command[7])
-                shoulder_dq_raw = float(arm_dq[7])
+                shoulder_dq_ref = float(dqik_command[active_shoulder_index])
+                shoulder_dq_raw = float(arm_dq[active_shoulder_index])
 
                 if (
                     active_cartesian_jog == "w"
@@ -4380,7 +4502,7 @@ def main() -> int:
                             )
                         )
 
-                        compensated_tau_ff[7] += (
+                        compensated_tau_ff[active_shoulder_index] += (
                             desired_sign
                             * shoulder_posvel_corr_nm
                         )
@@ -4598,11 +4720,7 @@ def main() -> int:
 
                     active_elbow_index = 3 if cartesian_arm == "left" else 10
                     active_wrist_pitch_index = 5 if cartesian_arm == "left" else 12
-                    active_elbow_ref = (
-                        float(startup_arm_q[3])
-                        if cartesian_arm == "left"
-                        else dynamic_right_elbow_posture_ref
-                    )
+                    active_elbow_ref = dynamic_active_elbow_posture_ref
 
                     print(
                         "[TRACKING SPLIT]",
@@ -4658,6 +4776,7 @@ def main() -> int:
                         + json.dumps(
                             {
                                 "timestamp": time.time(),
+                                "controller_profile": CONTROLLER_PROFILE,
                                 "control_mode": "cartesian",
                                 "cartesian_arm": cartesian_arm,
                                 "motion_state": (

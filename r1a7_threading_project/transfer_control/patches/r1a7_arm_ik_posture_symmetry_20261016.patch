@@ -1,0 +1,290 @@
+--- a/teleop/robot_control/robot_arm_ik.py
++++ b/teleop/robot_control/robot_arm_ik.py
+@@ -1327,6 +1327,22 @@
+         self.var_q_last = self.opti.parameter(self.reduced_robot.model.nq)
+         self.param_rotation_weight = self.opti.parameter()
+         self.param_max_joint_step = self.opti.parameter()
++        self.param_left_wrist_pitch_weight = self.opti.parameter()
++        self.param_right_wrist_pitch_weight = self.opti.parameter()
++
++        # ARM_POSTURE_MODE_V1
++        # Keep wrist roll/pitch/yaw near an operator-defined posture.
++        self.param_left_wrist_posture_weight = self.opti.parameter()
++        self.param_left_wrist_posture_ref = self.opti.parameter(3)
++        self.param_right_wrist_posture_weight = self.opti.parameter()
++        self.param_right_wrist_posture_ref = self.opti.parameter(3)
++
++        # ARM_POSTURE_V2
++        # Keep the selected elbow configuration during Cartesian motion.
++        self.param_left_elbow_posture_weight = self.opti.parameter()
++        self.param_left_elbow_posture_ref = self.opti.parameter()
++        self.param_right_elbow_posture_weight = self.opti.parameter()
++        self.param_right_elbow_posture_ref = self.opti.parameter()
+         self.param_tf_l = self.opti.parameter(4, 4)
+         self.param_tf_r = self.opti.parameter(4, 4)
+         self.translational_cost = casadi.sumsqr(self.translational_error(self.var_q, self.param_tf_l, self.param_tf_r))
+@@ -1337,6 +1353,56 @@
+         )
+         self.regularization_cost = casadi.sumsqr(self.var_q - self.var_q_last)
+         self.smooth_cost = casadi.sumsqr(self.var_q - self.var_q_last)
++
++        # R1-A7 joint indices 5/12: left/right wrist pitch.
++        # Soft penalty only: do not hard-lock the wrist.
++        self.left_wrist_pitch_hold_cost = casadi.sumsqr(
++            self.var_q[5] - self.var_q_last[5]
++        )
++        self.right_wrist_pitch_hold_cost = casadi.sumsqr(
++            self.var_q[12] - self.var_q_last[12]
++        )
++
++        # ARM_POSTURE_MODE_V1
++        #
++        # Keep wrist configuration during large Cartesian motion.
++        #
++        # q[4:7] : left wrist roll/pitch/yaw
++        # q[11] : right_wrist_roll
++        # q[12] : right_wrist_pitch
++        # q[13] : right_wrist_yaw
++
++        self.left_wrist_posture_cost = (
++            (self.var_q[4] - self.param_left_wrist_posture_ref[0]) ** 2
++            +
++            (self.var_q[5] - self.param_left_wrist_posture_ref[1]) ** 2
++            +
++            (self.var_q[6] - self.param_left_wrist_posture_ref[2]) ** 2
++        )
++
++        self.right_wrist_posture_cost = (
++            (self.var_q[11] - self.param_right_wrist_posture_ref[0]) ** 2
++            +
++            (self.var_q[12] - self.param_right_wrist_posture_ref[1]) ** 2
++            +
++            (self.var_q[13] - self.param_right_wrist_posture_ref[2]) ** 2
++        )
++
++        # ARM_POSTURE_V2
++        #
++        # Keep left/right elbow configuration during Cartesian motion.
++        #
++        # R1-A7:
++        # q[3] = left_elbow_joint; q[10] = right_elbow_joint
++
++        self.left_elbow_posture_cost = (
++            self.var_q[3]
++            - self.param_left_elbow_posture_ref
++        ) ** 2
++        self.right_elbow_posture_cost = (
++            self.var_q[10]
++            - self.param_right_elbow_posture_ref
++        ) ** 2
+         self.opti.subject_to(
+             self.opti.bounded(
+                 self.reduced_robot.model.lowerPositionLimit,
+@@ -1355,6 +1421,18 @@
+             + self.param_rotation_weight * self.rotation_cost
+             + 0.02 * self.regularization_cost
+             + 0.1 * self.smooth_cost
++            + self.param_left_wrist_pitch_weight
++            * self.left_wrist_pitch_hold_cost
++            + self.param_right_wrist_pitch_weight
++            * self.right_wrist_pitch_hold_cost
++            + self.param_left_wrist_posture_weight
++            * self.left_wrist_posture_cost
++            + self.param_right_wrist_posture_weight
++            * self.right_wrist_posture_cost
++            + self.param_left_elbow_posture_weight
++            * self.left_elbow_posture_cost
++            + self.param_right_elbow_posture_weight
++            * self.right_elbow_posture_cost
+         )
+         opts = {
+             "expand": True,
+@@ -1550,6 +1628,16 @@
+         position_only=False,
+         max_joint_step=None,
+         rotation_weight=1.0,
++        left_wrist_pitch_weight=0.0,
++        right_wrist_pitch_weight=0.0,
++        left_wrist_posture_weight=0.0,
++        left_wrist_posture_ref=None,
++        right_wrist_posture_weight=0.0,
++        right_wrist_posture_ref=None,
++        left_elbow_posture_weight=0.0,
++        left_elbow_posture_ref=None,
++        right_elbow_posture_weight=0.0,
++        right_elbow_posture_ref=None,
+     ):
+         left_wrist = self._validated_pose(left_wrist, "left_wrist")
+         right_wrist = self._validated_pose(right_wrist, "right_wrist")
+@@ -1576,8 +1664,171 @@
+         rotation_weight = float(rotation_weight)
+         if not np.isfinite(rotation_weight) or rotation_weight < 0.0:
+             raise ValueError("rotation_weight must be finite and non-negative")
++
++        for side, weight in (
++            ("left", left_wrist_pitch_weight),
++            ("right", right_wrist_pitch_weight),
++        ):
++            weight = float(weight)
++            if not np.isfinite(weight) or weight < 0.0:
++                raise ValueError(
++                    f"{side}_wrist_pitch_weight must be finite and non-negative"
++                )
++            if side == "left":
++                left_wrist_pitch_weight = weight
++            else:
++                right_wrist_pitch_weight = weight
++
++        # ARM_POSTURE_MODE_V1
++        # Keep wrist roll/pitch/yaw near a stored operator posture.
++
++        if left_wrist_posture_ref is None:
++            left_wrist_posture_ref = self.init_data[4:7].copy()
++        if right_wrist_posture_ref is None:
++            right_wrist_posture_ref = self.init_data[11:14].copy()
++
++        left_wrist_posture_ref = np.asarray(
++            left_wrist_posture_ref,
++            dtype=float,
++        ).reshape(3)
++        right_wrist_posture_ref = np.asarray(
++            right_wrist_posture_ref,
++            dtype=float,
++        ).reshape(3)
++
++        if not np.all(np.isfinite(left_wrist_posture_ref)):
++            raise ValueError(
++                "left_wrist_posture_ref contains non-finite values"
++            )
++        if not np.all(np.isfinite(right_wrist_posture_ref)):
++            raise ValueError(
++                "right_wrist_posture_ref contains non-finite values"
++            )
++
++        left_wrist_posture_weight = float(
++            left_wrist_posture_weight
++        )
++        right_wrist_posture_weight = float(
++            right_wrist_posture_weight
++        )
++
++        if (
++            not np.isfinite(left_wrist_posture_weight)
++            or left_wrist_posture_weight < 0.0
++        ):
++            raise ValueError(
++                "left_wrist_posture_weight must be finite and non-negative"
++            )
++        if (
++            not np.isfinite(right_wrist_posture_weight)
++            or right_wrist_posture_weight < 0.0
++        ):
++            raise ValueError(
++                "right_wrist_posture_weight must be finite and non-negative"
++            )
++
++        # ARM_POSTURE_V2
++        #
++        # Keep left/right elbow configuration.
++        #
++        # R1-A7:
++        # q[3] = left_elbow_joint; q[10] = right_elbow_joint
++
++        if left_elbow_posture_ref is None:
++            left_elbow_posture_ref = self.init_data[3]
++        if right_elbow_posture_ref is None:
++            right_elbow_posture_ref = self.init_data[10]
++
++        left_elbow_posture_ref = float(
++            left_elbow_posture_ref
++        )
++        right_elbow_posture_ref = float(
++            right_elbow_posture_ref
++        )
++
++        if not np.isfinite(left_elbow_posture_ref):
++            raise ValueError(
++                "left_elbow_posture_ref contains non-finite value"
++            )
++        if not np.isfinite(right_elbow_posture_ref):
++            raise ValueError(
++                "right_elbow_posture_ref contains non-finite value"
++            )
++
++        left_elbow_posture_weight = float(
++            left_elbow_posture_weight
++        )
++        right_elbow_posture_weight = float(
++            right_elbow_posture_weight
++        )
++
++        if (
++            not np.isfinite(left_elbow_posture_weight)
++            or left_elbow_posture_weight < 0.0
++        ):
++            raise ValueError(
++                "left_elbow_posture_weight must be finite and non-negative"
++            )
++        if (
++            not np.isfinite(right_elbow_posture_weight)
++            or right_elbow_posture_weight < 0.0
++        ):
++            raise ValueError(
++                "right_elbow_posture_weight must be finite and non-negative"
++            )
++
+         self.opti.set_value(self.param_max_joint_step, max_joint_step)
+         self.opti.set_value(
++            self.param_left_wrist_pitch_weight,
++            left_wrist_pitch_weight,
++        )
++        self.opti.set_value(
++            self.param_right_wrist_pitch_weight,
++            right_wrist_pitch_weight,
++        )
++
++        # ARM_POSTURE_MODE_V1
++        self.opti.set_value(
++            self.param_left_wrist_posture_weight,
++            left_wrist_posture_weight,
++        )
++
++        self.opti.set_value(
++            self.param_left_wrist_posture_ref,
++            left_wrist_posture_ref,
++        )
++
++        self.opti.set_value(
++            self.param_right_wrist_posture_weight,
++            right_wrist_posture_weight,
++        )
++
++        self.opti.set_value(
++            self.param_right_wrist_posture_ref,
++            right_wrist_posture_ref,
++        )
++
++        # ARM_POSTURE_V2
++        self.opti.set_value(
++            self.param_left_elbow_posture_weight,
++            left_elbow_posture_weight,
++        )
++
++        self.opti.set_value(
++            self.param_left_elbow_posture_ref,
++            left_elbow_posture_ref,
++        )
++
++        self.opti.set_value(
++            self.param_right_elbow_posture_weight,
++            right_elbow_posture_weight,
++        )
++
++        self.opti.set_value(
++            self.param_right_elbow_posture_ref,
++            right_elbow_posture_ref,
++        )
++        self.opti.set_value(
+             self.param_rotation_weight,
+             0.0 if position_only else rotation_weight,
+         )

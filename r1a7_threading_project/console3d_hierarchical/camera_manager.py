@@ -86,7 +86,7 @@ CAMERAS: tuple[CameraSpec, ...] = (
         "头部相机",
         "head",
         "head",
-        description="GitHub 已验证 Unitree SDK VideoClient（1280×720 RGB）",
+        description="宇树官方 Stereo patch PC1 推流（UDP 5001 · 1280×720）",
     ),
     CameraSpec(
         "wrist_left",
@@ -274,7 +274,7 @@ class CameraManager:
     def __init__(self, project_root: Path) -> None:
         self.project_root = project_root
         self.head_script = (
-            project_root / "r1a7_threading_project" / "vision" / "r1a7_head_visual_baseline.py"
+            project_root / "r1a7_threading_project" / "vision" / "r1a7_head_udp_preview.py"
         )
         self.head_service_prepare = (
             project_root
@@ -404,10 +404,18 @@ class CameraManager:
                 and not runtime.last_error
             ):
                 runtime.last_error = (
-                    "video_hub 已启动，但 12 秒内未收到 JPEG；"
-                    "请先检查手机 App 与机器人头部相机"
+                    "Stereo patch PC1 已启动，但 12 秒内 UDP 5001 没有 RTP/H.264 "
+                    "首帧；请核对官方补丁版本和推流服务状态"
                 )
             device = choose_device(spec, self.devices) if spec.kind == "uvc" else None
+            # A UVC camera can return with a different /dev/video number after
+            # replugging or USB re-enumeration.  Once its serial-number match
+            # and RGB formats are present again, discard only the stale
+            # discovery error from the previous failed start.  Preserve real
+            # preview/process errors so they remain visible to the operator.
+            missing_device_error = f"未检测到 {spec.label} 的彩色采集节点"
+            if device is not None and runtime.last_error == missing_device_error:
+                runtime.last_error = ""
             detected = (
                 bool(device)
                 if spec.kind == "uvc"
@@ -422,11 +430,11 @@ class CameraManager:
                     "serial": spec.serial,
                     "description": spec.description,
                     "source": (
-                        "Unitree SDK VideoClient · enp6s0 · 目标 1280×720 RGB"
+                        "Stereo patch PC1 · 192.168.123.164:5001 · RTP/H.264"
                         if spec.kind == "head"
                         else "USB UVC"
                     ),
-                    "backend": "sdk_videoclient" if spec.kind == "head" else "uvc",
+                    "backend": "unitree_udp_h264" if spec.kind == "head" else "uvc",
                     "detected": detected,
                     "node": runtime.node or (device.node if device else None),
                     "formats": list(device.formats) if device else [],
@@ -467,8 +475,8 @@ class CameraManager:
                 if camera_id == "head" and "[HEAD FRAME READY]" in text:
                     runtime.ready = True
                     runtime.last_error = ""
-                elif camera_id == "head" and "send request error" in text.lower():
-                    runtime.last_error = "VideoClient 已启动，但暂未收到头部图像"
+                elif camera_id == "head" and "[HEAD UDP ERROR]" in text:
+                    runtime.last_error = text.removeprefix("[HEAD UDP ERROR] ")
 
     async def _read_threading_output(
         self, name: str, process: asyncio.subprocess.Process
@@ -629,7 +637,10 @@ class CameraManager:
             stderr=asyncio.subprocess.STDOUT,
         )
         try:
-            output, _ = await asyncio.wait_for(process.communicate(), timeout=35.0)
+            # The helper may need to stop video_hub, wait for the stereo patch,
+            # and restore the original state when startup fails.  Allow that
+            # full transaction to finish so the phone-App path is not left off.
+            output, _ = await asyncio.wait_for(process.communicate(), timeout=60.0)
         except asyncio.TimeoutError as exc:
             process.kill()
             await process.wait()
@@ -640,6 +651,39 @@ class CameraManager:
         if process.returncode != 0:
             detail = lines[-1] if lines else f"返回码 {process.returncode}"
             raise RuntimeError(f"头部相机服务准备失败：{detail}")
+
+    async def _restore_head_camera(
+        self,
+        runtime: CameraRuntime,
+        head_interface: str = "enp6s0",
+    ) -> None:
+        if not self.head_service_prepare.exists() or not TV_PYTHON.exists():
+            return
+        env = os.environ.copy()
+        env["PYTHONNOUSERSITE"] = "1"
+        process = await asyncio.create_subprocess_exec(
+            str(TV_PYTHON),
+            "-u",
+            str(self.head_service_prepare),
+            "--interface",
+            head_interface,
+            "--mode",
+            "restore",
+            cwd=str(self.project_root),
+            env=env,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+        try:
+            output, _ = await asyncio.wait_for(process.communicate(), timeout=35.0)
+        except asyncio.TimeoutError:
+            process.kill()
+            await process.wait()
+            runtime.logs.append("[HEAD SERVICE RESTORE ERROR] restore timed out")
+            return
+        lines = output.decode("utf-8", errors="replace").splitlines()
+        runtime.logs.extend(line for line in lines if line)
+        del runtime.logs[:-40]
 
     async def start(self, camera_id: str, head_interface: str = "enp6s0") -> dict[str, Any]:
         if camera_id not in self.specs:
@@ -734,6 +778,8 @@ class CameraManager:
             runtime.pixel_format = None
             runtime.ready = False
             runtime.started_at = None
+            if camera_id == "head":
+                await self._restore_head_camera(runtime)
             return
         try:
             os.killpg(process.pid, signal.SIGINT)
@@ -757,6 +803,8 @@ class CameraManager:
         runtime.pixel_format = None
         runtime.ready = False
         runtime.started_at = None
+        if camera_id == "head":
+            await self._restore_head_camera(runtime)
 
     async def start_group(self, group: str, head_interface: str = "enp6s0") -> dict[str, Any]:
         errors: dict[str, str] = {}

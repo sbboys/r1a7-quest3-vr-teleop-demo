@@ -2,7 +2,10 @@
 
 .control-grid {
   flex: none;
-  grid-template-rows: 200px minmax(410px, calc(100vh - 435px)) 150px auto;
+  /* The connection panel gained an additional calibration field.  Let this
+     row grow to its real content height so the session buttons cannot be
+     clipped by the panel's overflow rule. */
+  grid-template-rows: minmax(200px, max-content) minmax(410px, calc(100vh - 435px)) 150px auto;
   grid-template-areas:
     "connection connection"
     "motion joints"
@@ -146,7 +149,7 @@
   }
   .control-grid {
     grid-template-columns: minmax(260px, .95fr) minmax(280px, 1.05fr);
-    grid-template-rows: 200px 410px 150px auto;
+    grid-template-rows: minmax(200px, max-content) 410px 150px auto;
     grid-template-areas:
       "connection connection"
       "motion joints"

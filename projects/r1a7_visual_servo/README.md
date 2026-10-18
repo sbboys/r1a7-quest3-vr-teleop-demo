@@ -13,10 +13,11 @@
 - 阶段记录：`docs/r1a7_camera_*.md`
 - 当前启动栈：`r1a7_threading_project/run_task6_visual_stack.sh`
 - 2026-10-10 交接：`r1a7_threading_project/docs/r1a7_visual_servo_control_handoff_2026-10-10_zh.md`
+- 2026-10-18 实验与控制台更新：`r1a7_threading_project/docs/r1a7_experiment_console_update_2026-10-18_zh.md`
 
 ## 当前状态
 
-2026-10-10 的 Wrist Hole/Tip 跟踪、视觉状态机和低速控制衔接工作已进入统一工作线。记录确认的基线为 10 mm/s；15/25 mm/s 仍需在修正后的状态机上重新做真机资格验证。
+2026-10-10 的 Wrist Hole/Tip 跟踪、视觉状态机和低速控制衔接工作已进入统一工作线。控制台执行门采用分层上限：双目 `10 mm/s`、单目降级 `2 mm/s`、短时盲行 `0.5 mm/s`；上限是安全裁剪，不是独立 TCP 实测速度。记录确认的穿孔成功基线为 10 mm/s；15/25 mm/s 缺少成功/失败标签，仍需在修正后的状态机上重新做真机资格验证。
 
 标定 JSON 和少量复核结果可以提交；原始标定图像和视频应按数据清单管理。
 
