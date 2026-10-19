@@ -11,6 +11,8 @@
 
 This repository is a multi-project R1-A7 engineering workbench. Start with the project and branch indexes before running code:
 
+- [Current state and new-chat entry](docs/CURRENT_STATE.md)
+- [New/long conversation recovery guide](docs/NEW_CHAT_START.md)
 - [Project index](PROJECT_INDEX.md)
 - [Branch catalog](BRANCH_CATALOG.md)
 - [Repository management and data policy](docs/repository_management_zh.md)

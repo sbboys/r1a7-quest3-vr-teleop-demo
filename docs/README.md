@@ -2,6 +2,11 @@
 
 ## 当前治理入口
 
+- [当前工作状态](CURRENT_STATE.md)
+- [关键决策记录](DECISIONS.md)
+- [验证矩阵](VALIDATION_MATRIX.md)
+- [新对话与长对话恢复入口](NEW_CHAT_START.md)
+- [2026-10-18 桌面连续工作入口整理记录](r1a7_desktop_continuity_setup_2026-10-18_zh.md)
 - [项目总索引](../PROJECT_INDEX.md)
 - [GitHub 分支目录表](../BRANCH_CATALOG.md)
 - [2026-10-11 GitHub 全面整理报告](r1a7_github_reorganization_2026-10-11_zh.md)
