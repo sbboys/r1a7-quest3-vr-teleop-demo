@@ -16,6 +16,7 @@ r1a7_threading_project/data/*
 
 # Runtime logs and transient visual debug captures
 r1a7_threading_project/Log/
+r1a7_threading_project/r1a7_logs/
 
 # Historical local experiment copies. The active implementation and frozen
 # calibration results remain tracked; these copies stay on the workstation.

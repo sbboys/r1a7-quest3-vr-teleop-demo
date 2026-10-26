@@ -15,8 +15,8 @@
 | 02 | Quest 3 / VR 遥操作 | `vr_teleop/`、`tools/`、`action_provider/` | 已验证工作线 | [VR 遥操作入口](projects/r1a7_vr_teleop/README.md) |
 | 03 | 相机与识别控制 | `camera_teleop/`、`tools/` | 设备输入层 | [相机控制入口](projects/r1a7_camera_control/README.md) |
 | 04 | 扳手任务 | `r1a7_wrench_project/` | 冻结基线/采集线 | [扳手项目入口](projects/r1a7_wrench/README.md) |
-| 05 | 细线镊子穿孔 | `r1a7_threading_project/` | 当前主研究项目 | [细线项目入口](projects/r1a7_threading/README.md) |
-| 06 | 双相机视觉伺服 | `r1a7_threading_project/vision_dual_camera/` | 2026-10-10 已衔接 | [视觉伺服入口](projects/r1a7_visual_servo/README.md) |
+| 05 | 细线镊子穿孔 | `r1a7_threading_project/` | 10 月 20–22 日夹线/左腕研究已衔接，真机抓线待验 | [细线项目入口](projects/r1a7_threading/README.md) |
+| 06 | 双相机视觉伺服 | `r1a7_threading_project/vision_dual_camera/` | 穿孔控制与夹线 Shadow 两条研究线 | [视觉伺服入口](projects/r1a7_visual_servo/README.md) |
 | 07 | 低速平滑控制 | `r1a7_threading_project/transfer_control/` | 10 mm/s 基线已记录 | [控制交接](r1a7_threading_project/docs/r1a7_visual_servo_control_handoff_2026-10-10_zh.md) |
 | 08 | 手臂 3D 控制台 | `r1a7_threading_project/console3d*/` | 30/250 Hz 低速控制、双臂对称参数与六路相机已衔接 | [控制台入口](projects/r1a7_arm_console/README.md) |
 | 09 | ACT 复现与迁移 | `act_reproduction/` | 独立复现线 | [ACT 入口](projects/r1a7_act_reproduction/README.md) |
@@ -43,6 +43,8 @@
 4. 项目内操作手册、交接文档和实验记录。
 
 当前阶段总览：[2026-10-18 实验工作与控制台更新报告](r1a7_threading_project/docs/r1a7_experiment_console_update_2026-10-18_zh.md)。
+
+最新研究衔接：[2026-10-26 双相机夹线与左腕 007Z 衔接记录](r1a7_threading_project/docs/r1a7_wire_grasp_left_wrist_sync_2026-10-26_zh.md)。
 
 ## 仓库规则
 

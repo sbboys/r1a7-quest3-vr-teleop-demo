@@ -1,0 +1,39 @@
+{
+  "marker": {
+    "dictionary": "DICT_5X5_50",
+    "id": 20,
+    "size_m": 0.02
+  },
+  "camera_serial": "20685204b12d5283",
+  "generated_at": "2026-09-27 17:47:18",
+  "manual_initial_tip_marker_mm": [
+    -85.0,
+    0.0,
+    25.0
+  ],
+  "robust_tip_marker_mm": [
+    -85.0,
+    0.0,
+    25.0
+  ],
+  "robust_tip_marker_m": [
+    -0.085,
+    0.0,
+    0.025
+  ],
+  "calibration_status": "EXPERIMENTAL_SHADOW_ONLY",
+  "coordinate_source": "manual measurement and visual projection comparison",
+  "validation_note": "Provisional coarse point; not independently validated.",
+  "candidate_metadata": {
+    "method": "manual_physical_measurement",
+    "coordinate_frame": "ArUco marker-local frame",
+    "vector_mm": [
+      -85.0,
+      0.0,
+      25.0
+    ],
+    "marker_size_m": 0.02,
+    "status": "CANDIDATE_ONLY_NOT_HARDWARE_VALIDATED",
+    "note": "The robust_tip_marker fields are retained for compatibility with the current loader. This vector is a manual measurement, not a robust-fit result."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "marker": {
+    "dictionary": "DICT_5X5_50",
+    "id": 20,
+    "size_m": 0.02
+  },
+  "camera_serial": "20685204b12d5283",
+  "generated_at": "2026-09-27 17:47:18",
+  "manual_initial_tip_marker_mm": [
+    -75.0,
+    0.0,
+    -25.0
+  ],
+  "least_squares_tip_marker_mm": [
+    -75.0,
+    0.0,
+    -25.0
+  ],
+  "robust_tip_marker_mm": [
+    -75.0,
+    0.0,
+    -25.0
+  ],
+  "robust_tip_marker_m": [
+    -0.075,
+    0.0,
+    -0.025
+  ],
+  "calibration_status": "EXPERIMENTAL_SHADOW_ONLY",
+  "coordinate_source": "manual measurement and visual projection comparison",
+  "validation_note": "Provisional coarse point; not independently validated."
+}

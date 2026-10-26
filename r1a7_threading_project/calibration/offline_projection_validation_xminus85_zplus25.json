@@ -1,0 +1,37 @@
+{
+  "status": "OFFLINE_PROJECTION_COMPARED",
+  "candidate_file": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/calibration/tweezer_marker_tip_calibration_xminus85_zplus25_candidate.json",
+  "source_file": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/calibration/tweezer_marker_tip_calibration_xminus75_candidate.json",
+  "intrinsics_file": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/calibration/fixed_camera_intrinsics/results/usb_zoom_camera_intrinsics.json",
+  "marker_size_m": 0.02,
+  "coordinate_frame": "ArUco marker-local frame",
+  "old_vector_mm": [
+    -75.0,
+    0.0,
+    -25.0
+  ],
+  "candidate_vector_mm": [
+    -85.0,
+    0.0,
+    25.0
+  ],
+  "sample_source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/calibration/tweezer_marker_tip_calibration_revalidated_candidate.json",
+  "sample_count": 33,
+  "old_vector_projection_error": {
+    "n": 33,
+    "mean_px": 48.18150000733074,
+    "median_px": 37.38855594852857,
+    "rms_px": 60.37388553568409,
+    "p95_px": 136.8908611078402,
+    "max_px": 146.936698370095
+  },
+  "candidate_projection_error": {
+    "n": 33,
+    "mean_px": 154.26842512120533,
+    "median_px": 148.8729283355823,
+    "rms_px": 157.60029979545286,
+    "p95_px": 226.55688873250477,
+    "max_px": 231.7752540284415
+  },
+  "warning": "This is a comparison against stored historical image labels, not a live camera test. It does not establish current physical tip accuracy or justify robot motion."
+}

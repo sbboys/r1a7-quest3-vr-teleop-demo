@@ -1,0 +1,31 @@
+{
+  "camera_serial": "CPCBC530007Z",
+  "method": "manual_hole_ellipse_and_pipe_axis",
+  "roi_xywh": [
+    517,
+    342,
+    66,
+    130
+  ],
+  "hole_center_uv": [
+    536.0,
+    357.0
+  ],
+  "ellipse_diameters_px": [
+    20.223748416156685,
+    11.704699910719626
+  ],
+  "ellipse_angle_deg": -8.530765609948133,
+  "axis_point_uv": [
+    550.0,
+    453.0
+  ],
+  "point_order": [
+    "hole_center",
+    "major_axis_rim_A",
+    "major_axis_rim_B",
+    "minor_axis_rim_A",
+    "minor_axis_rim_B",
+    "pipe_axis_point"
+  ]
+}
