@@ -26,3 +26,8 @@
 并提供逐次试验 CSV 和离线统计工具。候选阈值尚未经过真机验证，详情见
 `r1a7_threading_project/docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md`。
 
+已有 19 份关节/右臂正式 CSV、14 组镊尖稳定性试验和三档穿孔历史数据已形成
+描述性基线，见
+`r1a7_threading_project/docs/r1a7_existing_motion_perception_task_metrics_2026-10-27_zh.md`。
+当前只有 10 mm/s Test02 具备单次人工成功标签，不能据此宣称稳定成功率。
+

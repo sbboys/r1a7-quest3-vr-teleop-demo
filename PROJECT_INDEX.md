@@ -48,6 +48,8 @@
 
 研究评价入口：[2026-10-27 细线夹取与穿孔研究指标协议](r1a7_threading_project/docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md)。
 
+已有数据基线：[2026-10-27 现有运动、感知与任务指标](r1a7_threading_project/docs/r1a7_existing_motion_perception_task_metrics_2026-10-27_zh.md)。
+
 ## 仓库规则
 
 - `main` 保持早期 Quest 3 演示基线，不在本次整理中改写历史或强行合并。

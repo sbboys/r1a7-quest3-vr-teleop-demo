@@ -43,6 +43,8 @@
   原始记录已于 2026-10-26 衔接到当前 GitHub 工作线。
 - 2026-10-27 已建立细线识别、夹持、对准、穿孔和安全五层指标协议，并补充逐次试验
   CSV 模板、机器可读候选阈值和离线统计工具。该更新只完成研究设计和工具验证，未执行真机。
+- 2026-10-27 已复核本地 19 份关节/右臂正式 CSV、14 组镊尖稳定性结果和三档穿孔
+  历史数据，形成现有指标基线；仅 10 mm/s Test02 有单次成功标签，三档成功率仍不可计算。
 
 ## 2026-10-26 新增研究线边界
 
@@ -83,6 +85,9 @@
 
 研究指标、阶段门控和试次统计口径见：
 `r1a7_threading_project/docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md`。
+
+历史数据能够支持的当前基线及证据缺口见：
+`r1a7_threading_project/docs/r1a7_existing_motion_perception_task_metrics_2026-10-27_zh.md`。
 
 桌面和新对话恢复结构见：
 `docs/r1a7_desktop_continuity_setup_2026-10-18_zh.md`。
