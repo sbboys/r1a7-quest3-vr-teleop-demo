@@ -11,7 +11,7 @@
 |---|---|
 | 主工作区 | `/home/robot/unitree_sim_isaaclab_console` |
 | 推荐分支 | `codex/r1a7-console-camera-suite-2026-10-11` |
-| 本次同步前基线 | `23bb4e0` — 当前分支与远端一致的基线 |
+| 指标设定前基线 | `3ab3bfc` — 2026-10-26 夹线/左腕同步提交 |
 | GitHub | `git@github.com:sbboys/r1a7-quest3-vr-teleop-demo.git` |
 | 控制台 | `r1a7_threading_project/console3d_hierarchical/start_console_8098.sh` |
 | 页面版本 | `20261018-console-work-summary` |
@@ -38,7 +38,7 @@
 - 腕部识别脚本已与研究逻辑衔接，并保留部署环境变量覆盖。
 - 头部相机已接入官方 Stereo patch PC1、UDP 5001、RTP/H.264 路线，并保存/恢复
   手机 App 相关服务原状态。
-- 2026-10-18 上传前 18 项控制台单元测试通过。
+- 2026-10-27 使用 `tv` 环境和 Unitree SDK 路径复测，18 项控制台单元测试通过。
 - 2026-10-20 至 10-22 的双相机夹线源码、左腕 007Z 独立识别程序、候选标定和五份
   原始记录已于 2026-10-26 衔接到当前 GitHub 工作线。
 - 2026-10-27 已建立细线识别、夹持、对准、穿孔和安全五层指标协议，并补充逐次试验
