@@ -49,7 +49,7 @@ can be launched with `run_task6_visual_stack.sh`. The 10 mm/s configuration was
 confirmed in the recorded test; 15 and 25 mm/s require new qualification after
 the visual-state-machine fixes.
 
-The port-8098 console now uses that controller at 100 Hz IK / 500 Hz LowCmd,
+The port-8098 console now uses that controller at 30 Hz IK / 250 Hz LowCmd,
 supports left/right Cartesian selection and both grippers, and dynamically
 discovers six preview sources: JR0001, JR0002, the external USB zoom camera,
 both Gemini 336L color streams, and the robot head VideoClient. See
@@ -61,3 +61,15 @@ The complete engineering snapshot is documented in
 `docs/r1a7_project_snapshot_2026-09-22_zh.md`. It indexes the controller,
 console, gripper/tweezer calibration, single- and dual-camera visual guidance,
 hand-eye/TCP calibration, research material, and archived source records.
+
+## 2026-10-27 research metrics
+
+The measurement protocol for perception, timing, actual end-effector motion,
+grasp stability, task outcome, and safety is documented in
+`docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md`. Candidate
+thresholds are stored in `config/wire_threading_metrics_v1.yaml`, individual
+trials use `docs/templates/wire_threading_trial_v1.csv`, and offline summaries
+can be generated with `scripts/analyze_wire_threading_trials.py`.
+
+These files define evaluation and logging only. They do not claim that the
+candidate thresholds have passed on hardware.

@@ -17,6 +17,7 @@
 - 双相机夹线研究：`r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/`
 - 左腕 007Z：`r1a7_threading_project/vision_dual_camera/task7_wire_threading/left_wrist/`
 - 2026-10-26 衔接记录：`r1a7_threading_project/docs/r1a7_wire_grasp_left_wrist_sync_2026-10-26_zh.md`
+- 2026-10-27 指标协议：`r1a7_threading_project/docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md`
 
 ## 当前状态
 
@@ -26,4 +27,7 @@
 
 双相机夹线栈与上述穿孔视觉执行门是不同研究入口：前者当前默认 Shadow，速度文件上限
 为 10 mm/s，未完成真机抓线；左腕 007Z 也保持感知-only。不得混用两条工作线的验证结论。
+
+视觉评价不能只报告像素误差或 valid 帧比例。正式研究还需独立真值、端到端延迟、
+实际末端误差和穿孔试次成功率；协议中的 `0.05/0.10 mm` 等均为待验证候选门槛。
 

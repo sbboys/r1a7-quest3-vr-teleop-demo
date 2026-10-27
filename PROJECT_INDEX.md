@@ -1,7 +1,7 @@
 # R1-A7 项目总索引
 
 本仓库是 R1-A7 多项目研发工作区，不是单一演示程序。当前统一工作线为
-`codex/r1a7-workspace-2026-10-11`，它以 2026-09-29 统一工作区为底座，已纳入
+`codex/r1a7-console-camera-suite-2026-10-11`，它以 2026-09-29 统一工作区为底座，已纳入
 2026-10-10 视觉伺服/低速控制成果和 2026-09-30 手臂控制台方向切换修正。
 
 > 本索引是导航，不改变已经验证的运行路径。历史文档中的临时命令不自动等同于当前稳定入口。
@@ -15,7 +15,7 @@
 | 02 | Quest 3 / VR 遥操作 | `vr_teleop/`、`tools/`、`action_provider/` | 已验证工作线 | [VR 遥操作入口](projects/r1a7_vr_teleop/README.md) |
 | 03 | 相机与识别控制 | `camera_teleop/`、`tools/` | 设备输入层 | [相机控制入口](projects/r1a7_camera_control/README.md) |
 | 04 | 扳手任务 | `r1a7_wrench_project/` | 冻结基线/采集线 | [扳手项目入口](projects/r1a7_wrench/README.md) |
-| 05 | 细线镊子穿孔 | `r1a7_threading_project/` | 10 月 20–22 日夹线/左腕研究已衔接，真机抓线待验 | [细线项目入口](projects/r1a7_threading/README.md) |
+| 05 | 细线镊子穿孔 | `r1a7_threading_project/` | 夹线/左腕已衔接，指标 v1 已建立，真机抓线待验 | [细线项目入口](projects/r1a7_threading/README.md) |
 | 06 | 双相机视觉伺服 | `r1a7_threading_project/vision_dual_camera/` | 穿孔控制与夹线 Shadow 两条研究线 | [视觉伺服入口](projects/r1a7_visual_servo/README.md) |
 | 07 | 低速平滑控制 | `r1a7_threading_project/transfer_control/` | 10 mm/s 基线已记录 | [控制交接](r1a7_threading_project/docs/r1a7_visual_servo_control_handoff_2026-10-10_zh.md) |
 | 08 | 手臂 3D 控制台 | `r1a7_threading_project/console3d*/` | 30/250 Hz 低速控制、双臂对称参数与六路相机已衔接 | [控制台入口](projects/r1a7_arm_console/README.md) |
@@ -45,6 +45,8 @@
 当前阶段总览：[2026-10-18 实验工作与控制台更新报告](r1a7_threading_project/docs/r1a7_experiment_console_update_2026-10-18_zh.md)。
 
 最新研究衔接：[2026-10-26 双相机夹线与左腕 007Z 衔接记录](r1a7_threading_project/docs/r1a7_wire_grasp_left_wrist_sync_2026-10-26_zh.md)。
+
+研究评价入口：[2026-10-27 细线夹取与穿孔研究指标协议](r1a7_threading_project/docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md)。
 
 ## 仓库规则
 

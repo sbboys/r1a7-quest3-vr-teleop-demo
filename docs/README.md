@@ -12,6 +12,7 @@
 - [2026-10-11 GitHub 全面整理报告](r1a7_github_reorganization_2026-10-11_zh.md)
 - [2026-10-18 实验工作与控制台更新报告](../r1a7_threading_project/docs/r1a7_experiment_console_update_2026-10-18_zh.md)
 - [2026-10-26 双相机夹线与左腕 007Z 衔接记录](../r1a7_threading_project/docs/r1a7_wire_grasp_left_wrist_sync_2026-10-26_zh.md)
+- [2026-10-27 细线夹取与穿孔研究指标协议](../r1a7_threading_project/docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md)
 - [仓库管理与数据边界](repository_management_zh.md)
 - [统一仓库来源矩阵](unified_source_matrix_zh.md)
 

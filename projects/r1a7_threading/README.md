@@ -22,3 +22,7 @@
 本次真机运动验证，自动闭爪仍只是方案。详情见
 `r1a7_threading_project/docs/r1a7_wire_grasp_left_wrist_sync_2026-10-26_zh.md`。
 
+2026-10-27 已把研究评价统一为感知、时序、实际运动、夹持、任务/安全五层指标，
+并提供逐次试验 CSV 和离线统计工具。候选阈值尚未经过真机验证，详情见
+`r1a7_threading_project/docs/r1a7_wire_threading_metrics_protocol_2026-10-27_zh.md`。
+
