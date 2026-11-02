@@ -1,0 +1,52 @@
+{
+  "collector": "collect_wire_unet_three_camera.py",
+  "session_id": "pilot_001",
+  "group_id": "setup_001",
+  "created_unix_ns": 1793076212380347330,
+  "note": "three-camera first U-Net pilot",
+  "sample_hz_requested": 2.0,
+  "max_samples": 50,
+  "hardware_synchronized": false,
+  "timestamp_definition": "Host receive/read timestamps; NOT hardware exposure synchronization.",
+  "robot_control": false,
+  "dds": false,
+  "rt_lowcmd": false,
+  "labels": {
+    "status": "unlabeled",
+    "classes_candidate": {
+      "0": "background",
+      "1": "wire",
+      "2": "tool",
+      "255": "ignore"
+    }
+  },
+  "camera_info": {
+    "external": {
+      "serial": "20685204b12d5283",
+      "device": "/dev/v4l/by-id/usb-ALP_USB_ZOOM_Camera_20685204b12d5283-video-index0",
+      "width": 1280,
+      "height": 720,
+      "requested_format": "MJPG",
+      "reported_fps": 30.0
+    },
+    "left_wrist": {
+      "serial": "CPCBC530007Z",
+      "width": 1280,
+      "height": 800,
+      "requested_format": "RGB",
+      "requested_fps": 30
+    },
+    "right_wrist": {
+      "serial": "CPCBC53000C5",
+      "width": 1280,
+      "height": 800,
+      "requested_format": "RGB",
+      "requested_fps": 30
+    }
+  },
+  "samples_recorded": 50,
+  "images_recorded": 150,
+  "stop_reason": "sample_limit",
+  "errors": [],
+  "finished_unix_ns": 1793077250103885639
+}

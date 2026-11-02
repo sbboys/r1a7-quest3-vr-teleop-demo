@@ -31,3 +31,7 @@
 `r1a7_threading_project/docs/r1a7_existing_motion_perception_task_metrics_2026-10-27_zh.md`。
 当前只有 10 mm/s Test02 具备单次人工成功标签，不能据此宣称稳定成功率。
 
+
+## 2026-11-02 文档连续性与源码归档
+
+[四文档核对报告](../../r1a7_threading_project/docs/r1a7_four_document_github_audit_2026-11-02_zh.md)连接左腕传统感知、研究方案、三相机时序识别与GRASP引导历史，包含缺失内容、文件哈希、结果与未验收项。

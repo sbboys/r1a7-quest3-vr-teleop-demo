@@ -73,3 +73,7 @@
 - 冻结标签：`snapshot/<project>-YYYY-MM-DD`
 
 历史分支暂不删除。待统一工作线完成真机回归和 GitHub 默认分支/保护策略确认后，再决定是否在界面中隐藏旧分支。
+
+## 2026-11-02 来源核对分支
+
+`codex/r1a7-vision-doc-sync-2026-11-02` 从最新相关研发提交 `8d01fda` 建立，目标为 `codex/r1a7-console-camera-suite-2026-10-11`。用于四文档连续性核对、缺失文档/U-Net研究源码与结果归档；硬件控制差异仅保存快照。合并状态以GitHub PR为准，不改变main或历史快照。

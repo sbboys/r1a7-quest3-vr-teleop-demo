@@ -31,3 +31,11 @@
 视觉评价不能只报告像素误差或 valid 帧比例。正式研究还需独立真值、端到端延迟、
 实际末端误差和穿孔试次成功率；协议中的 `0.05/0.10 mm` 等均为待验证候选门槛。
 
+
+## 2026-11-02 三相机 U-Net 研究补充
+
+- [核对报告](../../r1a7_threading_project/docs/r1a7_four_document_github_audit_2026-11-02_zh.md)
+- [U-Net实验模块](../../r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/README.md)
+- [原始记录与控制差异快照](../../r1a7_threading_project/docs/source_records/2026-11-02/README.md)
+
+三相机研究与原控制台默认入口分别管理。11/02文档记载发生过运动但未验收；本次未运行硬件，Fusion/Gate/控制器补丁仅归档。

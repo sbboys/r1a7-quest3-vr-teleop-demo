@@ -26,3 +26,8 @@
 - `archive/`：历史文档和已结束项目说明。
 
 历史文档暂时保留原路径，防止旧启动说明和链接失效。新增文档按上述逻辑分类；物理迁移必须放在独立重构提交中。
+
+## 2026-11-02 连续研究补充
+
+- [四文档核对与同步报告](../r1a7_threading_project/docs/r1a7_four_document_github_audit_2026-11-02_zh.md)
+- [原件、全文、快照与哈希](../r1a7_threading_project/docs/source_records/2026-11-02/README.md)

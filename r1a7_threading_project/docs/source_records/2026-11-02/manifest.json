@@ -1,0 +1,413 @@
+{
+  "audit_date": "2026-11-02 Asia/Shanghai",
+  "baseline_commit": "8d01fdac3117add7f6d2929f4a45bc0437ef8e13",
+  "documents": [
+    {
+      "supplied_path": "/home/robot/桌面/jiqiren/renwu/2026.10.22左腕相机工作记录.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-10-20_to_2026-10-22/2026.10.22_左腕相机工作记录.docx",
+      "sha256": "b149bf6b1cf82632dde0f6fd9ee78cfd71b1ba6420d3dee2d9bcd8d85a5fbda2",
+      "size_bytes": 44663,
+      "baseline_status": "identical",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-02/2026-10-22_left_wrist.md"
+    },
+    {
+      "supplied_path": "/home/robot/桌面/jiqiren/renwu/2026.10.26机器人细线穿孔课题_全对话整理与实施说明.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-10-27/机器人细线穿孔课题_全对话整理与实施说明.docx",
+      "sha256": "0f8c19a18ef18d926436060eab24293d97f85614f4f08b48edae7fe6cb59e5b5",
+      "size_bytes": 3801720,
+      "baseline_status": "identical",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-02/2026-10-26_research_plan.md"
+    },
+    {
+      "supplied_path": "/home/robot/桌面/jiqiren/renwu/2026.10.30R1-A7_三相机细线与镊子实时识别_对话与实验全记录_2026-10-30.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-02/2026.10.30R1-A7_三相机细线与镊子实时识别_对话与实验全记录_2026-10-30.docx",
+      "sha256": "cf6ee1524d88ccf366614cae321e449012d546cc04bacd64ed394d0a8488f977",
+      "size_bytes": 82982,
+      "baseline_status": "missing",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-02/2026-10-30_three_camera.md"
+    },
+    {
+      "supplied_path": "/home/robot/桌面/jiqiren/renwu/2026.11.2R1-A7_当前对话操作与技术路线汇总_2026-11-02.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-02/2026.11.2R1-A7_当前对话操作与技术路线汇总_2026-11-02.docx",
+      "sha256": "c0fc39863fa1942730ce6c2eafe6878a10b144b10677c23036a2065595f4c828",
+      "size_bytes": 53352,
+      "baseline_status": "missing",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-02/2026-11-02_guidance.md"
+    }
+  ],
+  "synced_files": [
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/analyze_wire_components_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/analyze_wire_components_v2.py",
+      "size_bytes": 14284,
+      "sha256": "70158e17345b15cb63f9c9bbf6764ef4c83fe06385c847c64383b7780e2c648b",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_000041_free_end.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_000041_free_end.py",
+      "size_bytes": 5114,
+      "sha256": "d56b8602cb463149523c26818d2d67221305d4f7a1d8241c6501d39ce425e3d9",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_000041_stage_ablation.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_000041_stage_ablation.py",
+      "size_bytes": 8695,
+      "sha256": "407f2b03964cef03d32a270485e6dcff1ffa870bbfdbcc93abe9074842a70b37",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_000041_wire_probability.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_000041_wire_probability.py",
+      "size_bytes": 4458,
+      "sha256": "602caf21ebb1c3def2faba81bec9663b283220d973acd802c2449978580c3aed",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_wire_errors_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/diagnose_wire_errors_v2.py",
+      "size_bytes": 6135,
+      "sha256": "5aa38e3543ffdd065572ea22d4a7edfffc3a75ac789f7349f673658513831a6c",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_connected_path_v3.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_connected_path_v3.py",
+      "size_bytes": 20116,
+      "sha256": "a61a50d552af2a9bcf490a3b9ce9d81a8132249e6b52cae9dfc4935c3a795661",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_endpoint_tangent_v4.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_endpoint_tangent_v4.py",
+      "size_bytes": 22334,
+      "sha256": "13f2ea26cb8b79dac9c2ba13d7d739e5cba2083ec19878608505cf5b0355fc11",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_main_cluster_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_main_cluster_v2.py",
+      "size_bytes": 10530,
+      "sha256": "2da3cdad2e4375a2760de062f07b66965dced08d079ded1f53e5721c7bdd3cce",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_skeleton_endpoints_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_skeleton_endpoints_v2.py",
+      "size_bytes": 12365,
+      "sha256": "a3de5de9f3529fb9ac0bc1211f2424452fe1191b933e5b3c6233d081cb362d32",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_threshold_sweep.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_threshold_sweep.py",
+      "size_bytes": 7136,
+      "sha256": "4122f42a213dd77d9c0f7cd8cf733098cbc616c45e87473b1197b8210fdb3c74",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_tolerance_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_wire_tolerance_v2.py",
+      "size_bytes": 10282,
+      "sha256": "6a5bc8cceaad7fe7a6b6833ade24644baabc66b8615f29039d0b24b14b54a206",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_free_grasp_validation_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_free_grasp_validation_v1.py",
+      "size_bytes": 52647,
+      "sha256": "3b653e33808053d744c333e46068979c33fa98b9c254135299b97e92e8062fda",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_free_grasp_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_free_grasp_v1.py",
+      "size_bytes": 21250,
+      "sha256": "cc617df0539ebab54485178f262d56d50976bbcc6b540d94aad594c662158487",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_wire_live_tweezer_tip_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_wire_live_tweezer_tip_v1.py",
+      "size_bytes": 32656,
+      "sha256": "4dfc752b3b5b3414bec27b6ec221c336f9d15c57a322558c65e03ac196fd5fc9",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_wire_live_tweezer_tip_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_wire_live_tweezer_tip_v2.py",
+      "size_bytes": 14215,
+      "sha256": "639f6198b09cf7667a45fd591d91776cb77192198294759f51bb3ed17598a809",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_wire_live_tweezer_tip_v3.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_hybrid_locked_wire_live_tweezer_tip_v3.py",
+      "size_bytes": 7814,
+      "sha256": "b1667b98ff7e08063509823b8ab3dd0d2dfbccaa09a15aed8a7b140fe7ffb0e4",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_manual_free_grasp_validation_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_manual_free_grasp_validation_v1.py",
+      "size_bytes": 45477,
+      "sha256": "38d4b5d52ff9ae96ae4a6483a27f2427ae0d5cff8e55749220a9b8e12a6749f1",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_visual_guidance_shadow_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_visual_guidance_shadow_v1.py",
+      "size_bytes": 31826,
+      "sha256": "1627c71712d560fb39b486c24cb324bb50b96a8ed6e016cd6bcd5e85cde63dbc",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_wire_stability_validation_three_camera.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_wire_stability_validation_three_camera.py",
+      "size_bytes": 23987,
+      "sha256": "63853981a74b24fb1e81166dd5c49933987afe71c52b158f83d5ba3c9d9e00f4",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_wire_temporal_validation_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_wire_temporal_validation_v1.py",
+      "size_bytes": 34223,
+      "sha256": "3d260e9a8ea95734789cd6ecb0b365ee60b5d816c4d24b85061954c7dd68c168",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_wire_unet_three_camera.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_wire_unet_three_camera.py",
+      "size_bytes": 20908,
+      "sha256": "e81e4b1fc5b3e27b9f22caec5430bc22372149b0f2776fe0822e01224a8587b3",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/overfit_wire_unet.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/overfit_wire_unet.py",
+      "size_bytes": 14300,
+      "sha256": "66ead262ceb880f5499c9d338dba571263fbb91866323a48a316b2d51f0ebe15",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v1.py",
+      "size_bytes": 16646,
+      "sha256": "a8f71bfe421704c208ca49742660c6a1684017d3aaa6d43c2ba8c7b6b584947a",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v2.py",
+      "size_bytes": 16646,
+      "sha256": "a8f71bfe421704c208ca49742660c6a1684017d3aaa6d43c2ba8c7b6b584947a",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v2_resume.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v2_resume.py",
+      "size_bytes": 10852,
+      "sha256": "63a33aa088f6b47ce121c6186bef2c482e423e7842f58b51b718e3998959356e",
+      "kind": "unvalidated_research_source",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-02/research_code_snapshot/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "size_bytes": 5381,
+      "sha256": "acfa3b7e3aa83d64cf40efddb4721a568897e5e19c8b4f2a92814369582fe82e",
+      "kind": "archive_only_not_deployed",
+      "baseline_status": "different"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-02/research_code_snapshot/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "size_bytes": 9898,
+      "sha256": "5b7d57e3a4b4dcae4acf597025f6b768896681ffda7f69564d515ecedaecd836",
+      "kind": "archive_only_not_deployed",
+      "baseline_status": "different"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-02/research_code_snapshot/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_v1.py",
+      "size_bytes": 195596,
+      "sha256": "1dd40274bae633feb63b95cef6c74ffad42f901fa4054b1f3f90322dd4a3158e",
+      "kind": "archive_only_not_deployed",
+      "baseline_status": "different"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v1/best_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v1/best_metrics.json",
+      "size_bytes": 1690,
+      "sha256": "1234fac99648dd51403d908b1e3dcb7884f023d9ed6f9439815721367ac4a30e",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v1/history.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v1/history.json",
+      "size_bytes": 56090,
+      "sha256": "05c8faca3c57ca2cd243f6472a253218d954ead40386e29ac5dca55addbaaf87",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/baseline_resume_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v2_resume/baseline_resume_metrics.json",
+      "size_bytes": 1800,
+      "sha256": "31035a92f96c1c671c23f1b0e65a028d79c81abac98d8445657034e098dcfe0a",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/best_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v2_resume/best_metrics.json",
+      "size_bytes": 1794,
+      "sha256": "b0e9097707219f3da3a7cb4327124acbb5fe52552ee3687515bd15f838af6f70",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/history.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v2_resume/history.json",
+      "size_bytes": 93081,
+      "sha256": "be7056abb5e4e0ae8b2bf016e14ed236164cedbdd97de8c19825a8bd7fd36c2b",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/wire_geometry_v4_frozen_config.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v2_resume/wire_geometry_v4_frozen_config.json",
+      "size_bytes": 657,
+      "sha256": "4a1478a3ddebe27c03c47724d6a10ea4d9051c585465e5cf7d1569b3fe4458d3",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/wire_main_cluster_eval.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v2_resume/wire_main_cluster_eval.json",
+      "size_bytes": 16761,
+      "sha256": "26d7281f32986b049899afe96a1bba4ecfeff2b94d63e32cc278423c321fd90e",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/wire_threshold_sweep.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v2_resume/wire_threshold_sweep.json",
+      "size_bytes": 15880,
+      "sha256": "ffaebd9b99ed5758a0ac7ba2b9dd39b9674d43d7c59f7951e0afdaaa13c5b001",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/wire_tolerance_eval_t086.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/training/unet_train_val_v2_resume/wire_tolerance_eval_t086.json",
+      "size_bytes": 4484,
+      "sha256": "a28819b0386f7568d22f031bd7abc933d31d4d1cecf3ca9971a129919fc78329",
+      "kind": "historical_result_json",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/splits_sample_level_seed42.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/dataset/splits_sample_level_seed42.json",
+      "size_bytes": 1299,
+      "sha256": "96fd17007dc2ba75e12eda98922ede8359d230b2713d687a387259d475d3c16d",
+      "kind": "dataset_metadata",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/session.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/dataset/session.json",
+      "size_bytes": 1347,
+      "sha256": "a044743a48603c62bc725363eaa7b42d9ccfe8391565f2af76f9c3ec8760a649",
+      "kind": "dataset_metadata",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_live_validation/motion_stability_20261030_140255/summary.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/live_validation/motion_stability_20261030_140255/summary.json",
+      "size_bytes": 1976,
+      "sha256": "438e4bc34120803b20cfd1fd01ff20e8644ae7fdfdfd23d43f8034574fffb9e9",
+      "kind": "historical_result_summary",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_live_validation/motion_stability_20261030_142023/summary.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/live_validation/motion_stability_20261030_142023/summary.json",
+      "size_bytes": 1989,
+      "sha256": "87ae18d03bc4b2becbf4846f42aa6353176dcd9e5b30bd792b2d7fd34b3d8ac9",
+      "kind": "historical_result_summary",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_live_validation/temporal_v1_20261030_144103/summary.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-02_wire_unet/live_validation/temporal_v1_20261030_144103/summary.json",
+      "size_bytes": 1628,
+      "sha256": "ef6646a9e015458a644d318f0b02b96c3526dc134f86e2066296e86e1bbe69b4",
+      "kind": "historical_result_summary",
+      "baseline_status": "missing"
+    }
+  ],
+  "external_checkpoints": [
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_overfit_12/best.pt",
+      "size_bytes": 93259608,
+      "sha256": "7ccc650206be04804a71e6a30265001bb39b44e6d32400dfc4de5eabec559176",
+      "uploaded": false,
+      "acquisition": "local workstation file; request an explicit transfer from owner; no hosted download URL",
+      "device": "External USB ZOOM 20685204b12d5283; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "environment": "tv_sam2 (documented); Python 3.10.20, torch 2.3.1+cu121 (documented, not runtime rechecked)",
+      "experiment_period": "2026-10-27 to 2026-10-30; exact training time not independently established"
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v1/best.pt",
+      "size_bytes": 93260248,
+      "sha256": "96833187a0f20028fc120f0d44d9ea3be51f6b09363c04e489ee4052dcc4aa3c",
+      "uploaded": false,
+      "acquisition": "local workstation file; request an explicit transfer from owner; no hosted download URL",
+      "device": "External USB ZOOM 20685204b12d5283; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "environment": "tv_sam2 (documented); Python 3.10.20, torch 2.3.1+cu121 (documented, not runtime rechecked)",
+      "experiment_period": "2026-10-27 to 2026-10-30; exact training time not independently established"
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/best.pt",
+      "size_bytes": 93261080,
+      "sha256": "cb7ae5f4664bb5f1a558beeb941a49847cc1694f4d343024391973d4052c1687",
+      "uploaded": false,
+      "acquisition": "local workstation file; request an explicit transfer from owner; no hosted download URL",
+      "device": "External USB ZOOM 20685204b12d5283; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "environment": "tv_sam2 (documented); Python 3.10.20, torch 2.3.1+cu121 (documented, not runtime rechecked)",
+      "experiment_period": "2026-10-27 to 2026-10-30; exact training time not independently established"
+    }
+  ],
+  "local_png_counts": {
+    "images": 150,
+    "masks": 150
+  },
+  "data_boundary": "Only metadata and summary JSON uploaded. Raw images/masks/probabilities/videos/checkpoints stay local. Local existence is not remote backup or runtime validation."
+}

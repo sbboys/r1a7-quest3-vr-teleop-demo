@@ -1,0 +1,60 @@
+{
+  "session": "/home/robot/r1a7_datasets/wire_live_validation/motion_stability_20261030_142023",
+  "thresholds": {
+    "path_rel_jump": 0.35,
+    "wire_pixel_rel_jump": 0.5
+  },
+  "cameras": {
+    "external": {
+      "frames": 313,
+      "wire_found_rate": 1.0,
+      "tool_found_rate": 0.9904153354632588,
+      "path_found_rate": 1.0,
+      "connect_rate": 1.0,
+      "wire_longest_dropout_frames": 0,
+      "tool_longest_dropout_frames": 1,
+      "path_longest_dropout_frames": 0,
+      "infer_fps_median": 14.231488249331964,
+      "infer_fps_p05": 12.696051935056097,
+      "path_jump_median": 0.008273347586259713,
+      "path_jump_p95": 0.050434081285886674,
+      "path_jump_gt_threshold_rate": 0.006389776357827476,
+      "anomaly_frames": 5,
+      "anomaly_rate": 0.01597444089456869
+    },
+    "right_wrist": {
+      "frames": 313,
+      "wire_found_rate": 1.0,
+      "tool_found_rate": 1.0,
+      "path_found_rate": 1.0,
+      "connect_rate": 1.0,
+      "wire_longest_dropout_frames": 0,
+      "tool_longest_dropout_frames": 0,
+      "path_longest_dropout_frames": 0,
+      "infer_fps_median": 13.740833884772941,
+      "infer_fps_p05": 11.864072717029842,
+      "path_jump_median": 0.021483152264070438,
+      "path_jump_p95": 0.7899324607999226,
+      "path_jump_gt_threshold_rate": 0.1757188498402556,
+      "anomaly_frames": 55,
+      "anomaly_rate": 0.1757188498402556
+    },
+    "left_wrist": {
+      "frames": 313,
+      "wire_found_rate": 1.0,
+      "tool_found_rate": 1.0,
+      "path_found_rate": 1.0,
+      "connect_rate": 1.0,
+      "wire_longest_dropout_frames": 0,
+      "tool_longest_dropout_frames": 0,
+      "path_longest_dropout_frames": 0,
+      "infer_fps_median": 13.93192984464347,
+      "infer_fps_p05": 12.105585606876227,
+      "path_jump_median": 0.017202838333859667,
+      "path_jump_p95": 1.0527169505685634,
+      "path_jump_gt_threshold_rate": 0.15654952076677317,
+      "anomaly_frames": 50,
+      "anomaly_rate": 0.1597444089456869
+    }
+  }
+}

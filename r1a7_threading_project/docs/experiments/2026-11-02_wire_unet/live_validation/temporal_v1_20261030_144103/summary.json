@@ -1,0 +1,53 @@
+{
+  "parameters": {
+    "temporal_radius": 7,
+    "path_jump_trigger": 0.35,
+    "support_min": 0.65,
+    "candidate_length_jump_max": 0.35,
+    "hold_max_frames": 2
+  },
+  "cameras": {
+    "external": {
+      "frames": 368,
+      "raw_jump_gt35_rate": 0.0,
+      "tracked_jump_gt35_rate": 0.0,
+      "raw_jump_p95": 0.04979258486089088,
+      "tracked_jump_p95": 0.04979258486089088,
+      "support_median": 0.9786666666666667,
+      "track_rate": 1.0,
+      "recover_rate": 0.0,
+      "hold_rate": 0.0,
+      "reset_rate": 0.0,
+      "lost_rate": 0.0,
+      "fps_median": 14.808424596239389
+    },
+    "right_wrist": {
+      "frames": 368,
+      "raw_jump_gt35_rate": 0.11141304347826086,
+      "tracked_jump_gt35_rate": 0.021739130434782608,
+      "raw_jump_p95": 0.5842271075747121,
+      "tracked_jump_p95": 0.24472153803121624,
+      "support_median": 0.895980506125369,
+      "track_rate": 0.8885869565217391,
+      "recover_rate": 0.04076086956521739,
+      "hold_rate": 0.04891304347826087,
+      "reset_rate": 0.021739130434782608,
+      "lost_rate": 0.0,
+      "fps_median": 14.439263058829606
+    },
+    "left_wrist": {
+      "frames": 368,
+      "raw_jump_gt35_rate": 0.28804347826086957,
+      "tracked_jump_gt35_rate": 0.002717391304347826,
+      "raw_jump_p95": 1.3292996126648713,
+      "tracked_jump_p95": 0.10029406364507114,
+      "support_median": 0.9043188946342291,
+      "track_rate": 0.7119565217391305,
+      "recover_rate": 0.2554347826086957,
+      "hold_rate": 0.029891304347826088,
+      "reset_rate": 0.002717391304347826,
+      "lost_rate": 0.0,
+      "fps_median": 13.154556167989586
+    }
+  }
+}

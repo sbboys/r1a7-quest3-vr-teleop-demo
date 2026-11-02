@@ -1,0 +1,23 @@
+{
+  "model": "UNet_v2_best_epoch72",
+  "wire_threshold": 0.86,
+  "main_cluster_bridge_px": 24,
+  "component_max_gap_px": 50.0,
+  "tangent_span_px": 20.0,
+
+  "geometry_confidence_gate": {
+    "pred_connect_ok": true,
+    "min_path_support_fraction": 0.90,
+    "max_bridge_px": 40.0
+  },
+
+  "selection_basis": "validation_only",
+  "test_used_during_selection": false,
+
+  "notes": [
+    "Exact pixel Dice is retained as a strict metric.",
+    "Primary geometric quality is evaluated on connected centerline geometry.",
+    "TOOL/FREE classification requires a valid predicted tool mask.",
+    "Test parameters must not be changed after test evaluation."
+  ]
+}
