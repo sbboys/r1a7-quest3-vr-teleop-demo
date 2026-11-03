@@ -41,3 +41,7 @@
 | threading O/V/C | raw-key映射当前源码存在，快照语法检查 | 按键运行与夹爪真机验收 |
 
 本次没有启动设备或运动。实际检查记录见[核对报告](../r1a7_threading_project/docs/r1a7_four_document_github_audit_2026-11-02_zh.md)。
+
+## 2026-11-03 合并检查
+
+归档提交 `36445a6` 直接继承目标分支原头 `8d01fda`，可以fast-forward，无代码冲突。合并前重新执行带比较基线的repository sanity、差异空白检查，并核对原位Fusion/Gate/控制器无变化。仅进行Git与文档操作；硬件验证边界保持不变。
