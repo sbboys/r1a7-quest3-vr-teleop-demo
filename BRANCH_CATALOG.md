@@ -77,3 +77,7 @@
 ## 2026-11-02 来源核对分支
 
 `codex/r1a7-vision-doc-sync-2026-11-02` 从最新相关研发提交 `8d01fda` 建立，目标为 `codex/r1a7-console-camera-suite-2026-10-11`。用于四文档连续性核对、缺失文档/U-Net研究源码与结果归档；硬件控制差异仅保存快照。2026-11-03 用户授权继续合并，按 fast-forward 纳入目标研发分支，归档内容提交为 `36445a6`；合并状态以远端 refs 和提交祖先关系为准。不改变main或历史快照。
+
+## 2026-11-04 右腕OPEN归档
+
+`codex/r1a7-right-wrist-open-archive-2026-11-04` 基于 `c1f466a`，沿用本对话已授权的归档与快进合并方式，目标为 `codex/r1a7-console-camera-suite-2026-10-11`。保留历史、原研究区及控制台默认控制器；远端HEAD以实际refs为准。

@@ -28,3 +28,11 @@ External=USB ZOOM 20685204b12d5283；Right Wrist=CPCBC53000C5；Left Wrist=CPCBC
 TIP→GRASP保留。FREE用于初始化和几何定向；不自动闭爪。Temporal HOLD不是新测量；长度跳变下降不等于尖端或工具定位精度达标。
 
 完整核对、历史指标和待验收项见项目 `docs/r1a7_four_document_github_audit_2026-11-02_zh.md`。
+
+## 2026-11-03 Right Wrist OPEN 后续研究
+
+最新文件核对归档于2026-11-04。新增Orbbec采集、V3 mixed replay训练、9图V2/V3评估和右腕双尖端中点模块；当前实时前端按原路径同步为External/Left用V2、Right Wrist用V3，并引用RightWristTweezerTipMidpointV1。闭合或双分量条件不足时回退原单尖端，这是基于mask形态的判断，不是LowState状态识别。
+
+单右腕标注器位于父目录 `annotate_wire_unet_v2_right_wrist_open.py`；原三相机v2标注器也保留。旧的“25个文件”是11/02归档时的数量。
+
+V3 checkpoint仍为本地绝对路径且未上传。不要在已有开放Gate/控制器运行时把本视觉脚本当作无影响的shadow演示。直接自动抓取控制器仅快照归档，未替换控制台控制器。流程、命令来源、状态差异及结果见项目docs中的 `r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md`。

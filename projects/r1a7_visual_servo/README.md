@@ -39,3 +39,7 @@
 - [原始记录与控制差异快照](../../r1a7_threading_project/docs/source_records/2026-11-02/README.md)
 
 三相机研究与原控制台默认入口分别管理。11/02文档记载发生过运动但未验收；本次未运行硬件，Fusion/Gate/控制器补丁仅归档。
+
+## 2026-11-04 Right Wrist OPEN
+
+[归档报告](../../r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)保存11/03流程、技术方案、采集标注训练评估与操作记录。当前研究前端采用External/Left V2、Right Wrist V3及mask形态midpoint；控制器只归档，不替换现用控制台。

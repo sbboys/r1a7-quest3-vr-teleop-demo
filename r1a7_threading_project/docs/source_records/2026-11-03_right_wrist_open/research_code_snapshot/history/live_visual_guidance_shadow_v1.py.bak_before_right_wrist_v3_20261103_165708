@@ -1,0 +1,1808 @@
+#!/usr/bin/env python3
+
+import json
+import os
+import time
+from pathlib import Path
+
+import cv2
+import numpy as np
+
+# Reuse the current, already tuned visual stack:
+#
+# V3:
+#   precise FREE/GRASP crosses
+# V2:
+#   precise low-latency tweezer TIP
+# V1:
+#   hybrid External/Left locked wire
+#   + Right Wrist live temporal wire
+import live_hybrid_locked_wire_live_tweezer_tip_v3 as visual
+
+
+base = visual.v2.v1.base
+temporal = visual.v2.v1.temporal
+manual = visual.v2.v1.manual
+
+TweezerTipTracker = (
+    visual.v2.TweezerTipTrackerV2
+)
+
+draw_tip = (
+    visual.v2.draw_tip_v2
+)
+
+draw_scene = (
+    visual.draw_scene_precise
+)
+
+
+# ============================================================
+# CONFIG
+# ============================================================
+
+WINDOW = "R1-A7 CURRENT V3 VISUAL GUIDANCE - SHADOW V1"
+
+CAMERA_ORDER = (
+    "external",
+    "right_wrist",
+    "left_wrist",
+)
+
+FIXED_WIRE_CAMERAS = {
+    "external",
+    "left_wrist",
+}
+
+LIVE_WIRE_CAMERA = (
+    "right_wrist"
+)
+
+
+# Latest GitHub wire-grasp guidance gains.
+KP_EXT_X = 0.08
+KP_EXT_Z = 0.08
+
+KP_WRIST_Y = 0.08
+KP_WRIST_Z = 0.08
+
+DEADBAND_PX = 4.0
+
+MAX_AXIS_MM_S = 10.0
+
+
+# Files expected by latest GitHub fusion.
+EXTERNAL_OUT = Path(
+    "/tmp/r1a7_external_wire_grasp_v1.json"
+)
+
+WRIST_OUT = Path(
+    "/tmp/r1a7_wrist_wire_grasp_guidance.json"
+)
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def clip(
+    value,
+    limit,
+):
+
+    return float(
+        np.clip(
+            float(value),
+            -float(limit),
+            float(limit),
+        )
+    )
+
+
+def axis_command(
+    error_px,
+    kp,
+    sign,
+):
+
+    if (
+        error_px is None
+        or
+        not np.isfinite(
+            error_px
+        )
+    ):
+        return 0.0
+
+    if (
+        abs(
+            float(error_px)
+        )
+        <=
+        DEADBAND_PX
+    ):
+        return 0.0
+
+    return clip(
+        sign
+        *
+        kp
+        *
+        float(error_px),
+        MAX_AXIS_MM_S,
+    )
+
+
+def atomic_json(
+    path,
+    data,
+):
+
+    tmp = Path(
+        str(path)
+        + ".tmp"
+    )
+
+    tmp.write_text(
+        json.dumps(
+            data,
+            indent=2,
+        )
+    )
+
+    os.replace(
+        tmp,
+        path,
+    )
+
+
+def copy_dict_arrays(
+    src,
+):
+
+    if src is None:
+        return None
+
+    out = {}
+
+    for k, v in (
+        src.items()
+    ):
+
+        if isinstance(
+            v,
+            np.ndarray,
+        ):
+
+            out[k] = (
+                v.copy()
+            )
+
+        else:
+
+            out[k] = v
+
+    return out
+
+
+def uv_from_yx(
+    point_yx,
+):
+
+    if point_yx is None:
+        return None
+
+    return [
+        float(
+            point_yx[1]
+        ),
+        float(
+            point_yx[0]
+        ),
+    ]
+
+
+def calculate_error(
+    tip_result,
+    geometry,
+):
+
+    if (
+        tip_result is None
+        or
+        not tip_result.get(
+            "valid",
+            False,
+        )
+    ):
+        return None
+
+    grasp_yx = geometry.get(
+        "grasp_point_yx"
+    )
+
+    tip_yx = tip_result.get(
+        "tip_yx"
+    )
+
+    if (
+        grasp_yx is None
+        or
+        tip_yx is None
+    ):
+        return None
+
+    gu = float(
+        grasp_yx[1]
+    )
+
+    gv = float(
+        grasp_yx[0]
+    )
+
+    tu = float(
+        tip_yx[1]
+    )
+
+    tv = float(
+        tip_yx[0]
+    )
+
+    # Target - current.
+    du = gu - tu
+    dv = gv - tv
+
+    return {
+        "tip_uv":
+            [
+                tu,
+                tv,
+            ],
+
+        "grasp_uv":
+            [
+                gu,
+                gv,
+            ],
+
+        "du":
+            float(du),
+
+        "dv":
+            float(dv),
+
+        "norm":
+            float(
+                np.hypot(
+                    du,
+                    dv,
+                )
+            ),
+    }
+
+
+# ============================================================
+# EXTERNAL GUIDANCE
+#
+# GitHub verified mapping:
+#
+# image +U -> robot +X
+# image +V -> robot -Z
+# ============================================================
+
+def publish_external(
+    locked,
+    track,
+    geometry,
+    tip_result,
+):
+
+    now = time.time()
+
+    err = calculate_error(
+        tip_result,
+        geometry,
+    )
+
+    valid = bool(
+        locked
+        and
+        err is not None
+        and
+        tip_result.get(
+            "valid",
+            False,
+        )
+    )
+
+    if valid:
+
+        du = err["du"]
+        dv = err["dv"]
+
+        vx = axis_command(
+            du,
+            KP_EXT_X,
+            +1.0,
+        )
+
+        vz = axis_command(
+            dv,
+            KP_EXT_Z,
+            -1.0,
+        )
+
+    else:
+
+        du = None
+        dv = None
+
+        vx = 0.0
+        vz = 0.0
+
+    out = {
+        "timestamp":
+            now,
+
+        # SHADOW ONLY.
+        "enabled":
+            False,
+
+        "shadow_mode":
+            True,
+
+        "source":
+            "current_v3_external_locked_wire_live_tip",
+
+        "guidance_valid":
+            valid,
+
+        "wire_locked":
+            bool(
+                locked
+            ),
+
+        "track_state":
+            (
+                track.get(
+                    "state"
+                )
+                if track
+                is not None
+                else None
+            ),
+
+        "tweezer_tip_uv":
+            (
+                err["tip_uv"]
+                if valid
+                else None
+            ),
+
+        "grasp_target_uv":
+            (
+                err["grasp_uv"]
+                if valid
+                else None
+            ),
+
+        "du_px":
+            du,
+
+        "dv_px":
+            dv,
+
+        "error_norm_px":
+            (
+                err["norm"]
+                if valid
+                else None
+            ),
+
+        # AUTO_GRASP_VISUAL_FIELDS_V1
+        "tip_grasp_distance_px":
+            (
+                float(tip_result["tip_grasp_distance_px"])
+                if (
+                    valid
+                    and
+                    tip_result.get("tip_grasp_distance_px") is not None
+                )
+                else None
+            ),
+
+        "tool_pixels":
+            (
+                int(tip_result.get("tool_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "front_pixels":
+            (
+                int(tip_result.get("front_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "axis_ratio":
+            (
+                float(tip_result["axis_ratio"])
+                if (
+                    valid
+                    and
+                    tip_result.get("axis_ratio") is not None
+                )
+                else None
+            ),
+
+        "tip_status":
+            tip_result.get("status"),
+
+        "proposed_vx_mm_s":
+            float(vx),
+
+        "proposed_vy_mm_s":
+            0.0,
+
+        "proposed_vz_mm_s":
+            float(vz),
+    }
+
+    atomic_json(
+        EXTERNAL_OUT,
+        out,
+    )
+
+    return out
+
+
+# ============================================================
+# RIGHT WRIST GUIDANCE
+#
+# Latest GitHub mapping:
+#
+# image +U -> robot -Y
+# image +V -> robot -Z
+# ============================================================
+
+def publish_wrist(
+    calibrated,
+    track,
+    geometry,
+    tip_result,
+):
+
+    now = time.time()
+
+    err = calculate_error(
+        tip_result,
+        geometry,
+    )
+
+    track_state = (
+        track.get(
+            "state"
+        )
+        if track
+        is not None
+        else None
+    )
+
+    # Important:
+    # HOLD / RESET / LOST are NOT accepted as a new control
+    # measurement.
+    live_state_ok = (
+        track_state
+        in (
+            "INIT",
+            "TRACK",
+            "RECOVER",
+        )
+    )
+
+    geometry_ok = bool(
+        geometry.get(
+            "measurement_valid",
+            False,
+        )
+    )
+
+    valid = bool(
+        calibrated
+        and
+        live_state_ok
+        and
+        geometry_ok
+        and
+        err is not None
+        and
+        tip_result.get(
+            "valid",
+            False,
+        )
+    )
+
+    if valid:
+
+        du = err["du"]
+        dv = err["dv"]
+
+        vy = axis_command(
+            du,
+            KP_WRIST_Y,
+            -1.0,
+        )
+
+        vz = axis_command(
+            dv,
+            KP_WRIST_Z,
+            -1.0,
+        )
+
+    else:
+
+        du = None
+        dv = None
+
+        vy = 0.0
+        vz = 0.0
+
+    out = {
+        "timestamp":
+            now,
+
+        # SHADOW ONLY.
+        "enabled":
+            False,
+
+        "shadow_mode":
+            True,
+
+        "source":
+            "current_v3_right_wrist_live_wire_live_tip",
+
+        "guidance_valid":
+            valid,
+
+        "track_state":
+            track_state,
+
+        "geometry_status":
+            geometry.get(
+                "status"
+            ),
+
+        "tweezer_grasp_center_uv":
+            (
+                err["tip_uv"]
+                if valid
+                else None
+            ),
+
+        "tweezer_tip_uv":
+            (
+                err["tip_uv"]
+                if valid
+                else None
+            ),
+
+        "grasp_target_uv":
+            (
+                err["grasp_uv"]
+                if valid
+                else None
+            ),
+
+        "du_px":
+            du,
+
+        "dv_px":
+            dv,
+
+        "error_norm_px":
+            (
+                err["norm"]
+                if valid
+                else None
+            ),
+
+        # AUTO_GRASP_VISUAL_FIELDS_V1
+        "tip_grasp_distance_px":
+            (
+                float(tip_result["tip_grasp_distance_px"])
+                if (
+                    valid
+                    and
+                    tip_result.get("tip_grasp_distance_px") is not None
+                )
+                else None
+            ),
+
+        "tool_pixels":
+            (
+                int(tip_result.get("tool_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "front_pixels":
+            (
+                int(tip_result.get("front_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "axis_ratio":
+            (
+                float(tip_result["axis_ratio"])
+                if (
+                    valid
+                    and
+                    tip_result.get("axis_ratio") is not None
+                )
+                else None
+            ),
+
+        "tip_status":
+            tip_result.get("status"),
+
+        "proposed_vx_mm_s":
+            0.0,
+
+        "proposed_vy_mm_s":
+            float(vy),
+
+        "proposed_vz_mm_s":
+            float(vz),
+    }
+
+    atomic_json(
+        WRIST_OUT,
+        out,
+    )
+
+    return out
+
+
+# ============================================================
+# DISPLAY GUIDANCE
+# ============================================================
+
+def draw_guidance(
+    image,
+    result,
+    camera,
+):
+
+    y0 = 178
+
+    if not result.get(
+        "guidance_valid",
+        False,
+    ):
+
+        text = (
+            "GUIDANCE: INVALID / SHADOW"
+        )
+
+        cv2.putText(
+            image,
+            text,
+            (
+                12,
+                y0,
+            ),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.46,
+            (
+                0,
+                165,
+                255,
+            ),
+            1,
+            cv2.LINE_AA,
+        )
+
+        return image
+
+    du = result[
+        "du_px"
+    ]
+
+    dv = result[
+        "dv_px"
+    ]
+
+    if camera == "external":
+
+        line1 = (
+            f"GUIDE SHADOW  "
+            f"du={du:+.1f}  "
+            f"dv={dv:+.1f}"
+        )
+
+        line2 = (
+            f"vx={result['proposed_vx_mm_s']:+.2f}  "
+            f"vz={result['proposed_vz_mm_s']:+.2f} "
+            f"mm/s"
+        )
+
+    else:
+
+        line1 = (
+            f"GUIDE SHADOW  "
+            f"du={du:+.1f}  "
+            f"dv={dv:+.1f}"
+        )
+
+        line2 = (
+            f"vy={result['proposed_vy_mm_s']:+.2f}  "
+            f"vz={result['proposed_vz_mm_s']:+.2f} "
+            f"mm/s"
+        )
+
+    cv2.putText(
+        image,
+        line1,
+        (
+            12,
+            y0,
+        ),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (
+            255,
+            255,
+            255,
+        ),
+        1,
+        cv2.LINE_AA,
+    )
+
+    cv2.putText(
+        image,
+        line2,
+        (
+            12,
+            y0 + 24,
+        ),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (
+            0,
+            255,
+            255,
+        ),
+        1,
+        cv2.LINE_AA,
+    )
+
+    return image
+
+
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+
+    print("=" * 82)
+    print(
+        "R1-A7 CURRENT V3 VISUAL GUIDANCE - SHADOW V1"
+    )
+    print("=" * 82)
+
+    print()
+    print(
+        "EXTERNAL:"
+    )
+
+    print(
+        "  locked GRASP + live TIP -> X/Z guidance"
+    )
+
+    print()
+    print(
+        "RIGHT WRIST:"
+    )
+
+    print(
+        "  live GRASP + live TIP -> Y/Z guidance"
+    )
+
+    print()
+    print(
+        "LEFT WRIST:"
+    )
+
+    print(
+        "  monitoring only; no motion component"
+    )
+
+    print()
+    print(
+        "KP external X/Z = 0.08"
+    )
+
+    print(
+        "KP wrist Y/Z    = 0.08"
+    )
+
+    print(
+        "deadband        = 4 px"
+    )
+
+    print(
+        "per-axis limit  = 10 mm/s"
+    )
+
+    print()
+    print(
+        "OUTPUTS:"
+    )
+
+    print(
+        " ",
+        EXTERNAL_OUT,
+    )
+
+    print(
+        " ",
+        WRIST_OUT,
+    )
+
+    print()
+    print(
+        "THIS PROGRAM DOES NOT SEND LowCmd."
+    )
+
+    print(
+        "THIS PROGRAM ALWAYS WRITES enabled=false."
+    )
+
+    print("=" * 82)
+
+    model, device = (
+        base.load_model()
+    )
+
+    temporal_trackers = {
+        camera:
+            temporal.TemporalTracker(
+                camera
+            )
+        for camera
+        in CAMERA_ORDER
+    }
+
+    free_trackers = {
+        camera:
+            manual.ManualFreeTracker(
+                camera
+            )
+        for camera
+        in CAMERA_ORDER
+    }
+
+    tip_trackers = {
+        camera:
+            TweezerTipTracker(
+                camera
+            )
+        for camera
+        in CAMERA_ORDER
+    }
+
+    locked = {
+        "external":
+            False,
+
+        "left_wrist":
+            False,
+    }
+
+    locked_tracks = {
+        "external":
+            None,
+
+        "left_wrist":
+            None,
+    }
+
+    locked_geometry = {
+        "external":
+            None,
+
+        "left_wrist":
+            None,
+    }
+
+    latest_tracks = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+    latest_shapes = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+    panel_layout = {}
+
+    latest_external_guidance = {}
+    latest_wrist_guidance = {}
+
+    # --------------------------------------------------------
+    # MOUSE CALIBRATION
+    # --------------------------------------------------------
+
+    def on_mouse(
+        event,
+        x,
+        y,
+        flags,
+        param,
+    ):
+
+        if (
+            event
+            !=
+            cv2.EVENT_LBUTTONDOWN
+        ):
+            return
+
+        camera = None
+        local_x = None
+        local_y = None
+
+        for name in (
+            CAMERA_ORDER
+        ):
+
+            layout = (
+                panel_layout.get(
+                    name
+                )
+            )
+
+            if layout is None:
+                continue
+
+            if (
+                layout["x0"]
+                <= x
+                < layout["x1"]
+                and
+                0
+                <= y
+                < layout["h"]
+            ):
+
+                camera = name
+
+                local_x = (
+                    x
+                    -
+                    layout["x0"]
+                )
+
+                local_y = y
+
+                break
+
+        if camera is None:
+            return
+
+        track = (
+            latest_tracks[
+                camera
+            ]
+        )
+
+        shape = (
+            latest_shapes[
+                camera
+            ]
+        )
+
+        if (
+            track is None
+            or
+            shape is None
+        ):
+            return
+
+        if (
+            camera
+            in FIXED_WIRE_CAMERAS
+            and
+            locked[
+                camera
+            ]
+        ):
+
+            print(
+                f"[{camera}] already locked; press C to recalibrate"
+            )
+
+            return
+
+        state = (
+            track.get(
+                "state"
+            )
+        )
+
+        if (
+            state
+            not in (
+                "INIT",
+                "TRACK",
+                "RECOVER",
+            )
+        ):
+
+            print(
+                f"[{camera}] calibration rejected, state={state}"
+            )
+
+            return
+
+        layout = (
+            panel_layout[
+                camera
+            ]
+        )
+
+        h = int(
+            shape[0]
+        )
+
+        w = int(
+            shape[1]
+        )
+
+        native_x = int(
+            np.clip(
+                local_x
+                * w
+                / layout["w"],
+                0,
+                w - 1,
+            )
+        )
+
+        native_y = int(
+            np.clip(
+                local_y
+                * h
+                / layout["h"],
+                0,
+                h - 1,
+            )
+        )
+
+        tracker = (
+            free_trackers[
+                camera
+            ]
+        )
+
+        tracker.current_shape = (
+            track["path"].shape
+        )
+
+        ok = tracker.calibrate(
+            track["path"],
+            (
+                native_y,
+                native_x,
+            ),
+        )
+
+        if not ok:
+            return
+
+        # External + Left wire reference becomes fixed.
+        if (
+            camera
+            in FIXED_WIRE_CAMERAS
+        ):
+
+            locked_track = {
+                "path":
+                    track[
+                        "path"
+                    ].copy(),
+
+                "length":
+                    float(
+                        track[
+                            "length"
+                        ]
+                    ),
+
+                "state":
+                    "LOCKED",
+
+                "support":
+                    1.0,
+
+                "raw_jump":
+                    0.0,
+
+                "candidate_jump":
+                    0.0,
+
+                "hold_count":
+                    0,
+            }
+
+            geometry = (
+                copy_dict_arrays(
+                    tracker.last_geometry
+                )
+            )
+
+            geometry[
+                "state"
+            ] = "LOCKED"
+
+            geometry[
+                "status"
+            ] = "LOCKED_WIRE_REFERENCE"
+
+            geometry[
+                "measurement_valid"
+            ] = False
+
+            geometry[
+                "display_valid"
+            ] = True
+
+            locked_tracks[
+                camera
+            ] = locked_track
+
+            locked_geometry[
+                camera
+            ] = geometry
+
+            locked[
+                camera
+            ] = True
+
+            latest_tracks[
+                camera
+            ] = locked_track
+
+            print(
+                f"[{camera}] WIRE/FREE/GRASP LOCKED"
+            )
+
+        else:
+
+            print(
+                "[right_wrist] FREE identity initialized; LIVE tracking"
+            )
+
+    # --------------------------------------------------------
+    # CAMERAS
+    # --------------------------------------------------------
+
+    external = None
+    right = None
+    left = None
+
+    last_print = 0.0
+
+    try:
+
+        external = (
+            base.open_external()
+        )
+
+        ctx = (
+            base.Context()
+        )
+
+        right = (
+            base.open_orbbec(
+                ctx,
+                base.RIGHT_SERIAL,
+            )
+        )
+
+        left = (
+            base.open_orbbec(
+                ctx,
+                base.LEFT_SERIAL,
+            )
+        )
+
+        time.sleep(
+            1.0
+        )
+
+        cv2.namedWindow(
+            WINDOW,
+            cv2.WINDOW_AUTOSIZE,
+        )
+
+        cv2.setMouseCallback(
+            WINDOW,
+            on_mouse,
+        )
+
+        while True:
+
+            ok_ext, frame_ext = (
+                external.read()
+            )
+
+            frame_right = (
+                base.read_orbbec(
+                    right
+                )
+            )
+
+            frame_left = (
+                base.read_orbbec(
+                    left
+                )
+            )
+
+            if (
+                not ok_ext
+                or
+                frame_right is None
+                or
+                frame_left is None
+            ):
+                continue
+
+            frames = {
+                "external":
+                    frame_ext,
+
+                "right_wrist":
+                    frame_right,
+
+                "left_wrist":
+                    frame_left,
+            }
+
+            detections = {}
+            fps_values = {}
+
+            # Tool/TIP must stay live in all 3 cameras,
+            # therefore U-Net still runs on all three.
+            for camera in (
+                CAMERA_ORDER
+            ):
+
+                (
+                    detections[
+                        camera
+                    ],
+                    fps_values[
+                        camera
+                    ],
+                ) = base.run_one(
+                    model,
+                    device,
+                    frames[
+                        camera
+                    ],
+                )
+
+            tracks = {}
+            geometries = {}
+
+            # External + Left:
+            # wire reference freezes after calibration.
+            for camera in (
+                "external",
+                "left_wrist",
+            ):
+
+                if locked[
+                    camera
+                ]:
+
+                    tracks[
+                        camera
+                    ] = locked_tracks[
+                        camera
+                    ]
+
+                    geometries[
+                        camera
+                    ] = locked_geometry[
+                        camera
+                    ]
+
+                else:
+
+                    tracks[
+                        camera
+                    ] = temporal_trackers[
+                        camera
+                    ].update(
+                        detections[
+                            camera
+                        ]
+                    )
+
+                    geometries[
+                        camera
+                    ] = free_trackers[
+                        camera
+                    ].update(
+                        tracks[
+                            camera
+                        ]
+                    )
+
+                latest_tracks[
+                    camera
+                ] = tracks[
+                    camera
+                ]
+
+                latest_shapes[
+                    camera
+                ] = frames[
+                    camera
+                ].shape
+
+            # Right wrist always live.
+            camera = (
+                LIVE_WIRE_CAMERA
+            )
+
+            tracks[
+                camera
+            ] = temporal_trackers[
+                camera
+            ].update(
+                detections[
+                    camera
+                ]
+            )
+
+            geometries[
+                camera
+            ] = free_trackers[
+                camera
+            ].update(
+                tracks[
+                    camera
+                ]
+            )
+
+            latest_tracks[
+                camera
+            ] = tracks[
+                camera
+            ]
+
+            latest_shapes[
+                camera
+            ] = frames[
+                camera
+            ].shape
+
+            # ------------------------------------------------
+            # TIP V2
+            # ------------------------------------------------
+
+            tip_results = {}
+
+            for camera in (
+                CAMERA_ORDER
+            ):
+
+                grasp_yx = (
+                    geometries[
+                        camera
+                    ].get(
+                        "grasp_point_yx"
+                    )
+                )
+
+                tip_results[
+                    camera
+                ] = tip_trackers[
+                    camera
+                ].update(
+                    detections[
+                        camera
+                    ][
+                        "tool_mask"
+                    ],
+                    grasp_yx,
+                )
+
+            # ------------------------------------------------
+            # Publish latest guidance interface.
+            # ------------------------------------------------
+
+            latest_external_guidance = (
+                publish_external(
+                    locked[
+                        "external"
+                    ],
+                    tracks[
+                        "external"
+                    ],
+                    geometries[
+                        "external"
+                    ],
+                    tip_results[
+                        "external"
+                    ],
+                )
+            )
+
+            latest_wrist_guidance = (
+                publish_wrist(
+                    free_trackers[
+                        "right_wrist"
+                    ].calibrated,
+                    tracks[
+                        "right_wrist"
+                    ],
+                    geometries[
+                        "right_wrist"
+                    ],
+                    tip_results[
+                        "right_wrist"
+                    ],
+                )
+            )
+
+            # ------------------------------------------------
+            # DISPLAY
+            # ------------------------------------------------
+
+            visuals = {}
+
+            for camera in (
+                CAMERA_ORDER
+            ):
+
+                vis = draw_scene(
+                    frames[
+                        camera
+                    ],
+                    detections[
+                        camera
+                    ],
+                    tracks[
+                        camera
+                    ],
+                    geometries[
+                        camera
+                    ],
+                    camera.upper(),
+                    fps_values[
+                        camera
+                    ],
+                )
+
+                vis = draw_tip(
+                    vis,
+                    tip_results[
+                        camera
+                    ],
+                )
+
+                if camera == "external":
+
+                    vis = draw_guidance(
+                        vis,
+                        latest_external_guidance,
+                        "external",
+                    )
+
+                elif camera == "right_wrist":
+
+                    vis = draw_guidance(
+                        vis,
+                        latest_wrist_guidance,
+                        "right_wrist",
+                    )
+
+                else:
+
+                    cv2.putText(
+                        vis,
+                        "LEFT WRIST: MONITOR ONLY",
+                        (
+                            12,
+                            178,
+                        ),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.46,
+                        (
+                            255,
+                            255,
+                            255,
+                        ),
+                        1,
+                        cv2.LINE_AA,
+                    )
+
+                visuals[
+                    camera
+                ] = vis
+
+            resized = {
+                camera:
+                    base.resize_panel(
+                        visuals[
+                            camera
+                        ]
+                    )
+                for camera
+                in CAMERA_ORDER
+            }
+
+            panel_layout.clear()
+
+            x0 = 0
+
+            for camera in (
+                CAMERA_ORDER
+            ):
+
+                h, w = (
+                    resized[
+                        camera
+                    ].shape[:2]
+                )
+
+                panel_layout[
+                    camera
+                ] = {
+                    "x0":
+                        x0,
+
+                    "x1":
+                        x0 + w,
+
+                    "w":
+                        w,
+
+                    "h":
+                        h,
+                }
+
+                x0 += w
+
+            panel = np.hstack(
+                [
+                    resized[
+                        camera
+                    ]
+                    for camera
+                    in CAMERA_ORDER
+                ]
+            )
+
+            cv2.imshow(
+                WINDOW,
+                panel,
+            )
+
+            now_mono = (
+                time.monotonic()
+            )
+
+            if (
+                now_mono
+                -
+                last_print
+                >
+                1.0
+            ):
+
+                e = (
+                    latest_external_guidance
+                )
+
+                w = (
+                    latest_wrist_guidance
+                )
+
+                print(
+                    "[SHADOW] "
+                    f"EXT valid={e.get('guidance_valid')} "
+                    f"du={e.get('du_px')} "
+                    f"dv={e.get('dv_px')} "
+                    f"vx={e.get('proposed_vx_mm_s',0):+.2f} "
+                    f"vz={e.get('proposed_vz_mm_s',0):+.2f} | "
+                    f"WRIST valid={w.get('guidance_valid')} "
+                    f"du={w.get('du_px')} "
+                    f"dv={w.get('dv_px')} "
+                    f"vy={w.get('proposed_vy_mm_s',0):+.2f} "
+                    f"vz={w.get('proposed_vz_mm_s',0):+.2f}",
+                    flush=True,
+                )
+
+                last_print = (
+                    now_mono
+                )
+
+            key = (
+                cv2.waitKey(1)
+                &
+                0xFF
+            )
+
+            if key in (
+                ord("c"),
+                ord("C"),
+            ):
+
+                for tracker in (
+                    free_trackers.values()
+                ):
+                    tracker.clear()
+
+                for tracker in (
+                    tip_trackers.values()
+                ):
+                    tracker.clear()
+
+                temporal_trackers = {
+                    camera:
+                        temporal.TemporalTracker(
+                            camera
+                        )
+                    for camera
+                    in CAMERA_ORDER
+                }
+
+                for camera in (
+                    FIXED_WIRE_CAMERAS
+                ):
+
+                    locked[
+                        camera
+                    ] = False
+
+                    locked_tracks[
+                        camera
+                    ] = None
+
+                    locked_geometry[
+                        camera
+                    ] = None
+
+                print(
+                    "[CLEAR] all calibration cleared"
+                )
+
+            elif key in (
+                ord("p"),
+                ord("P"),
+            ):
+
+                print()
+                print(
+                    "EXTERNAL:"
+                )
+
+                print(
+                    json.dumps(
+                        latest_external_guidance,
+                        indent=2,
+                    )
+                )
+
+                print()
+                print(
+                    "RIGHT WRIST:"
+                )
+
+                print(
+                    json.dumps(
+                        latest_wrist_guidance,
+                        indent=2,
+                    )
+                )
+
+            elif key in (
+                ord("q"),
+                ord("Q"),
+                27,
+            ):
+
+                break
+
+    except KeyboardInterrupt:
+
+        print(
+            "\n[INFO] Ctrl+C"
+        )
+
+    finally:
+
+        # Explicit invalid outputs on exit.
+        atomic_json(
+            EXTERNAL_OUT,
+            {
+                "timestamp":
+                    time.time(),
+
+                "enabled":
+                    False,
+
+                "shadow_mode":
+                    True,
+
+                "guidance_valid":
+                    False,
+
+                "reason":
+                    "VISUAL_PROGRAM_EXIT",
+            },
+        )
+
+        atomic_json(
+            WRIST_OUT,
+            {
+                "timestamp":
+                    time.time(),
+
+                "enabled":
+                    False,
+
+                "shadow_mode":
+                    True,
+
+                "guidance_valid":
+                    False,
+
+                "reason":
+                    "VISUAL_PROGRAM_EXIT",
+            },
+        )
+
+        if external is not None:
+
+            try:
+                external.release()
+            except Exception:
+                pass
+
+        if right is not None:
+
+            try:
+                right.stop()
+            except Exception:
+                pass
+
+        if left is not None:
+
+            try:
+                left.stop()
+            except Exception:
+                pass
+
+        cv2.destroyAllWindows()
+
+        print(
+            "[INFO] Visual Guidance Shadow V1 stopped"
+        )
+
+
+if __name__ == "__main__":
+    main()

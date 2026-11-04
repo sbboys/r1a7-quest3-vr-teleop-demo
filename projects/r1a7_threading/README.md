@@ -35,3 +35,7 @@
 ## 2026-11-02 文档连续性与源码归档
 
 [四文档核对报告](../../r1a7_threading_project/docs/r1a7_four_document_github_audit_2026-11-02_zh.md)连接左腕传统感知、研究方案、三相机时序识别与GRASP引导历史，包含缺失内容、文件哈希、结果与未验收项。
+
+## 2026-11-04 张开镊子与自动抓取研究
+
+[来源和当前文件核对](../../r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)补齐11/03工作，含新增/修改/逻辑删除、历史备份、指标和未完成HOME/闭环验收。

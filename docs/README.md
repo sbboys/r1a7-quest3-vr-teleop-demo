@@ -31,3 +31,5 @@
 
 - [四文档核对与同步报告](../r1a7_threading_project/docs/r1a7_four_document_github_audit_2026-11-02_zh.md)
 - [原件、全文、快照与哈希](../r1a7_threading_project/docs/source_records/2026-11-02/README.md)
+
+- [2026-11-04 右腕张开镊子 V3 双模型与自动抓取归档](../r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)

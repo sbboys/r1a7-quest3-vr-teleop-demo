@@ -1,0 +1,1659 @@
+{
+  "archive_date": "2026-11-04 Asia/Shanghai",
+  "worklog_date": "2026-11-03",
+  "baseline_commit": "c1f466acdac92cbc13d5f2cdbb1c92c10dc247ab",
+  "files": [
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/2026.11.3R1-A7_右腕张开镊子视觉与自动抓取工作记录_2026-11-03.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-03_right_wrist_open/2026.11.3R1-A7_右腕张开镊子视觉与自动抓取工作记录_2026-11-03.docx",
+      "sha256": "85e9b358cbedd96e499bf17912404a4ae74e29c932915b6e174bef5449bcecb0",
+      "size_bytes": 59079,
+      "kind": "source_document",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/capture_right_wrist_open_orbbec_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/capture_right_wrist_open_orbbec_v2.py",
+      "sha256": "529388c0aaa490efb4651dc0f3272e2208001f4467f8b91781b3d81004ed8a39",
+      "size_bytes": 9326,
+      "kind": "research_module",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v3_right_wrist_open.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v3_right_wrist_open.py",
+      "sha256": "61d6279afcafbab476864d847cc194c11f132bf16c6387157cc813ce1536db08",
+      "size_bytes": 18554,
+      "kind": "research_module",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_v2_v3_right_wrist_open_test.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/eval_v2_v3_right_wrist_open_test.py",
+      "sha256": "2608512d69157b51494bd7ac0c5c228539373ce459345eb38dc97ca667f8765b",
+      "size_bytes": 5843,
+      "kind": "research_module",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_right_wrist_tweezer_tip_midpoint_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_right_wrist_tweezer_tip_midpoint_v1.py",
+      "sha256": "62fd812b33a58dbd52af0e4572ec58dee1c65dcbcb9a762c5837981a2601be8e",
+      "size_bytes": 10824,
+      "kind": "research_module",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_visual_guidance_shadow_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_visual_guidance_shadow_v1.py",
+      "sha256": "fa76643b428db2310846ac10c185f637fcc7e1bf3850d45149f453aec55ce9a6",
+      "size_bytes": 35527,
+      "kind": "research_module",
+      "change_against_c1f466a": "modified"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/annotate_wire_unet_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/annotate_wire_unet_v2.py",
+      "sha256": "9c4c835723f6027d25af3cd7c02e694c919e72796f412f6face3761000eacabd",
+      "size_bytes": 25758,
+      "kind": "annotation_tool",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/annotate_wire_unet_v2_right_wrist_open.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/annotate_wire_unet_v2_right_wrist_open.py",
+      "sha256": "105608cffad0a77c4f267b915d3bf20af7763aae3a1805332867eab4df7600ce",
+      "size_bytes": 25733,
+      "kind": "annotation_tool",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-03_right_wrist_open/research_code_snapshot/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "sha256": "942111e4fc05c7371d6d5aeddf6142221fef95d498dc63f7ef2cb5d65831643d",
+      "size_bytes": 215599,
+      "kind": "archive_only_controller",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/capture_right_wrist_open_rgb_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-03_right_wrist_open/research_code_snapshot/vision_dual_camera/task6_threading/dataset_tools/wire_unet/capture_right_wrist_open_rgb_v1.py",
+      "sha256": "ca55788c92f410540f85a159ff317b181abbade5503dc2a10997a860ff152c28",
+      "size_bytes": 8070,
+      "kind": "archive_failed_v4l2_capture",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_visual_guidance_shadow_v1.py.bak_before_right_wrist_v3_20261103_165708",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-03_right_wrist_open/research_code_snapshot/history/live_visual_guidance_shadow_v1.py.bak_before_right_wrist_v3_20261103_165708",
+      "sha256": "c89fd9ea9523a484602e34a0eec3248f95a51641616bd3aab53dca0ba6939e43",
+      "size_bytes": 33818,
+      "kind": "historical_source_backup",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py.bak_before_remove_wrist_ev_close_gate_20261103_190457",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-03_right_wrist_open/research_code_snapshot/history/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py.bak_before_remove_wrist_ev_close_gate_20261103_190457",
+      "sha256": "02279ac0dacbc59154e06ce3ac9084e0c1ee1aee14d783447e98233cf3f8e773",
+      "size_bytes": 215749,
+      "kind": "historical_source_backup",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/splits_sample_level_seed42.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/splits_sample_level_seed42.json",
+      "sha256": "8d2ca7e6c98d52b3f8fce3b36810d2e762cea4c2c799abbe3cdb53040156cb5b",
+      "size_bytes": 942,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/splits_right_wrist_open_grouped_v1.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/splits_right_wrist_open_grouped_v1.json",
+      "sha256": "00ca7532366ec6a143c296f665b4d9dd2363e9b0988443b2b62e382d3942b31d",
+      "size_bytes": 1009,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/qa_mask_stats.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/qa_mask_stats.csv",
+      "sha256": "64cd5373c75357d3fb3ff0ff9c07cbe809be609f23b1bab10a5e7fe8b689e464",
+      "size_bytes": 2607,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/annotation_log.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/annotation_log.jsonl",
+      "sha256": "aa91b077c1a82505d874ec92aec25b0bbee0a312b14a99796d3120cdf73654e1",
+      "size_bytes": 20288,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/metadata/session_20261103_112013.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/metadata/session_20261103_112013.csv",
+      "sha256": "d0bd359058f69a62ed9410c205d3ee1b2ae7cdbb5e59f48f7ce744e1393c56fd",
+      "size_bytes": 8708,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/runs/v3_mixed_replay/baseline_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/runs/v3_mixed_replay/baseline_metrics.json",
+      "sha256": "8d0818e361d228886e510edc99209ac8e6abee4b300b4055cebffceae2e8f318",
+      "size_bytes": 2510,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/runs/v3_mixed_replay/best_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/runs/v3_mixed_replay/best_metrics.json",
+      "sha256": "aad5281c68c8eb0bfb9c26c926c52d536f305a0a65b36204db13993f6796642e",
+      "size_bytes": 2336,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/runs/v3_mixed_replay/history.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/runs/v3_mixed_replay/history.json",
+      "sha256": "3b952518c9223c50c3aaac34f09c58a88a404db223b2039bed523ac239933780",
+      "size_bytes": 51930,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/eval_v2_v3_test/metrics.json",
+      "sha256": "fa492bbc6ed66fa2d86b5f83888049fee074d25c792b29116db771ae80587cdf",
+      "size_bytes": 3245,
+      "kind": "historical_result_or_metadata",
+      "change_against_c1f466a": "added"
+    }
+  ],
+  "external_assets": [
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000001.png",
+      "relative_to_dataset": "images/right_wrist/000001.png",
+      "size_bytes": 1388976,
+      "sha256": "0fe2aa4a95955f9307c987df4fc0799df5a29619740aabd69cb9fb57e0a39f32",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000002.png",
+      "relative_to_dataset": "images/right_wrist/000002.png",
+      "size_bytes": 1390982,
+      "sha256": "b49e5faf99525534ed7c29cdd9548c18c06c9e15e11c03585f40bd59306c662a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000003.png",
+      "relative_to_dataset": "images/right_wrist/000003.png",
+      "size_bytes": 1389039,
+      "sha256": "5152ddbb11adb6120c66e1664d4732df3404c1207f90e300eb3974907d43fecc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000004.png",
+      "relative_to_dataset": "images/right_wrist/000004.png",
+      "size_bytes": 1388636,
+      "sha256": "0b901dde0fc14b65a5be3032f68fc3dc965a64e89d640a396cd9820f655b90e7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000005.png",
+      "relative_to_dataset": "images/right_wrist/000005.png",
+      "size_bytes": 1389174,
+      "sha256": "709995066122d038d6169b30f20aba373a7a1751e05dc1b49e57ae6c07c6132a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000006.png",
+      "relative_to_dataset": "images/right_wrist/000006.png",
+      "size_bytes": 1394287,
+      "sha256": "65ca84a3a197297ceb3ab33839c0e76e9ca0b5b9a1a325ef6b2c2c949d5eeb41",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000007.png",
+      "relative_to_dataset": "images/right_wrist/000007.png",
+      "size_bytes": 1395727,
+      "sha256": "eb1e6ec491cc9f7fea66d73ee679571c1ccd3ab45a6550c3be0a7b3f008d8f4f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000008.png",
+      "relative_to_dataset": "images/right_wrist/000008.png",
+      "size_bytes": 1396360,
+      "sha256": "dbfeea83e7300825cce7193512424b657c31e2dad5ed9efc7f1f4689b53ec10a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000009.png",
+      "relative_to_dataset": "images/right_wrist/000009.png",
+      "size_bytes": 1394959,
+      "sha256": "a13767fcf99d998299a1843149e3437bab41d23d7d08adccdc55e8846fdec959",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000010.png",
+      "relative_to_dataset": "images/right_wrist/000010.png",
+      "size_bytes": 1368000,
+      "sha256": "f47a9262ecdb62d35311ed5823ee4a0996b5b34ac9e98bf688345f44ce325f88",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000011.png",
+      "relative_to_dataset": "images/right_wrist/000011.png",
+      "size_bytes": 1368255,
+      "sha256": "0b51f337b75d335c31295679cd4d606bcb52cf8d246b5f254d706d02766ae041",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000012.png",
+      "relative_to_dataset": "images/right_wrist/000012.png",
+      "size_bytes": 1367528,
+      "sha256": "be20600457b173ed01e5592af0371a04dfec5490afb5362fe0df328389f0f3d6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000013.png",
+      "relative_to_dataset": "images/right_wrist/000013.png",
+      "size_bytes": 1366874,
+      "sha256": "267dabf1bd64bf9c3c90e9f8fddb164936aae3a773faaed23f606e00dde06dc2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000014.png",
+      "relative_to_dataset": "images/right_wrist/000014.png",
+      "size_bytes": 1378954,
+      "sha256": "5cdb1ad0bfa1cc065bded9e1b9236d838ecc47f3d8320a0e01f59c00343f8cfc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000015.png",
+      "relative_to_dataset": "images/right_wrist/000015.png",
+      "size_bytes": 1382600,
+      "sha256": "e2b62e613e85c5d68c9dab4b70e4c8ee0533927d97c93c52c8c1054f931c51c3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000016.png",
+      "relative_to_dataset": "images/right_wrist/000016.png",
+      "size_bytes": 1380126,
+      "sha256": "27c4e14e596b5e49341d758cbadb3b7fc372bea1e34830514408c02d3d6f7a2c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000017.png",
+      "relative_to_dataset": "images/right_wrist/000017.png",
+      "size_bytes": 1374259,
+      "sha256": "83cab114ab03a2ad2abad215cbf09174a1d7a591d8dd0e8634aed3e22a1439f1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000018.png",
+      "relative_to_dataset": "images/right_wrist/000018.png",
+      "size_bytes": 1376258,
+      "sha256": "476e3a311f0283ed31dffa2fbe20b65c0a15ecbf50f850d5d48509dd92ac14a0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000019.png",
+      "relative_to_dataset": "images/right_wrist/000019.png",
+      "size_bytes": 1374877,
+      "sha256": "c6ec182adb1cf4579b30bdbf162bc6dba7052cd042724b17fa4e761bd5b31c66",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000020.png",
+      "relative_to_dataset": "images/right_wrist/000020.png",
+      "size_bytes": 1386575,
+      "sha256": "c61f7d59f3519446044b32e961a0bc55ab627fe09ea64fb5712e6c4322f1651e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000021.png",
+      "relative_to_dataset": "images/right_wrist/000021.png",
+      "size_bytes": 1384946,
+      "sha256": "0c6779f9117222f8f4cae50720ff0eb3b75c4d08a5d331b4b436b5915de69ac7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000022.png",
+      "relative_to_dataset": "images/right_wrist/000022.png",
+      "size_bytes": 1385284,
+      "sha256": "9949e680f6955fb1992511e4a5c180a9de3277d518145d3ad6e41cd00efd26d2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000023.png",
+      "relative_to_dataset": "images/right_wrist/000023.png",
+      "size_bytes": 1378853,
+      "sha256": "3b9b64312d81071e834e136ee0ef04d77b9806a1d6ba9cb0a76d9343fc766ebc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000024.png",
+      "relative_to_dataset": "images/right_wrist/000024.png",
+      "size_bytes": 1376651,
+      "sha256": "c45e18e5a3e70bd700e20b5c520ffe99c8cfc679c9669c9fc143aaefc8844162",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000025.png",
+      "relative_to_dataset": "images/right_wrist/000025.png",
+      "size_bytes": 1378605,
+      "sha256": "d54d1916995f526f250db4275617baafdc09536d761af0f909926c960c88b707",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000026.png",
+      "relative_to_dataset": "images/right_wrist/000026.png",
+      "size_bytes": 1427479,
+      "sha256": "8eb4575bfb72336476e7ec72aafd778f05a51dd197c59d6d85a5f9186b45f0d7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000027.png",
+      "relative_to_dataset": "images/right_wrist/000027.png",
+      "size_bytes": 1426585,
+      "sha256": "b08276620ca18ab5dc43addd01c882d4f4761353ded570d3f3facbfe82b508c1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000028.png",
+      "relative_to_dataset": "images/right_wrist/000028.png",
+      "size_bytes": 1426534,
+      "sha256": "4d2d66cad53e711fbdd824431c8e819ad3630ee13c3dd3afe9738f676500396d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000029.png",
+      "relative_to_dataset": "images/right_wrist/000029.png",
+      "size_bytes": 1426927,
+      "sha256": "c04c30b9428bc719de02013a7f6135545ce1f1db8be3cd04d941171197224836",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000030.png",
+      "relative_to_dataset": "images/right_wrist/000030.png",
+      "size_bytes": 1425327,
+      "sha256": "74b7dec9a05229a33cbae285c0602dc9815025b581eca7d551227342ad211757",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000031.png",
+      "relative_to_dataset": "images/right_wrist/000031.png",
+      "size_bytes": 1427392,
+      "sha256": "dc384bf479149ef64a10ab9f67dca52d8c4ea85454c28c2895c3f3619027ae76",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000032.png",
+      "relative_to_dataset": "images/right_wrist/000032.png",
+      "size_bytes": 1413469,
+      "sha256": "0c217580d267f492c2f41bd1d8eb2a51407a3f737fab5556389b34f18a5db562",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000033.png",
+      "relative_to_dataset": "images/right_wrist/000033.png",
+      "size_bytes": 1415791,
+      "sha256": "604e013776cda021de0fc859dab3ce45cb95559d467d0bc3322b36f2e65d196d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000034.png",
+      "relative_to_dataset": "images/right_wrist/000034.png",
+      "size_bytes": 1413786,
+      "sha256": "dad39e21b4162bfa1882f7fe731701da20b3affb92953d0920cf4a66c8c91e4d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000035.png",
+      "relative_to_dataset": "images/right_wrist/000035.png",
+      "size_bytes": 1405180,
+      "sha256": "802e2c7f8e98264afcf8bb7ccb660f6e9e68b3882225b63eebec57efc3be2361",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000036.png",
+      "relative_to_dataset": "images/right_wrist/000036.png",
+      "size_bytes": 1403425,
+      "sha256": "d2f8a84e1c634d100ba7f922bfd7ba1d798c6534e78265f4403241df64340b4a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000037.png",
+      "relative_to_dataset": "images/right_wrist/000037.png",
+      "size_bytes": 1406583,
+      "sha256": "255611ae122739b0ab14db29e8d335e9908fc39f97f4b4944d622dab56d7cac5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000038.png",
+      "relative_to_dataset": "images/right_wrist/000038.png",
+      "size_bytes": 1405921,
+      "sha256": "5400c57b7275d200235c497e4ac22b24c57ab76329a69bbdae09f6274c2d4535",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000039.png",
+      "relative_to_dataset": "images/right_wrist/000039.png",
+      "size_bytes": 1403054,
+      "sha256": "dfd0dcc2e4c145b8b5ff6c3611a8f7a52fef1a068259bca7de8c4d7a76f7606a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000040.png",
+      "relative_to_dataset": "images/right_wrist/000040.png",
+      "size_bytes": 1402629,
+      "sha256": "40989a49348dc1586c829afd5e4136725ed265100d403c25b882d072b7f08da5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000041.png",
+      "relative_to_dataset": "images/right_wrist/000041.png",
+      "size_bytes": 1403898,
+      "sha256": "a49cd0c840b1f848e8eec59c36eb2dd8a73a2e65083226d150b58aa29e251fcc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000042.png",
+      "relative_to_dataset": "images/right_wrist/000042.png",
+      "size_bytes": 1403280,
+      "sha256": "94ebd30d76d65d6832fc10ef6c40e49c8477b6122fda660301bdfbd2ae7b1e6b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000043.png",
+      "relative_to_dataset": "images/right_wrist/000043.png",
+      "size_bytes": 1402072,
+      "sha256": "553d2de21330e7d95cd524ee7f6996beb1a0596044659340591c171a6a169a22",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000044.png",
+      "relative_to_dataset": "images/right_wrist/000044.png",
+      "size_bytes": 1401527,
+      "sha256": "b32a07e5cfc1bfbb4065c37440a468f672aebf964e564ba8ca0712790776a169",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000045.png",
+      "relative_to_dataset": "images/right_wrist/000045.png",
+      "size_bytes": 1403352,
+      "sha256": "c42384328ddf60be7827273e5bfc56b8b73a9df4c9957d870dcaa0ad2a86cb10",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000046.png",
+      "relative_to_dataset": "images/right_wrist/000046.png",
+      "size_bytes": 1404028,
+      "sha256": "2c72feacf6cbd8db06d2824e58d21c162ed2d7931dbb655b9515f107c5010bd4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000047.png",
+      "relative_to_dataset": "images/right_wrist/000047.png",
+      "size_bytes": 1427671,
+      "sha256": "826d81480faf8e5021d5b5bdd62305c034351411fc869dd0e2eaa2c5dc37033b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000048.png",
+      "relative_to_dataset": "images/right_wrist/000048.png",
+      "size_bytes": 1426846,
+      "sha256": "98049cb797c4da2043c1765e30f76430e708bcdeb6c91c1187bb30297f066e57",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000049.png",
+      "relative_to_dataset": "images/right_wrist/000049.png",
+      "size_bytes": 1427819,
+      "sha256": "31180df6c9a74e3a7940200998a8e0837a93aebb76c8f7f15d05c5a4c936d7d5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000050.png",
+      "relative_to_dataset": "images/right_wrist/000050.png",
+      "size_bytes": 1427666,
+      "sha256": "2fb5ee1f5cd7f9315c6a495c03eca6f7bde04e762dc9bd027f2f83fb302b9a73",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000051.png",
+      "relative_to_dataset": "images/right_wrist/000051.png",
+      "size_bytes": 1428089,
+      "sha256": "188cb382cd825b1ebbd077c8a242b3e471cfb84013635f01d2140f7462788775",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000052.png",
+      "relative_to_dataset": "images/right_wrist/000052.png",
+      "size_bytes": 1425518,
+      "sha256": "c10577db7b6150192607aa7d85d18a756a0b72c0e87d5fa560caff63db893b21",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000053.png",
+      "relative_to_dataset": "images/right_wrist/000053.png",
+      "size_bytes": 1421005,
+      "sha256": "b6829d1f4582e28def4ada7c6013d4cb078a5abeb53e8348f04b53f9e24b014d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000054.png",
+      "relative_to_dataset": "images/right_wrist/000054.png",
+      "size_bytes": 1422926,
+      "sha256": "f962c872a1eb7bfcb96416e311e58a790ab4828617f014294c629a37c6005d15",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000055.png",
+      "relative_to_dataset": "images/right_wrist/000055.png",
+      "size_bytes": 1430078,
+      "sha256": "b205c7ddeb1445f9afcff92d38a8fd678424dda233804d8d62349a5373a485dd",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000056.png",
+      "relative_to_dataset": "images/right_wrist/000056.png",
+      "size_bytes": 1430670,
+      "sha256": "d2824a2c18ce7a3ffe46bab4af103427af0b73590173e2489f9bd1e99504f4fc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000057.png",
+      "relative_to_dataset": "images/right_wrist/000057.png",
+      "size_bytes": 1429155,
+      "sha256": "b0051c3528b10fb99e8fc03af99e674d338f02abb0694ff296c5c954993a6da8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000058.png",
+      "relative_to_dataset": "images/right_wrist/000058.png",
+      "size_bytes": 1435428,
+      "sha256": "20649b1846b85ad62bdb7afee68f1e748d03a0c830fc0d7c475582be19e02c81",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000059.png",
+      "relative_to_dataset": "images/right_wrist/000059.png",
+      "size_bytes": 1435332,
+      "sha256": "e342a1a6b2caa9471eb20edf7f87f4516806476fe52614443a0f646b190f00a2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000060.png",
+      "relative_to_dataset": "images/right_wrist/000060.png",
+      "size_bytes": 1435889,
+      "sha256": "d4581ddc73edb7be8f6de5a9ebb4197fab18e200a7ac8ec25085d14ef38c4e36",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000061.png",
+      "relative_to_dataset": "images/right_wrist/000061.png",
+      "size_bytes": 1427277,
+      "sha256": "647a98616f33abc320d86ed67bb1194c9281ff15db3d088da4cfa179b93f68ba",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000062.png",
+      "relative_to_dataset": "images/right_wrist/000062.png",
+      "size_bytes": 1428146,
+      "sha256": "c4f98ccba535aa49207fcbe640ef9f2ddfb3dbeb8672c033f67d98e88709585b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000063.png",
+      "relative_to_dataset": "images/right_wrist/000063.png",
+      "size_bytes": 1426248,
+      "sha256": "a60b424987e1286ac154d2a375113fb5058c663e8bbb0ee55613aa2433e54859",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images/right_wrist/000064.png",
+      "relative_to_dataset": "images/right_wrist/000064.png",
+      "size_bytes": 1397614,
+      "sha256": "8b6dca5b0b8a042052dd98b5dadcb75b41d316473d78031edaee3414dd2d0ee8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000001.png",
+      "relative_to_dataset": "masks/right_wrist/000001.png",
+      "size_bytes": 4403,
+      "sha256": "9c69264906a77df9aefd05a161ab30418875c25b8b91a8a908a1e7aa00caf5c5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000002.png",
+      "relative_to_dataset": "masks/right_wrist/000002.png",
+      "size_bytes": 4509,
+      "sha256": "a669ab481c5bc2bd4ef58f6bedc2f2e51b11eef98be7825caf05a2496512f0e7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000003.png",
+      "relative_to_dataset": "masks/right_wrist/000003.png",
+      "size_bytes": 4503,
+      "sha256": "12e58b1b5180a4ffaee5564ce281337dc290bcfee6f78e8d0bd37fccf759cd58",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000004.png",
+      "relative_to_dataset": "masks/right_wrist/000004.png",
+      "size_bytes": 4491,
+      "sha256": "4cafd8de6bc1992d72b54bd0b410594bd332d6d2969f4655fdf44f12bb81b5a9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000005.png",
+      "relative_to_dataset": "masks/right_wrist/000005.png",
+      "size_bytes": 4450,
+      "sha256": "4cb7c13b2d237cbcda6e5c9d309193e21b214b879523a780d291bbde030f230d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000006.png",
+      "relative_to_dataset": "masks/right_wrist/000006.png",
+      "size_bytes": 4423,
+      "sha256": "3b5d9203862a7774a2b229942f951ddebd40a9c119b6909c57a12ea781f891d1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000007.png",
+      "relative_to_dataset": "masks/right_wrist/000007.png",
+      "size_bytes": 4390,
+      "sha256": "49b5ea72ee36de033934e4d1f0f848cb93c9f9ea18da08533a2a7c9616e3926b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000008.png",
+      "relative_to_dataset": "masks/right_wrist/000008.png",
+      "size_bytes": 4374,
+      "sha256": "5acda060f663d359cfa2990b3055065211dab6fc5b5d4d31c44235604d6a01d2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000009.png",
+      "relative_to_dataset": "masks/right_wrist/000009.png",
+      "size_bytes": 4409,
+      "sha256": "ee803df7168b3e5d627a0a12998af9c986bc69ef3de81f49ff531f58802b5960",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000010.png",
+      "relative_to_dataset": "masks/right_wrist/000010.png",
+      "size_bytes": 4599,
+      "sha256": "8a671eba610059ecdc57202624b90e7dda7870250223e10bbe241e4e04163b4a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000011.png",
+      "relative_to_dataset": "masks/right_wrist/000011.png",
+      "size_bytes": 4615,
+      "sha256": "0764363ddf71e254f11e2b805582b41cda3c5261815759aa3088260621fce28c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000012.png",
+      "relative_to_dataset": "masks/right_wrist/000012.png",
+      "size_bytes": 4602,
+      "sha256": "0b6287be7d45c4fdd48acc50c29b0e45dd5691381997f600648b60d3f8c9b951",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000013.png",
+      "relative_to_dataset": "masks/right_wrist/000013.png",
+      "size_bytes": 4665,
+      "sha256": "413c70b4389059f503b0c0d0f0bfa7840ad7341a84f6a5628dd53493ce6c4532",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000014.png",
+      "relative_to_dataset": "masks/right_wrist/000014.png",
+      "size_bytes": 5011,
+      "sha256": "de592accdbc6ef7e1a7ba5d791312493f0637df3285e05228cddcf151057dc1a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000015.png",
+      "relative_to_dataset": "masks/right_wrist/000015.png",
+      "size_bytes": 4984,
+      "sha256": "09814c3a87332972140a27ef0d97879d399612351d4ba341199172704d8ff4e2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000016.png",
+      "relative_to_dataset": "masks/right_wrist/000016.png",
+      "size_bytes": 4969,
+      "sha256": "f8c30aa725ab1f2c80f86da17537f801e50175a5481e1039e12616f74a3a896a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000017.png",
+      "relative_to_dataset": "masks/right_wrist/000017.png",
+      "size_bytes": 4479,
+      "sha256": "5b60a5e632ef92ffef81cbd350603c3e65cb73d14244f0773bc08a92857df492",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000018.png",
+      "relative_to_dataset": "masks/right_wrist/000018.png",
+      "size_bytes": 4444,
+      "sha256": "14b1f17534a58abb9642fa015a6a48af52944fa8632d8744c36da859f7c39025",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000019.png",
+      "relative_to_dataset": "masks/right_wrist/000019.png",
+      "size_bytes": 4438,
+      "sha256": "ce1fd6f6cabb5ffbd772b0ec4a55e7e8e85d7724beaebad636657833fd4941b9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000020.png",
+      "relative_to_dataset": "masks/right_wrist/000020.png",
+      "size_bytes": 4671,
+      "sha256": "52efe074eeb018acb71094096b2a065d044eadf3b840aca7e55482c32d4de014",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000021.png",
+      "relative_to_dataset": "masks/right_wrist/000021.png",
+      "size_bytes": 4686,
+      "sha256": "48b0dc1a906146b39e3f758d4eee1dbf2db1aab99a73269e439f33d25219c5b5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000022.png",
+      "relative_to_dataset": "masks/right_wrist/000022.png",
+      "size_bytes": 4637,
+      "sha256": "4fb0beacaa5d77149b1aad08ddaffbc4d8830d0ea2d81a3bdabe49df907e1024",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000023.png",
+      "relative_to_dataset": "masks/right_wrist/000023.png",
+      "size_bytes": 5119,
+      "sha256": "0d6fc70cbac489c1f70c66b6eb6115c026e7b6c77960d6c70e2a2bc8ca87dd61",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000024.png",
+      "relative_to_dataset": "masks/right_wrist/000024.png",
+      "size_bytes": 5098,
+      "sha256": "49d1e56bc44006cd0db6cb4c836536813a7e288d25b41a62076bc4427411b5ad",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000025.png",
+      "relative_to_dataset": "masks/right_wrist/000025.png",
+      "size_bytes": 5120,
+      "sha256": "6799fa778a2448455c83cf60d4af8127bcb22bc271d717642039add3161c8af4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000026.png",
+      "relative_to_dataset": "masks/right_wrist/000026.png",
+      "size_bytes": 4557,
+      "sha256": "dfc2161e137d0c374852b1546263a1abde2b7fce4fd0816089254713b638c783",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000027.png",
+      "relative_to_dataset": "masks/right_wrist/000027.png",
+      "size_bytes": 4484,
+      "sha256": "78f3e4cf47823490c6e28f201e576d39f84e55e061a6dacd191edc0b2ca7ba6f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000028.png",
+      "relative_to_dataset": "masks/right_wrist/000028.png",
+      "size_bytes": 4459,
+      "sha256": "0e3e115d19909950505476935af4187f51fffb0dca5204b7a13c89833a649038",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000029.png",
+      "relative_to_dataset": "masks/right_wrist/000029.png",
+      "size_bytes": 4446,
+      "sha256": "65d4a3f6f7c60dda08293e3026e17f4d05dc240a52b9eb9b7076218d148d0296",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000030.png",
+      "relative_to_dataset": "masks/right_wrist/000030.png",
+      "size_bytes": 4453,
+      "sha256": "06e46727ed927a14f60702a0f3519149c9e24877f043f9b6885ac54b121eb627",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000031.png",
+      "relative_to_dataset": "masks/right_wrist/000031.png",
+      "size_bytes": 4451,
+      "sha256": "8cab9b91ec0e5756befe8f776d67f42575a102cf1986bbadfceeaef09bd557e2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000032.png",
+      "relative_to_dataset": "masks/right_wrist/000032.png",
+      "size_bytes": 4491,
+      "sha256": "4ec026c6235e2286a8b1396c3464ad166c84dc27b2bb6d29200b61e4ab736299",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000033.png",
+      "relative_to_dataset": "masks/right_wrist/000033.png",
+      "size_bytes": 4406,
+      "sha256": "9251ccf6f9b94fc62c5747427b94204eef5e7677079060af65602c03193f0602",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000034.png",
+      "relative_to_dataset": "masks/right_wrist/000034.png",
+      "size_bytes": 4422,
+      "sha256": "8d9b750f2b3712f57c92722e1bcb9eba49fc15c62672acd15cd1d04ac150454f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000035.png",
+      "relative_to_dataset": "masks/right_wrist/000035.png",
+      "size_bytes": 4743,
+      "sha256": "60c13212d8354aa6eb880526338f73a615dd3dabb75a29e6d5b6a84a5b07b372",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000036.png",
+      "relative_to_dataset": "masks/right_wrist/000036.png",
+      "size_bytes": 4754,
+      "sha256": "ddcf867866904d6b6264ac21976ec4a29223e909744e58b7023d508a705c92e5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000037.png",
+      "relative_to_dataset": "masks/right_wrist/000037.png",
+      "size_bytes": 4746,
+      "sha256": "d1999304abceb1aac7e2fcad4a329791fd2093f7047ba5d89e01fef648f90285",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000038.png",
+      "relative_to_dataset": "masks/right_wrist/000038.png",
+      "size_bytes": 4677,
+      "sha256": "8b6462ad68cf2e178a0a6676dfeac7b9ae53eb88b61069fe66a90d3f050728fc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000039.png",
+      "relative_to_dataset": "masks/right_wrist/000039.png",
+      "size_bytes": 4122,
+      "sha256": "dea49faa5e991ee1d9ab26436e81703328712f00d20e786633129a8693d861ad",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000040.png",
+      "relative_to_dataset": "masks/right_wrist/000040.png",
+      "size_bytes": 4169,
+      "sha256": "dff694dd72d4ed226ef63eee90bc475db6f1616a33b5be09527b4a9577665647",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000041.png",
+      "relative_to_dataset": "masks/right_wrist/000041.png",
+      "size_bytes": 4156,
+      "sha256": "906d012db38bcdf351a6c454d107e89be8c2453021b37fda1eec7f7b45a01276",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000042.png",
+      "relative_to_dataset": "masks/right_wrist/000042.png",
+      "size_bytes": 4196,
+      "sha256": "b25922f82a214c90db15a52bcd72227308b943630bdbabbaaef10881bd174623",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000043.png",
+      "relative_to_dataset": "masks/right_wrist/000043.png",
+      "size_bytes": 4190,
+      "sha256": "7992994d613a1c48a861ce5ba786c5385b3a7dacacccb1b49ec3138e1f4983fb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000044.png",
+      "relative_to_dataset": "masks/right_wrist/000044.png",
+      "size_bytes": 4195,
+      "sha256": "fa4b0f979fc9a2ec967abd9bbe0dd710772ca2ef95bf06094d6f04ab15611091",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000045.png",
+      "relative_to_dataset": "masks/right_wrist/000045.png",
+      "size_bytes": 4209,
+      "sha256": "e097e166c39e22d24f7b07875eb7704d1593e08951703ff7d062dbf1a393ec30",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000046.png",
+      "relative_to_dataset": "masks/right_wrist/000046.png",
+      "size_bytes": 4213,
+      "sha256": "e3409021c913debacb5dc0c33a67390c0489075c56b404bd7017f0182b6de92c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000047.png",
+      "relative_to_dataset": "masks/right_wrist/000047.png",
+      "size_bytes": 4722,
+      "sha256": "02c60873acc7bbdbc08e2a07ea2e4f7862ad5a55472fb039a5bd16daa48a3acf",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000048.png",
+      "relative_to_dataset": "masks/right_wrist/000048.png",
+      "size_bytes": 4673,
+      "sha256": "9a693e042fb36672613cbdb6f78c16a5f0833370615447541fb9f19367d6180a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000049.png",
+      "relative_to_dataset": "masks/right_wrist/000049.png",
+      "size_bytes": 4736,
+      "sha256": "3abf1d5ebcf5daa486aa478138d2fd55f4a55672d4e40bd165f420e0976e7076",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000050.png",
+      "relative_to_dataset": "masks/right_wrist/000050.png",
+      "size_bytes": 4682,
+      "sha256": "7ffe77b07f91a41819c4e12211fa102b100f57cc5f2ea7a0372bd8dade57ff44",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000051.png",
+      "relative_to_dataset": "masks/right_wrist/000051.png",
+      "size_bytes": 4662,
+      "sha256": "797d58b1e7b27573db236b08e6d9d0ca9dc2aedc0827bfb70bb0b3bf6a96fad4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000052.png",
+      "relative_to_dataset": "masks/right_wrist/000052.png",
+      "size_bytes": 3945,
+      "sha256": "72bb8c0769cadb872f31f5c268466525c7c1b17443e0dd344b71335260762e97",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000053.png",
+      "relative_to_dataset": "masks/right_wrist/000053.png",
+      "size_bytes": 3936,
+      "sha256": "1d319ec3b6087cdc67138b389bd2690f3a28492527ae4334e83d364c84d6a69b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000054.png",
+      "relative_to_dataset": "masks/right_wrist/000054.png",
+      "size_bytes": 3938,
+      "sha256": "9293e4f35c44dd7a6d8b18c78daffe6cc6c1a36752a1a39e60917a96e321790c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000055.png",
+      "relative_to_dataset": "masks/right_wrist/000055.png",
+      "size_bytes": 4925,
+      "sha256": "f21fc7e50dbb0227c38996cadd76389a2451e77c61d46e13555076c9d4edfb01",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000056.png",
+      "relative_to_dataset": "masks/right_wrist/000056.png",
+      "size_bytes": 4901,
+      "sha256": "c6c0da04a9618d920f7cfdd5e8d6614ea2f484d3892ead4cca0e27e450050309",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000057.png",
+      "relative_to_dataset": "masks/right_wrist/000057.png",
+      "size_bytes": 4954,
+      "sha256": "d62d190d539406dd68abcd82b684f3a36ac5c13a4646c30036ec2273375fc0f5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000058.png",
+      "relative_to_dataset": "masks/right_wrist/000058.png",
+      "size_bytes": 4431,
+      "sha256": "1456df08c37f3cfea47c4325b0761c1cb3938a851e052baecad84badaacb4171",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000059.png",
+      "relative_to_dataset": "masks/right_wrist/000059.png",
+      "size_bytes": 4427,
+      "sha256": "e117cbab8d43611d793c15ccf2f94ed22bf3148901b33317b1bc8348f0a1d663",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000060.png",
+      "relative_to_dataset": "masks/right_wrist/000060.png",
+      "size_bytes": 4426,
+      "sha256": "630c745b74763ae11405cc0d490bcfc328309158ffc407790bc19f87081d8aa2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000061.png",
+      "relative_to_dataset": "masks/right_wrist/000061.png",
+      "size_bytes": 4757,
+      "sha256": "81264761d49680c7ab0579f2feafc271c9798e938e17ab04cc29c59dd6917a62",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000062.png",
+      "relative_to_dataset": "masks/right_wrist/000062.png",
+      "size_bytes": 4723,
+      "sha256": "c0e557b10efcc5b51e54b3633c7dd3b6ee0fe55d09844205c946bf654b926bf8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000063.png",
+      "relative_to_dataset": "masks/right_wrist/000063.png",
+      "size_bytes": 4754,
+      "sha256": "ade40528f1df5bf1be2a243fb59ab496faa520cc3d4c2b7da895a7c076d44f7a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/masks/right_wrist/000064.png",
+      "relative_to_dataset": "masks/right_wrist/000064.png",
+      "size_bytes": 4475,
+      "sha256": "552dbb4f5fb7987d9ea2d194eeca87ee67c8080d05fa354927529a0779905941",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000000_20261103_112038_866497.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000000_20261103_112038_866497.png",
+      "size_bytes": 1388976,
+      "sha256": "0fe2aa4a95955f9307c987df4fc0799df5a29619740aabd69cb9fb57e0a39f32",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000001_20261103_112042_270059.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000001_20261103_112042_270059.png",
+      "size_bytes": 1390982,
+      "sha256": "b49e5faf99525534ed7c29cdd9548c18c06c9e15e11c03585f40bd59306c662a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000002_20261103_112042_470293.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000002_20261103_112042_470293.png",
+      "size_bytes": 1389039,
+      "sha256": "5152ddbb11adb6120c66e1664d4732df3404c1207f90e300eb3974907d43fecc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000003_20261103_112042_670737.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000003_20261103_112042_670737.png",
+      "size_bytes": 1388636,
+      "sha256": "0b901dde0fc14b65a5be3032f68fc3dc965a64e89d640a396cd9820f655b90e7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000004_20261103_112043_771566.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000004_20261103_112043_771566.png",
+      "size_bytes": 1389174,
+      "sha256": "709995066122d038d6169b30f20aba373a7a1751e05dc1b49e57ae6c07c6132a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000005_20261103_135021_700025.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000005_20261103_135021_700025.png",
+      "size_bytes": 1394287,
+      "sha256": "65ca84a3a197297ceb3ab33839c0e76e9ca0b5b9a1a325ef6b2c2c949d5eeb41",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000006_20261103_135026_906999.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000006_20261103_135026_906999.png",
+      "size_bytes": 1395727,
+      "sha256": "eb1e6ec491cc9f7fea66d73ee679571c1ccd3ab45a6550c3be0a7b3f008d8f4f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000007_20261103_135027_207491.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000007_20261103_135027_207491.png",
+      "size_bytes": 1396360,
+      "sha256": "dbfeea83e7300825cce7193512424b657c31e2dad5ed9efc7f1f4689b53ec10a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000008_20261103_135027_406823.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000008_20261103_135027_406823.png",
+      "size_bytes": 1394959,
+      "sha256": "a13767fcf99d998299a1843149e3437bab41d23d7d08adccdc55e8846fdec959",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000009_20261103_135048_366170.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000009_20261103_135048_366170.png",
+      "size_bytes": 1368000,
+      "sha256": "f47a9262ecdb62d35311ed5823ee4a0996b5b34ac9e98bf688345f44ce325f88",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000010_20261103_135048_599672.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000010_20261103_135048_599672.png",
+      "size_bytes": 1368255,
+      "sha256": "0b51f337b75d335c31295679cd4d606bcb52cf8d246b5f254d706d02766ae041",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000011_20261103_135048_766172.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000011_20261103_135048_766172.png",
+      "size_bytes": 1367528,
+      "sha256": "be20600457b173ed01e5592af0371a04dfec5490afb5362fe0df328389f0f3d6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000012_20261103_135048_933152.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000012_20261103_135048_933152.png",
+      "size_bytes": 1366874,
+      "sha256": "267dabf1bd64bf9c3c90e9f8fddb164936aae3a773faaed23f606e00dde06dc2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000013_20261103_135115_931031.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000013_20261103_135115_931031.png",
+      "size_bytes": 1378954,
+      "sha256": "5cdb1ad0bfa1cc065bded9e1b9236d838ecc47f3d8320a0e01f59c00343f8cfc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000014_20261103_135116_164867.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000014_20261103_135116_164867.png",
+      "size_bytes": 1382600,
+      "sha256": "e2b62e613e85c5d68c9dab4b70e4c8ee0533927d97c93c52c8c1054f931c51c3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000015_20261103_135116_364918.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000015_20261103_135116_364918.png",
+      "size_bytes": 1380126,
+      "sha256": "27c4e14e596b5e49341d758cbadb3b7fc372bea1e34830514408c02d3d6f7a2c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000016_20261103_135127_044313.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000016_20261103_135127_044313.png",
+      "size_bytes": 1374259,
+      "sha256": "83cab114ab03a2ad2abad215cbf09174a1d7a591d8dd0e8634aed3e22a1439f1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000017_20261103_135127_278993.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000017_20261103_135127_278993.png",
+      "size_bytes": 1376258,
+      "sha256": "476e3a311f0283ed31dffa2fbe20b65c0a15ecbf50f850d5d48509dd92ac14a0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000018_20261103_135127_479182.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000018_20261103_135127_479182.png",
+      "size_bytes": 1374877,
+      "sha256": "c6ec182adb1cf4579b30bdbf162bc6dba7052cd042724b17fa4e761bd5b31c66",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000019_20261103_135148_603150.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000019_20261103_135148_603150.png",
+      "size_bytes": 1386575,
+      "sha256": "c61f7d59f3519446044b32e961a0bc55ab627fe09ea64fb5712e6c4322f1651e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000020_20261103_135149_037366.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000020_20261103_135149_037366.png",
+      "size_bytes": 1384946,
+      "sha256": "0c6779f9117222f8f4cae50720ff0eb3b75c4d08a5d331b4b436b5915de69ac7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000021_20261103_135152_774714.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000021_20261103_135152_774714.png",
+      "size_bytes": 1385284,
+      "sha256": "9949e680f6955fb1992511e4a5c180a9de3277d518145d3ad6e41cd00efd26d2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000022_20261103_135209_594910.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000022_20261103_135209_594910.png",
+      "size_bytes": 1378853,
+      "sha256": "3b9b64312d81071e834e136ee0ef04d77b9806a1d6ba9cb0a76d9343fc766ebc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000023_20261103_135209_862502.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000023_20261103_135209_862502.png",
+      "size_bytes": 1376651,
+      "sha256": "c45e18e5a3e70bd700e20b5c520ffe99c8cfc679c9669c9fc143aaefc8844162",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000024_20261103_135210_095812.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000024_20261103_135210_095812.png",
+      "size_bytes": 1378605,
+      "sha256": "d54d1916995f526f250db4275617baafdc09536d761af0f909926c960c88b707",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000025_20261103_135543_415618.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000025_20261103_135543_415618.png",
+      "size_bytes": 1427479,
+      "sha256": "8eb4575bfb72336476e7ec72aafd778f05a51dd197c59d6d85a5f9186b45f0d7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000026_20261103_135543_649141.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000026_20261103_135543_649141.png",
+      "size_bytes": 1426585,
+      "sha256": "b08276620ca18ab5dc43addd01c882d4f4761353ded570d3f3facbfe82b508c1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000027_20261103_135543_815873.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000027_20261103_135543_815873.png",
+      "size_bytes": 1426534,
+      "sha256": "4d2d66cad53e711fbdd824431c8e819ad3630ee13c3dd3afe9738f676500396d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000028_20261103_135543_983291.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000028_20261103_135543_983291.png",
+      "size_bytes": 1426927,
+      "sha256": "c04c30b9428bc719de02013a7f6135545ce1f1db8be3cd04d941171197224836",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000029_20261103_135544_183419.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000029_20261103_135544_183419.png",
+      "size_bytes": 1425327,
+      "sha256": "74b7dec9a05229a33cbae285c0602dc9815025b581eca7d551227342ad211757",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000030_20261103_135544_484103.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000030_20261103_135544_484103.png",
+      "size_bytes": 1427392,
+      "sha256": "dc384bf479149ef64a10ab9f67dca52d8c4ea85454c28c2895c3f3619027ae76",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000031_20261103_135621_627845.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000031_20261103_135621_627845.png",
+      "size_bytes": 1413469,
+      "sha256": "0c217580d267f492c2f41bd1d8eb2a51407a3f737fab5556389b34f18a5db562",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000032_20261103_135621_995100.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000032_20261103_135621_995100.png",
+      "size_bytes": 1415791,
+      "sha256": "604e013776cda021de0fc859dab3ce45cb95559d467d0bc3322b36f2e65d196d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000033_20261103_135622_227897.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000033_20261103_135622_227897.png",
+      "size_bytes": 1413786,
+      "sha256": "dad39e21b4162bfa1882f7fe731701da20b3affb92953d0920cf4a66c8c91e4d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000034_20261103_135627_834528.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000034_20261103_135627_834528.png",
+      "size_bytes": 1405180,
+      "sha256": "802e2c7f8e98264afcf8bb7ccb660f6e9e68b3882225b63eebec57efc3be2361",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000035_20261103_135628_068735.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000035_20261103_135628_068735.png",
+      "size_bytes": 1403425,
+      "sha256": "d2f8a84e1c634d100ba7f922bfd7ba1d798c6534e78265f4403241df64340b4a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000036_20261103_135628_235084.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000036_20261103_135628_235084.png",
+      "size_bytes": 1406583,
+      "sha256": "255611ae122739b0ab14db29e8d335e9908fc39f97f4b4944d622dab56d7cac5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000037_20261103_135632_073776.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000037_20261103_135632_073776.png",
+      "size_bytes": 1405921,
+      "sha256": "5400c57b7275d200235c497e4ac22b24c57ab76329a69bbdae09f6274c2d4535",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000038_20261103_135642_084685.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000038_20261103_135642_084685.png",
+      "size_bytes": 1403054,
+      "sha256": "dfd0dcc2e4c145b8b5ff6c3611a8f7a52fef1a068259bca7de8c4d7a76f7606a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000039_20261103_135642_284819.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000039_20261103_135642_284819.png",
+      "size_bytes": 1402629,
+      "sha256": "40989a49348dc1586c829afd5e4136725ed265100d403c25b882d072b7f08da5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000040_20261103_135642_652926.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000040_20261103_135642_652926.png",
+      "size_bytes": 1403898,
+      "sha256": "a49cd0c840b1f848e8eec59c36eb2dd8a73a2e65083226d150b58aa29e251fcc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000041_20261103_135642_885568.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000041_20261103_135642_885568.png",
+      "size_bytes": 1403280,
+      "sha256": "94ebd30d76d65d6832fc10ef6c40e49c8477b6122fda660301bdfbd2ae7b1e6b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000042_20261103_135643_085762.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000042_20261103_135643_085762.png",
+      "size_bytes": 1402072,
+      "sha256": "553d2de21330e7d95cd524ee7f6996beb1a0596044659340591c171a6a169a22",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000043_20261103_135643_252821.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000043_20261103_135643_252821.png",
+      "size_bytes": 1401527,
+      "sha256": "b32a07e5cfc1bfbb4065c37440a468f672aebf964e564ba8ca0712790776a169",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000044_20261103_135643_453154.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000044_20261103_135643_453154.png",
+      "size_bytes": 1403352,
+      "sha256": "c42384328ddf60be7827273e5bfc56b8b73a9df4c9957d870dcaa0ad2a86cb10",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000045_20261103_135643_620642.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000045_20261103_135643_620642.png",
+      "size_bytes": 1404028,
+      "sha256": "2c72feacf6cbd8db06d2824e58d21c162ed2d7931dbb655b9515f107c5010bd4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000046_20261103_135913_697845.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000046_20261103_135913_697845.png",
+      "size_bytes": 1427671,
+      "sha256": "826d81480faf8e5021d5b5bdd62305c034351411fc869dd0e2eaa2c5dc37033b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000047_20261103_135913_898031.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000047_20261103_135913_898031.png",
+      "size_bytes": 1426846,
+      "sha256": "98049cb797c4da2043c1765e30f76430e708bcdeb6c91c1187bb30297f066e57",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000048_20261103_135914_131569.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000048_20261103_135914_131569.png",
+      "size_bytes": 1427819,
+      "sha256": "31180df6c9a74e3a7940200998a8e0837a93aebb76c8f7f15d05c5a4c936d7d5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000049_20261103_135914_333300.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000049_20261103_135914_333300.png",
+      "size_bytes": 1427666,
+      "sha256": "2fb5ee1f5cd7f9315c6a495c03eca6f7bde04e762dc9bd027f2f83fb302b9a73",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000050_20261103_135914_532345.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000050_20261103_135914_532345.png",
+      "size_bytes": 1428089,
+      "sha256": "188cb382cd825b1ebbd077c8a242b3e471cfb84013635f01d2140f7462788775",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000051_20261103_135922_341299.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000051_20261103_135922_341299.png",
+      "size_bytes": 1425518,
+      "sha256": "c10577db7b6150192607aa7d85d18a756a0b72c0e87d5fa560caff63db893b21",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000052_20261103_135922_576059.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000052_20261103_135922_576059.png",
+      "size_bytes": 1421005,
+      "sha256": "b6829d1f4582e28def4ada7c6013d4cb078a5abeb53e8348f04b53f9e24b014d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000053_20261103_135922_776597.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000053_20261103_135922_776597.png",
+      "size_bytes": 1422926,
+      "sha256": "f962c872a1eb7bfcb96416e311e58a790ab4828617f014294c629a37c6005d15",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000054_20261103_140131_595391.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000054_20261103_140131_595391.png",
+      "size_bytes": 1430078,
+      "sha256": "b205c7ddeb1445f9afcff92d38a8fd678424dda233804d8d62349a5373a485dd",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000055_20261103_140131_795867.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000055_20261103_140131_795867.png",
+      "size_bytes": 1430670,
+      "sha256": "d2824a2c18ce7a3ffe46bab4af103427af0b73590173e2489f9bd1e99504f4fc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000056_20261103_140131_963540.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000056_20261103_140131_963540.png",
+      "size_bytes": 1429155,
+      "sha256": "b0051c3528b10fb99e8fc03af99e674d338f02abb0694ff296c5c954993a6da8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000057_20261103_140207_303976.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000057_20261103_140207_303976.png",
+      "size_bytes": 1435428,
+      "sha256": "20649b1846b85ad62bdb7afee68f1e748d03a0c830fc0d7c475582be19e02c81",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000058_20261103_140207_537603.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000058_20261103_140207_537603.png",
+      "size_bytes": 1435332,
+      "sha256": "e342a1a6b2caa9471eb20edf7f87f4516806476fe52614443a0f646b190f00a2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000059_20261103_140207_670944.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000059_20261103_140207_670944.png",
+      "size_bytes": 1435889,
+      "sha256": "d4581ddc73edb7be8f6de5a9ebb4197fab18e200a7ac8ec25085d14ef38c4e36",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000060_20261103_140612_295114.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000060_20261103_140612_295114.png",
+      "size_bytes": 1427277,
+      "sha256": "647a98616f33abc320d86ed67bb1194c9281ff15db3d088da4cfa179b93f68ba",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000061_20261103_140612_529669.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000061_20261103_140612_529669.png",
+      "size_bytes": 1428146,
+      "sha256": "c4f98ccba535aa49207fcbe640ef9f2ddfb3dbeb8672c033f67d98e88709585b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000062_20261103_140612_695393.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000062_20261103_140612_695393.png",
+      "size_bytes": 1426248,
+      "sha256": "a60b424987e1286ac154d2a375113fb5058c663e8bbb0ee55613aa2433e54859",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/images_raw/session_20261103_112013/right_wrist_open_000063_20261103_140626_178201.png",
+      "relative_to_dataset": "images_raw/session_20261103_112013/right_wrist_open_000063_20261103_140626_178201.png",
+      "size_bytes": 1397614,
+      "sha256": "8b6dca5b0b8a042052dd98b5dadcb75b41d316473d78031edaee3414dd2d0ee8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/qa_contact_sheets/page_01.jpg",
+      "relative_to_dataset": "qa_contact_sheets/page_01.jpg",
+      "size_bytes": 343996,
+      "sha256": "d4eff269bab2ac3367c1e81b7729bfeb28b6f0a31f7eea23f3d31a73a5704787",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/qa_contact_sheets/page_02.jpg",
+      "relative_to_dataset": "qa_contact_sheets/page_02.jpg",
+      "size_bytes": 355199,
+      "sha256": "311770a8e30c628fa277fc57dcb4af7f5fe7bf173a7dbf5b508f21ac6a0ac696",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/qa_contact_sheets/page_03.jpg",
+      "relative_to_dataset": "qa_contact_sheets/page_03.jpg",
+      "size_bytes": 355330,
+      "sha256": "24b484bcb10f60f666c24ff62254830010693b0777a72f97c254c11f4b793415",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/qa_contact_sheets/page_04.jpg",
+      "relative_to_dataset": "qa_contact_sheets/page_04.jpg",
+      "size_bytes": 360372,
+      "sha256": "07cf0f785a00f839e1bd1d679ae72c318e14f7e882a4a706d1499007b4c64159",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000001_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000001_compare.jpg",
+      "size_bytes": 1001570,
+      "sha256": "22b7a13a0fcec8d06c14b054e96497870116794ae9a9bb4452180cb8baf3e97c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000002_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000002_compare.jpg",
+      "size_bytes": 1004172,
+      "sha256": "2627d0437ab876ed16c961473b79b7e8651caeb7d332152409c7fb202fd2ef55",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000003_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000003_compare.jpg",
+      "size_bytes": 1005321,
+      "sha256": "778c5f53889dfdccc07f2618e1648a397fb10735e80326ddfe03cbfcd1d1ad9e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000004_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000004_compare.jpg",
+      "size_bytes": 1004146,
+      "sha256": "2161698d61ba1fdc9549436445f47247d3dbcde80e98fd46da84cdf7849b9264",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000005_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000005_compare.jpg",
+      "size_bytes": 1003288,
+      "sha256": "b7202faaa3670705faff3bebabcc68a947d10300bc968906f72be00fa13d126c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000061_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000061_compare.jpg",
+      "size_bytes": 1052042,
+      "sha256": "7203f4f9428f416a4447eb8cb10a1ee3612fb3708dc3e1ce4493382e7dcbf197",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000062_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000062_compare.jpg",
+      "size_bytes": 1053606,
+      "sha256": "a82dedf8265dbf2140b7c3a3a29c8ecdf86444505fbcd059a3ea617f2ae2d608",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000063_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000063_compare.jpg",
+      "size_bytes": 1050861,
+      "sha256": "ae39b24595fa9feeb11b3e50388e66b320892a7f759391fbd2bdb15e4f20e57a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/eval_v2_v3_test/000064_compare.jpg",
+      "relative_to_dataset": "eval_v2_v3_test/000064_compare.jpg",
+      "size_bytes": 1018788,
+      "sha256": "24c93ffff1c65a30f1af30157809d6ee54436862a9cf915d0a50d854127fa20e",
+      "uploaded": false
+    }
+  ],
+  "checkpoints": [
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/pilot_001/runs/unet_train_val_v2_resume/best.pt",
+      "size_bytes": 93261080,
+      "sha256": "cb7ae5f4664bb5f1a558beeb941a49847cc1694f4d343024391973d4052c1687",
+      "uploaded": false,
+      "device": "Orbbec CPCBC53000C5 new domain; pilot replay: three cameras",
+      "environment": "tv_sam2 (documented), no runtime validation in this upload",
+      "experiment_date": "2026-11-03",
+      "acquisition": "Local workstation only; obtain a separate copy from owner; no hosted artifact URL"
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/runs/v3_right_wrist_open/init_v2_best.pt",
+      "size_bytes": 93261080,
+      "sha256": "cb7ae5f4664bb5f1a558beeb941a49847cc1694f4d343024391973d4052c1687",
+      "uploaded": false,
+      "device": "Orbbec CPCBC53000C5 new domain; pilot replay: three cameras",
+      "environment": "tv_sam2 (documented), no runtime validation in this upload",
+      "experiment_date": "2026-11-03",
+      "acquisition": "Local workstation only; obtain a separate copy from owner; no hosted artifact URL"
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/right_wrist_open_001/runs/v3_mixed_replay/best.pt",
+      "size_bytes": 93260760,
+      "sha256": "2130e7c1d0ccd6b795f17e60dcb58105c00e8adb412b39573804fb48da472e30",
+      "uploaded": false,
+      "device": "Orbbec CPCBC53000C5 new domain; pilot replay: three cameras",
+      "environment": "tv_sam2 (documented), no runtime validation in this upload",
+      "experiment_date": "2026-11-03",
+      "acquisition": "Local workstation only; obtain a separate copy from owner; no hosted artifact URL"
+    }
+  ],
+  "checked_dependencies": [
+    {
+      "path": "r1a7_threading_project/transfer_control/tools/visual_servo_receiver.py",
+      "source_sha256": "ec24681c9d404ecf9bc32f77c93e05f4a6720ce374c94020cb010ab700e16b06",
+      "repository_sha256": "ec24681c9d404ecf9bc32f77c93e05f4a6720ce374c94020cb010ab700e16b06",
+      "identical": true
+    },
+    {
+      "path": "r1a7_threading_project/transfer_control/tools/r1a7_lowcmd_guard.py",
+      "source_sha256": "68c0bd0052ed0d40c3a2e94fab9b1c5beee1f1dd8d9aa72a27d3f96692875c6a",
+      "repository_sha256": "68c0bd0052ed0d40c3a2e94fab9b1c5beee1f1dd8d9aa72a27d3f96692875c6a",
+      "identical": true
+    }
+  ],
+  "scope": "Necessary source, worklog, full transcript, small original results and metadata. Raw images, masks, QA/eval images, probabilities, models and full robot logs are not uploaded. Historical deletions not inferable beyond retained backups."
+}

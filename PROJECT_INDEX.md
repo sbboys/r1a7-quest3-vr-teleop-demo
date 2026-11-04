@@ -60,3 +60,7 @@
 ## 2026-11-02 三相机研究归档
 
 [四文档核对报告](r1a7_threading_project/docs/r1a7_four_document_github_audit_2026-11-02_zh.md)：两份原件已有相同副本，两份新增；补齐25个U-Net实验模块及小型历史结果。控制差异仅快照归档，尚未集成或真机验收。
+
+## 2026-11-04 右腕张开镊子研究
+
+[右腕OPEN与自动抓取归档](r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)：V3 mixed replay、双模型前端、midpoint TIP及研究控制器逻辑删除，含原件、全文、源码差异、小型结果及外置清单。控制台默认控制器保持原版，自动抓取未完成闭环验收。

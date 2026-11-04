@@ -7,6 +7,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import torch
 
 # Reuse the current, already tuned visual stack:
 #
@@ -18,6 +19,7 @@ import numpy as np
 #   hybrid External/Left locked wire
 #   + Right Wrist live temporal wire
 import live_hybrid_locked_wire_live_tweezer_tip_v3 as visual
+import live_right_wrist_tweezer_tip_midpoint_v1 as wrist_tip_mid
 
 
 base = visual.v2.v1.base
@@ -58,6 +60,14 @@ LIVE_WIRE_CAMERA = (
     "right_wrist"
 )
 
+# Right Wrist only:
+# V3 is fine-tuned for OPEN / transition / occlusion tool appearance.
+# External and Left Wrist continue using the original V2 model.
+RIGHT_WRIST_V3_CHECKPOINT = Path(
+    "/home/robot/r1a7_datasets/wire_unet/"
+    "right_wrist_open_001/runs/v3_mixed_replay/best.pt"
+)
+
 
 # Latest GitHub wire-grasp guidance gains.
 KP_EXT_X = 0.08
@@ -84,6 +94,47 @@ WRIST_OUT = Path(
 # ============================================================
 # HELPERS
 # ============================================================
+
+def load_model_from_checkpoint(
+    checkpoint,
+    device,
+):
+
+    checkpoint = Path(
+        checkpoint
+    )
+
+    if not checkpoint.exists():
+        raise FileNotFoundError(
+            checkpoint
+        )
+
+    model = base.UNet(
+        in_channels=3,
+        num_classes=3,
+        base=32,
+    ).to(
+        device
+    )
+
+    ckpt = torch.load(
+        checkpoint,
+        map_location=device,
+    )
+
+    model.load_state_dict(
+        ckpt["model"]
+    )
+
+    model.eval()
+
+    print(
+        "[Model RIGHT_WRIST V3] checkpoint =",
+        checkpoint,
+    )
+
+    return model
+
 
 def clip(
     value,
@@ -399,6 +450,46 @@ def publish_external(
                 else None
             ),
 
+        # AUTO_GRASP_VISUAL_FIELDS_V1
+        "tip_grasp_distance_px":
+            (
+                float(tip_result["tip_grasp_distance_px"])
+                if (
+                    valid
+                    and
+                    tip_result.get("tip_grasp_distance_px") is not None
+                )
+                else None
+            ),
+
+        "tool_pixels":
+            (
+                int(tip_result.get("tool_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "front_pixels":
+            (
+                int(tip_result.get("front_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "axis_ratio":
+            (
+                float(tip_result["axis_ratio"])
+                if (
+                    valid
+                    and
+                    tip_result.get("axis_ratio") is not None
+                )
+                else None
+            ),
+
+        "tip_status":
+            tip_result.get("status"),
+
         "proposed_vx_mm_s":
             float(vx),
 
@@ -566,6 +657,46 @@ def publish_wrist(
                 if valid
                 else None
             ),
+
+        # AUTO_GRASP_VISUAL_FIELDS_V1
+        "tip_grasp_distance_px":
+            (
+                float(tip_result["tip_grasp_distance_px"])
+                if (
+                    valid
+                    and
+                    tip_result.get("tip_grasp_distance_px") is not None
+                )
+                else None
+            ),
+
+        "tool_pixels":
+            (
+                int(tip_result.get("tool_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "front_pixels":
+            (
+                int(tip_result.get("front_pixels", 0))
+                if valid
+                else 0
+            ),
+
+        "axis_ratio":
+            (
+                float(tip_result["axis_ratio"])
+                if (
+                    valid
+                    and
+                    tip_result.get("axis_ratio") is not None
+                )
+                else None
+            ),
+
+        "tip_status":
+            tip_result.get("status"),
 
         "proposed_vx_mm_s":
             0.0,
@@ -783,8 +914,17 @@ def main():
 
     print("=" * 82)
 
+    # Original V2 remains the model for External + Left Wrist.
     model, device = (
         base.load_model()
+    )
+
+    # Right Wrist gets the V3 domain-adapted model only.
+    model_right_wrist = (
+        load_model_from_checkpoint(
+            RIGHT_WRIST_V3_CHECKPOINT,
+            device,
+        )
     )
 
     temporal_trackers = {
@@ -805,14 +945,30 @@ def main():
         in CAMERA_ORDER
     }
 
-    tip_trackers = {
-        camera:
-            TweezerTipTracker(
+    tip_trackers = {}
+
+    for camera in CAMERA_ORDER:
+
+        if camera == "right_wrist":
+
+            tip_trackers[
                 camera
+            ] = (
+                wrist_tip_mid.
+                RightWristTweezerTipMidpointV1(
+                    camera
+                )
             )
-        for camera
-        in CAMERA_ORDER
-    }
+
+        else:
+
+            tip_trackers[
+                camera
+            ] = (
+                TweezerTipTracker(
+                    camera
+                )
+            )
 
     locked = {
         "external":
@@ -1206,6 +1362,12 @@ def main():
                 CAMERA_ORDER
             ):
 
+                active_model = (
+                    model_right_wrist
+                    if camera == "right_wrist"
+                    else model
+                )
+
                 (
                     detections[
                         camera
@@ -1214,7 +1376,7 @@ def main():
                         camera
                     ],
                 ) = base.run_one(
-                    model,
+                    active_model,
                     device,
                     frames[
                         camera
