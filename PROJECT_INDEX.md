@@ -64,3 +64,7 @@
 ## 2026-11-04 右腕张开镊子研究
 
 [右腕OPEN与自动抓取归档](r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)：V3 mixed replay、双模型前端、midpoint TIP及研究控制器逻辑删除，含原件、全文、源码差异、小型结果及外置清单。控制台默认控制器保持原版，自动抓取未完成闭环验收。
+
+## 2026-11-09 研发归档补充
+
+[截至11/09夹取到插孔归档](r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md)：关键程序、阶段路线、操作步骤、孔位训练补录和四份成功命名快照。用户功能反馈与独立量化验收分开记录。

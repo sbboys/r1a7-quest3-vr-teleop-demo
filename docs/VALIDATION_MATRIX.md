@@ -57,3 +57,7 @@
 | HOME及停止边界 | 保留问题与后续要求 | 本次未修复、未硬件测试 |
 
 详细检查见[归档报告](../r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)。
+
+## 2026-11-09 研发归档补充
+
+11/09档案：原件/全文/源码哈希和语法检查；四SUCCESS快照与当前四文件相同；孔位split/config/history补录。没有运行相机、模型、Gate、DDS/LowCmd或真机。文档用户反馈仍标为历史反馈，完整穿孔与客观重复率未验证。

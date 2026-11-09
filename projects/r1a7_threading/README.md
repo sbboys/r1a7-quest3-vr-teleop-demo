@@ -39,3 +39,7 @@
 ## 2026-11-04 张开镊子与自动抓取研究
 
 [来源和当前文件核对](../../r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)补齐11/03工作，含新增/修改/逻辑删除、历史备份、指标和未完成HOME/闭环验收。
+
+## 2026-11-09 研发归档补充
+
+[11/09完整研发归档](../../r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md)含关键源码、技术路线、具体操作、逻辑修改和回滚差异。未宣称完成实体穿孔。

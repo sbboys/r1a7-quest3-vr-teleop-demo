@@ -81,3 +81,7 @@
 ## 2026-11-04 右腕OPEN归档
 
 `codex/r1a7-right-wrist-open-archive-2026-11-04` 基于 `c1f466a`，沿用本对话已授权的归档与快进合并方式，目标为 `codex/r1a7-console-camera-suite-2026-10-11`。保留历史、原研究区及控制台默认控制器；远端HEAD以实际refs为准。
+
+## 2026-11-09 研发归档补充
+
+`codex/r1a7-grasp-insertion-archive-2026-11-09`从4498710建立，按本对话已授权方式上传并快进纳入 `codex/r1a7-console-camera-suite-2026-10-11`。输出链修改以快照归档，不替换默认控制台，不改写main。

@@ -1,0 +1,1928 @@
+{
+  "archive_date": "2026-11-09 Asia/Shanghai",
+  "baseline_commit": "4498710adde23d65a883fcc2815245de49fdf63d",
+  "user_supplied_path": "/home/robot/下载/R1-A7_细线抓取与穿孔_完整研发工作记录_截至2026-11-09_V2.0.docx",
+  "actual_source_path": "/home/robot/桌面/jiqiren/renwu/R1-A7_细线抓取与穿孔_完整研发工作记录_截至2026-11-09_V2.0.docx",
+  "files": [
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/R1-A7_细线抓取与穿孔_完整研发工作记录_截至2026-11-09_V2.0.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/R1-A7_细线抓取与穿孔_完整研发工作记录_截至2026-11-09_V2.0.docx",
+      "size_bytes": 88946,
+      "sha256": "c7f10261c29c0b7f9a34b98f70d9c2c3d616a6bd97dc95385259c6a92a3df611",
+      "kind": "original_document"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/annotate_hole_board_unet_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/annotate_hole_board_unet_v1.py",
+      "size_bytes": 24519,
+      "sha256": "c3da4315323884768bf7c1c92a58ebd3a0b38984d95e5c812aef473bbaf82b9b",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/annotate_hole_board_unet_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/annotate_hole_board_unet_v2.py",
+      "size_bytes": 44639,
+      "sha256": "a5f052f4e42917e85599f15ab9500ef722d01503ac5751a72b60a10b071cb0a9",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/annotate_hole_board_unet_v3.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/annotate_hole_board_unet_v3.py",
+      "size_bytes": 55931,
+      "sha256": "cee656f6b753287f9853409d423eaad42404237225c1dd90b404a9fe9c3b8851",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/live_hole_board_unet_three_camera_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/live_hole_board_unet_three_camera_v1.py",
+      "size_bytes": 20568,
+      "sha256": "421f6d99746ca02a9f3b385be4fb594e850411bbc0d692bb8b956a7d82cffdf5",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/live_insertion_perception_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/live_insertion_perception_v1.py",
+      "size_bytes": 32762,
+      "sha256": "126a9e1d7cee0e8a07ef08060a928424ee322fc33807fe23f2592b762191b573",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/qa_hole_board_dataset_v3.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/qa_hole_board_dataset_v3.py",
+      "size_bytes": 7375,
+      "sha256": "b87d74f1eb37576aa4512be4e14a5821fe63fea010ab1c841929ce6132f871a5",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/qa_hole_board_review_v3.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/qa_hole_board_review_v3.py",
+      "size_bytes": 8700,
+      "sha256": "728fbba631a223661d08b7761db865c241e36a5d299f461f9e5d0dd44835f380",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/train_hole_board_unet_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/train_hole_board_unet_v1.py",
+      "size_bytes": 30784,
+      "sha256": "b6f25feb046c77eab33aa509aea01c4a3331d91e6c781762ad8c1c4af3a9fcb1",
+      "kind": "hole_research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v1.py",
+      "size_bytes": 77394,
+      "sha256": "d647c7d021ce4c95ee1180008be60eefbaed9ba1711e1d5460842bee36749f10",
+      "kind": "visual_or_capture_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v2.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v2.py",
+      "size_bytes": 81289,
+      "sha256": "c37d8e4b521e5de66bcf8023293e2e95f4d5fbae94544bba82a7c042d20c2f1f",
+      "kind": "visual_or_capture_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "size_bytes": 93617,
+      "sha256": "e8fd2f5b3e4a3b028890c77624b239047fbb38ba09f84153482c712ec40b5676",
+      "kind": "visual_or_capture_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/capture_three_camera_dataset_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/capture_three_camera_dataset_v1.py",
+      "size_bytes": 12294,
+      "sha256": "20b42cd59ddc0a7059469c5b3e14431fd106eb79d2827e739d196ddf7ca5cae1",
+      "kind": "visual_or_capture_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3_SUCCESS_GRASP_JAW_CORRIDOR_20261109_171103.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/success_20261109_171103/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "size_bytes": 93617,
+      "sha256": "e8fd2f5b3e4a3b028890c77624b239047fbb38ba09f84153482c712ec40b5676",
+      "kind": "success_named_snapshot"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "size_bytes": 12372,
+      "sha256": "d405344383d779a98e374de0f803b479aad35f1e7c0a87a0ce007984669ec925",
+      "kind": "archive_output_chain"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1_SUCCESS_GRASP_JAW_CORRIDOR_20261109_171103.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/success_20261109_171103/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "size_bytes": 12372,
+      "sha256": "d405344383d779a98e374de0f803b479aad35f1e7c0a87a0ce007984669ec925",
+      "kind": "success_named_snapshot"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "size_bytes": 14410,
+      "sha256": "90e7331f0043dc1aed8b1c4bcb399fd27233a8ca60be1c2e75b64e18a10165c4",
+      "kind": "archive_output_chain"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1_SUCCESS_GRASP_JAW_CORRIDOR_20261109_171103.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/success_20261109_171103/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "size_bytes": 14410,
+      "sha256": "90e7331f0043dc1aed8b1c4bcb399fd27233a8ca60be1c2e75b64e18a10165c4",
+      "kind": "success_named_snapshot"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/current/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "size_bytes": 222441,
+      "sha256": "27e3d34b15856bed073b023d0e6276c83963c098caabe5d969310435c3822a65",
+      "kind": "archive_output_chain"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1_SUCCESS_GRASP_JAW_CORRIDOR_20261109_171103.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/success_20261109_171103/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "size_bytes": 222441,
+      "sha256": "27e3d34b15856bed073b023d0e6276c83963c098caabe5d969310435c3822a65",
+      "kind": "success_named_snapshot"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_jaw_corridor_20261109_170208",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_jaw_corridor_20261109_170208",
+      "size_bytes": 85643,
+      "sha256": "42b42f7d1f1f87fb7298e91030a5d44eb19438bf67fb273c215a237290af26b3",
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py.bak_before_jaw_corridor_20261109_170208",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/before_change/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py.bak_before_jaw_corridor_20261109_170208",
+      "size_bytes": 219457,
+      "sha256": "76c64bf9384b30a6b01cab7e4c9fb8c420d3c682f3b8430fb5c249c9278177c6",
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.bak_before_grasp_ext_z_priority_20261109_164056",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.bak_before_grasp_ext_z_priority_20261109_164056",
+      "size_bytes": 7827,
+      "sha256": "dd1d15d011f761cbcacc4a0bd1a023f8432a34def066cf9b93d52cbe249e94a0",
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.bak_before_remove_image_error_gate_20261107_172954",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.bak_before_remove_image_error_gate_20261107_172954",
+      "size_bytes": 14308,
+      "sha256": "516711cdf70f21d63ab808e6906d6763381909fb6140cecee789562d11eb5e20",
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/splits_hole_board_grouped_v1.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/splits_hole_board_grouped_v1.json",
+      "size_bytes": 677,
+      "sha256": "2d0d2ec89eb00d6d9f35a08c76b3c163815be13c48941ec74a8757eaecaba17f",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/qa_v3/qa_mask_stats.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/qa_v3/qa_mask_stats.csv",
+      "size_bytes": 8125,
+      "sha256": "d6ae4264e90d62c62991609cc85e0bb5b3383217daf8cb934606abbc2d92cefd",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/runs/hole_board_unet_v1/config.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/runs/hole_board_unet_v1/config.json",
+      "size_bytes": 997,
+      "sha256": "2c20723be4d3c20b10f08547211dece94d47097d4b2849718824f801e273edbe",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/runs/hole_board_unet_v1/history.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/runs/hole_board_unet_v1/history.csv",
+      "size_bytes": 11184,
+      "sha256": "57b781bf752991de31e0f6d230959331be266cc608b4eb0129042f8e95afed5d",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/metadata/session_20261104_143315.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20261104_143315.csv",
+      "size_bytes": 557,
+      "sha256": "6ada514a0e67b0806f4a660c96d27435fe63da541a6f0a7f188983c78aeef8fa",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/metadata/session_20261104_132851.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20261104_132851.csv",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/metadata/session_20261105_105208.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20261105_105208.csv",
+      "size_bytes": 14068,
+      "sha256": "d552e35b8e90f01327d79c8cc3c97dfebfbe1bb6ee2531cf7ccc66385fe3e4fc",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/metadata/session_20261104_145245.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20261104_145245.csv",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/annotations_v3/hole_geometry.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/annotations_v3/hole_geometry.jsonl",
+      "size_bytes": 497546,
+      "sha256": "0ee89e1699af1c0189e0ea68af779e212bed99bd20df8d002286ed17214df451",
+      "kind": "hole_metadata_result"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/annotations_v3/annotation_log.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/annotations_v3/annotation_log.jsonl",
+      "size_bytes": 20745,
+      "sha256": "3d56d56e0715147c7bc486964f241a3fa5d02e34da90394a657e1bf64f6ad512",
+      "kind": "hole_metadata_result"
+    }
+  ],
+  "success_snapshot_comparison": [
+    {
+      "relative_path": "vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "current_sha256": "e8fd2f5b3e4a3b028890c77624b239047fbb38ba09f84153482c712ec40b5676",
+      "snapshot_sha256": "e8fd2f5b3e4a3b028890c77624b239047fbb38ba09f84153482c712ec40b5676",
+      "identical": true
+    },
+    {
+      "relative_path": "vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "current_sha256": "d405344383d779a98e374de0f803b479aad35f1e7c0a87a0ce007984669ec925",
+      "snapshot_sha256": "d405344383d779a98e374de0f803b479aad35f1e7c0a87a0ce007984669ec925",
+      "identical": true
+    },
+    {
+      "relative_path": "vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "current_sha256": "90e7331f0043dc1aed8b1c4bcb399fd27233a8ca60be1c2e75b64e18a10165c4",
+      "snapshot_sha256": "90e7331f0043dc1aed8b1c4bcb399fd27233a8ca60be1c2e75b64e18a10165c4",
+      "identical": true
+    },
+    {
+      "relative_path": "transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "current_sha256": "27e3d34b15856bed073b023d0e6276c83963c098caabe5d969310435c3822a65",
+      "snapshot_sha256": "27e3d34b15856bed073b023d0e6276c83963c098caabe5d969310435c3822a65",
+      "identical": true
+    }
+  ],
+  "external_images": [
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/annotation_review/review_001.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/annotation_review/review_001.jpg",
+      "size_bytes": 1046760,
+      "sha256": "81abfc0c010f5f5f3a9fec0c115ca489a5bc28cb315f2efc1b65b87c309882a4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/annotation_review/review_007.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/annotation_review/review_007.jpg",
+      "size_bytes": 1044062,
+      "sha256": "1f0526ed3f2ddf288825809fb80bc9940334e80ea02ba0794ae3ee3cf711b8a8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/annotation_review/review_013.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/annotation_review/review_013.jpg",
+      "size_bytes": 1055769,
+      "sha256": "97005eeae9b02c1fa643486a1721fcf0319f8e521bc722d199f3d4291bcdb9cb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/annotation_review/review_019.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/annotation_review/review_019.jpg",
+      "size_bytes": 1047445,
+      "sha256": "2dac84c1dd5737fa530e63641ca500148ddb1947ce07c9dde3cf5a2b5afdb57b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/annotation_review/review_025.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/annotation_review/review_025.jpg",
+      "size_bytes": 1053085,
+      "sha256": "f115e83a8641d0ef632f786322d847c27d32566db165cfb7daa0c236c384e730",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/annotation_review/review_031.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/annotation_review/review_031.jpg",
+      "size_bytes": 1063433,
+      "sha256": "8bc0385749cdd932cd0424e088c036b7b69f39fca72f574ce68a58d2c4549f93",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_01.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_01.jpg",
+      "size_bytes": 448264,
+      "sha256": "963361803ca03450207ccd91da42c87e6c4d47ddc343d7b696eb29f323505ab7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_02.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_02.jpg",
+      "size_bytes": 447603,
+      "sha256": "a3e9a88e733743cc7b2e214a033e03d9f80e0f5044f694b8d75022aeb8970863",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_03.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_03.jpg",
+      "size_bytes": 449514,
+      "sha256": "e6b63273aa90ebec7f29e11b0db0de7f36a38aa95cf7b95e214935cce3fc5952",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_04.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_04.jpg",
+      "size_bytes": 449084,
+      "sha256": "63aa4eb1fe4b649c7c7c84de2b1178a8b53ea54d9c679f3052b0c62b7abf7f83",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_05.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_05.jpg",
+      "size_bytes": 445936,
+      "sha256": "eece241c28a96c8c3ebb6f8e5be36b0bcda8a91936e1e478b147bd371d857d54",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_06.jpg",
+      "relative_to_dataset": "images_raw/session_20261105_105208/contact_sheets/hole_pilot_page_06.jpg",
+      "size_bytes": 449108,
+      "sha256": "8ef3b0441eb7e095e1581ccb5b53e66c97ecf5b48e3393ef7034a4654dc7e119",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000001.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000001.png",
+      "size_bytes": 1258190,
+      "sha256": "c56b1332a3feef06b4a6a1aa221eff5d6f8ecaf9b6b98e1f051afa4c540779cb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000002.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000002.png",
+      "size_bytes": 1291510,
+      "sha256": "0e8a3056a3bb413a0c48bf917940021e57eaa5dadcd3904d934f65587c97addb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000003.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000003.png",
+      "size_bytes": 1263950,
+      "sha256": "963b8a8fd27a0a8ad3a779a7a91b0108845ddd3c1ea04ec8b90fd8edcb70db03",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000004.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000004.png",
+      "size_bytes": 1282487,
+      "sha256": "4b9f88f8741e7fd80377d340c63cfa08d109ad1b6abe86ac6e05b47137dfa8ba",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000005.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000005.png",
+      "size_bytes": 1261662,
+      "sha256": "8b9af79d352ff916858b097ac874ad2b669d9cf7a381b81c7fdd04ca87077e5b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000006.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000006.png",
+      "size_bytes": 1260820,
+      "sha256": "7e092683c495aab5183e735a8a83325cb94ce28c06c814b60588badd1b1fbdb8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000007.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000007.png",
+      "size_bytes": 1258911,
+      "sha256": "30bdac8f81ba17f1178bfddb6ed58e76e145d6b6e48fa1e53264d42cbc3b676e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000008.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000008.png",
+      "size_bytes": 1238168,
+      "sha256": "c79906c03239b3b51179d1fa1d1813226c141e5c7f3d3a5cae9cf01587442db4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000009.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000009.png",
+      "size_bytes": 1237034,
+      "sha256": "4c12c26ca6f72abb61fa973a23b9d7307ba99e15c489f2dd513658fb322a49c6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000010.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000010.png",
+      "size_bytes": 1252139,
+      "sha256": "06b1cf29d5ad0afdc453678b51f218e8e5554a9d92f8bb64ef3c06c130f401c8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000011.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000011.png",
+      "size_bytes": 1221789,
+      "sha256": "6310a6be9211d46d580a4d3396352ae3b9e206eb53cd4c0b516a2458ab6a18dd",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000012.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000012.png",
+      "size_bytes": 1302434,
+      "sha256": "69ced809faeeaadce878970330a58fd34f43f4c29be39d37ba9030c33c2c506d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000013.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000013.png",
+      "size_bytes": 1301261,
+      "sha256": "437e15c37987e38a9bcedc32e0b26b226aa4bafe5a8c9e6e2e1891c212e9bd93",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000014.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000014.png",
+      "size_bytes": 1304154,
+      "sha256": "50e4813f9d03470e71b8a0c946cd9ad2dc0c226f396de34422a1e24a741f03ca",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000015.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000015.png",
+      "size_bytes": 1268905,
+      "sha256": "7959b1335b1ce871c8d884e43fafb79538894f55e4012d527892b76a4ed9ea00",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000016.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000016.png",
+      "size_bytes": 1272280,
+      "sha256": "ea0efe4f13201d7398dfc2e5a421e9365c583bbb955891d3d1837d01d645dc29",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000017.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000017.png",
+      "size_bytes": 1271451,
+      "sha256": "b6f6e4ce6bb01ca03b894091af0045be7eb123de37a587f45ab2012a226b242c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000018.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000018.png",
+      "size_bytes": 1242326,
+      "sha256": "9823e92b228a48d2f3e350cae540e4274542427795eb4a89f10002b72d794e2a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000019.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000019.png",
+      "size_bytes": 1217225,
+      "sha256": "f7488f1682a425b5626aef7af20c11e467df76f8b22523e6cb4661e157676c53",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000020.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000020.png",
+      "size_bytes": 1203992,
+      "sha256": "15bdcd1ba1b709ccf8f25e7b9d7ca5f8babf1d4043314ea5812dc2332bbe0310",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000021.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000021.png",
+      "size_bytes": 1238076,
+      "sha256": "a8ffd0cbec09a87deb01d6072599e0f6d0caedf023796545e28d74895fc77f33",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000022.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000022.png",
+      "size_bytes": 1238123,
+      "sha256": "4f9bff727c79c91345bba7dd73bb6a9866f637686271aefb915b982046f2b1ca",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000023.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000023.png",
+      "size_bytes": 1239072,
+      "sha256": "5cfbe03d37802cfa6df7120839a4e8bb40dc01e95e97b6e599f3bbb4f4b52373",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000024.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000024.png",
+      "size_bytes": 1237722,
+      "sha256": "92efea732202b8d3377619f10aa730b429e194da767cb31c88c62a730ce4d588",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000025.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000025.png",
+      "size_bytes": 1245006,
+      "sha256": "883a73b529ef97699262eb22bcd01d4e3c16248ed782de1a97090e0da28681a1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000026.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000026.png",
+      "size_bytes": 1243287,
+      "sha256": "dd29dd8e9dcb85073187daaf460df925b9a5a75a04933138de5befb0db79a8af",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000027.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000027.png",
+      "size_bytes": 1242778,
+      "sha256": "019fe7b3c19691988372fd8530e60bdc0b8d1bdc743306bd6b8b51be2694c55f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000028.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000028.png",
+      "size_bytes": 1249180,
+      "sha256": "77d5544c01725f0b70f30630187cffc7b46f31f606ddd1e84d4009357ec65dff",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000029.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000029.png",
+      "size_bytes": 1174504,
+      "sha256": "70586902fd0a0b5843fc8acf7b63630ec317d5083a997048c94a35022f4a58d2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000030.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000030.png",
+      "size_bytes": 1179607,
+      "sha256": "2c1a07b92f18207bb6521feb024d50d943264f87c73427a6c45845dcfe589d97",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000031.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000031.png",
+      "size_bytes": 1232379,
+      "sha256": "a91e7f81dc423b812f0008886f3fc15157ef954e02c6f979b0ee158efafa7cad",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000032.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000032.png",
+      "size_bytes": 1233628,
+      "sha256": "778184ed2fb98e706ffe8ede7b30d304f4ce3eabdcd1f7adfba618a9d42c6b0d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000033.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000033.png",
+      "size_bytes": 1227363,
+      "sha256": "2344670ee74eb34cc2a352aa8a25723a1444827261c74a19e2b263a3f60ca4aa",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000034.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000034.png",
+      "size_bytes": 1229115,
+      "sha256": "c2286a960007a9f6b793b917d6fbf8292650ab7a4a73ac8e20ca4507331a08a3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000035.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000035.png",
+      "size_bytes": 1245667,
+      "sha256": "4ecd76aafd289690439a8030e88a89ae6e470be7ee1eaea1cf85513ae4cc90e3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/external/000036.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/external/000036.png",
+      "size_bytes": 1242522,
+      "sha256": "98ca51a7adb0f74c202915a64e04d7e07214b789724c494d767aa5148edfdaa0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000001.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000001.png",
+      "size_bytes": 1306322,
+      "sha256": "cd958ecca4cf77f986577071cc48610529cab789f77fbd254a15e5513172fd1a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000002.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000002.png",
+      "size_bytes": 1317200,
+      "sha256": "f2125be9d27ffdff8d101fdc0bdc41e331e131532ed5bebbdfa6cf4b6df8ca3d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000003.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000003.png",
+      "size_bytes": 1319669,
+      "sha256": "fa8c45f603345b3999660d5338bcdc9cd08b4a300474d3af5ea50fa65bad1360",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000004.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000004.png",
+      "size_bytes": 1347411,
+      "sha256": "8f69fddedc1acde37a56998846268045f95e90391faf1990abddf4469181fa6d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000005.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000005.png",
+      "size_bytes": 1357767,
+      "sha256": "a17bed37775a620fa6046ddac1da8b9c4d632a77247692be4daac9693faf005c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000006.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000006.png",
+      "size_bytes": 1357257,
+      "sha256": "028d614d893c20ef6cbad236d469ef886e64ca696b38e725b0cdbc1573244b7a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000007.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000007.png",
+      "size_bytes": 1355723,
+      "sha256": "1fb89ce64d977244dd75cf639535112e819a1f3360305eabc62f17798d90525e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000008.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000008.png",
+      "size_bytes": 1326943,
+      "sha256": "527c7bd3d06e11c7feec73d8252c56febbcb0112eafb26efe3e500e47ce3da45",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000009.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000009.png",
+      "size_bytes": 1326765,
+      "sha256": "4331eebc37b6c690bf44073b320ea2730517cc48aa3488079650c6d635e9178d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000010.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000010.png",
+      "size_bytes": 1324013,
+      "sha256": "eb394afa0e76b5ebb626a0ae2e8e094c2184834a776c8e15e309509b93376031",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000011.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000011.png",
+      "size_bytes": 1326882,
+      "sha256": "8ccbabd753ed084ff960e3d20e8198c59a566111151c9afabf441eed9bd3f72c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000012.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000012.png",
+      "size_bytes": 1319474,
+      "sha256": "e08411b97c049da259d8c49514145e22f2c07035188bd08de9f97e527cd4b16c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000013.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000013.png",
+      "size_bytes": 1320329,
+      "sha256": "45f89258e8661c32bc623a3cafe6b3fd9723a42fe7bd9e7f55c4eff43641e316",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000014.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000014.png",
+      "size_bytes": 1321699,
+      "sha256": "97d462daf987a70b4b919711fc33227fbf093ff5a9f081cb90a432e23d83cede",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000015.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000015.png",
+      "size_bytes": 1320133,
+      "sha256": "88f4c63ccb4bdb5e8d232cb2b0cf83dd31b953155d7765c37491771bf37c77ba",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000016.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000016.png",
+      "size_bytes": 1318772,
+      "sha256": "f74d572bc35a8f3107de5e31dabc5e62f3867a507b68056443fcb6e989f76a28",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000017.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000017.png",
+      "size_bytes": 1320593,
+      "sha256": "da12da20d7bdb677fc217640177a8b64a4798b2faff1d31b79ce2b43fd2137b5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000018.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000018.png",
+      "size_bytes": 1315023,
+      "sha256": "f6211cd87a79ea6331840750a5cc13a851e23d8e8d0ef28565b8950f1c47511c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000019.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000019.png",
+      "size_bytes": 1312820,
+      "sha256": "1ad470693f78d0f4333206c4b4e75adfdc2ca259498d2c4cc414dc1f2a24d584",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000020.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000020.png",
+      "size_bytes": 1312794,
+      "sha256": "23cefc1fdd5c053d80d6311f5c967b7026cdaaffe9c867f8c73e0e3e1845cf64",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000021.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000021.png",
+      "size_bytes": 1329635,
+      "sha256": "9085a9a7642c1de564ea46e67363469e994d22f35a4135a2121d239c496fc851",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000022.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000022.png",
+      "size_bytes": 1327392,
+      "sha256": "efa69d4e6286034bd922a561f5f82d9c22af271010a43b97dff2ac8a962a295d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000023.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000023.png",
+      "size_bytes": 1327857,
+      "sha256": "a40aca3bb51a63eb48506970b1a2225e6f2202ccfba68c77daf03f1146c6eb88",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000024.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000024.png",
+      "size_bytes": 1358776,
+      "sha256": "5b981c53ef74be9b725bd969cd7e8dd1f4e702ef87480df3b18eec42d395e03f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000025.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000025.png",
+      "size_bytes": 1360989,
+      "sha256": "6e5747fe41b92f2e0c040530200d42b4e7eeb74aacf309dc4659ce96a5dc15db",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000026.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000026.png",
+      "size_bytes": 1362882,
+      "sha256": "f634c73e47a0164930c6a54afae07939f69efe6066be5774038004da06d2fe41",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000027.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000027.png",
+      "size_bytes": 1454964,
+      "sha256": "9450177222aa216534f377a11582cfa76edad25f0e3d01744483ea16c5ea69be",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000028.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000028.png",
+      "size_bytes": 1455308,
+      "sha256": "b524c29019117d5bf11c7354a0909289162ef83fe8eaec51ae9e4b3b0646204d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000029.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000029.png",
+      "size_bytes": 1467415,
+      "sha256": "5ea984fe09ff1da69ba1b8b3b81b96b1cc763436f4d24fb4b448ff12c5b0f9ec",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000030.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000030.png",
+      "size_bytes": 1468581,
+      "sha256": "a09b386c3b624005c39fce5f6d100073f9d54de161e4d19a0bd3f8e8ce1110c1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000031.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000031.png",
+      "size_bytes": 1501447,
+      "sha256": "4ce4ad56f599cfc96b629b577d9ca8c2a5caaafa413594a54751f230880499c0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000032.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000032.png",
+      "size_bytes": 1498923,
+      "sha256": "6d79e67bdf49c0d861cd7fd562d694fa46ae72506cfedeacc2cfffa1dfdebd0e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000033.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000033.png",
+      "size_bytes": 1465154,
+      "sha256": "b1a3fc01d7fffdb6ab74dcdaf24f42ca57738a4bbde11caea890abeb7ad49d9e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000034.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000034.png",
+      "size_bytes": 1467396,
+      "sha256": "b1b907e07cd53aa6aff001fbff965d9ce54854b461b76010cb021e6293e32057",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000035.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000035.png",
+      "size_bytes": 1466634,
+      "sha256": "8d5eab3b0cc9fb477345b8365135bc45515a1c30c6c5a25da8213679e83e497a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/left_wrist/000036.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/left_wrist/000036.png",
+      "size_bytes": 1467235,
+      "sha256": "1b384530e812052874ee7cabe80490b4f9902c4167f177dbc56fc2b3ad020bd8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000001.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000001.png",
+      "size_bytes": 1329379,
+      "sha256": "a849d18b167b6d6f42e94f71f1a3fca6d9f3082f038cfd136deab4259363c06b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000002.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000002.png",
+      "size_bytes": 1350963,
+      "sha256": "bbf080f720c8f7911d43cea7c99064d736bb4ee0baedcaddbe3924f67a2f1ec9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000003.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000003.png",
+      "size_bytes": 1354132,
+      "sha256": "d0f5c0d301a93043c04a2e72061fe2545b687417da37e237b74401aabf0e68ef",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000004.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000004.png",
+      "size_bytes": 1397869,
+      "sha256": "6fd25db02434ca2f31efe35680ffc7204815346de19f04952887a502127261c4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000005.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000005.png",
+      "size_bytes": 1419717,
+      "sha256": "201641680571cff3893c91fa7f9e53837303198bdbd9b242f7fa522431fcc74c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000006.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000006.png",
+      "size_bytes": 1418359,
+      "sha256": "ad8095acfc2a5cff1332f14d6a003910d7fdeb5567fd885f2437f43d4e81d8ca",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000007.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000007.png",
+      "size_bytes": 1419812,
+      "sha256": "97d820744720842266afd7db14bac9f83958e6c5321e716af62333fc1f7b246e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000008.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000008.png",
+      "size_bytes": 1398226,
+      "sha256": "3fe7fb1d9fd7292017f441384c87dd125aab2a727bb8a7e7532f90296df05bd4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000009.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000009.png",
+      "size_bytes": 1396636,
+      "sha256": "e362c40430eb396abbe3ba24bf8c602e0298b901f31148cfb78be6e3a7fe02da",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000010.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000010.png",
+      "size_bytes": 1397235,
+      "sha256": "6d0fba085e1269a18e9e32a9ae34a59135e01a5d44c141e3734908c2cba35d25",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000011.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000011.png",
+      "size_bytes": 1398496,
+      "sha256": "95d694e214a3396a405b54e54814c73f2e90873b089eab2947107450fed2be6d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000012.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000012.png",
+      "size_bytes": 1412478,
+      "sha256": "b87faa95abc1edf80d0d31f683b363879825f6fc332f61a2c6e7876c7d04e966",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000013.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000013.png",
+      "size_bytes": 1411725,
+      "sha256": "f6e2cfc437183c6f852669b56846d484958829678b3eaf19cca65563be459059",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000014.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000014.png",
+      "size_bytes": 1414415,
+      "sha256": "8002528256dd96a2846c9ef4c46b47625fe2efcad7e3aa5a819e73ce99e50a48",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000015.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000015.png",
+      "size_bytes": 1404990,
+      "sha256": "f12f5c7861206d4315c9599140b0f36f139d35564966d57215b1602fb8a5e76d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000016.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000016.png",
+      "size_bytes": 1406770,
+      "sha256": "66c134f8463d133c3c8d70d19fbe5d33c1b6163d68d0f005a4dc266757f0dc06",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000017.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000017.png",
+      "size_bytes": 1404464,
+      "sha256": "b80a6883d19c4eca2d07c39318291cdc5f84c1e259c0272bbe891fa2b2656dd2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000018.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000018.png",
+      "size_bytes": 1411659,
+      "sha256": "b5dd2095af673422f7ec37d24c86a0329a7bb426d5f0a1d01bad596fe717e66c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000019.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000019.png",
+      "size_bytes": 1413156,
+      "sha256": "f4389aba40e43dcf24653ea2c984773d3c9138d164ab395f6e9778a79eacef82",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000020.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000020.png",
+      "size_bytes": 1413077,
+      "sha256": "a8bcce0cdea58aec93b53215790ab5792762eb031cb8ec21c0b690d5d145f94d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000021.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000021.png",
+      "size_bytes": 1418673,
+      "sha256": "3dca8659cae3e2b16480223ece084d92f9e45742349bebb1263417d3cc40a1e5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000022.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000022.png",
+      "size_bytes": 1417353,
+      "sha256": "6ae25863fe1cf9d49cdb352f802a225f87a2741155a280d9a0803e4caeb64497",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000023.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000023.png",
+      "size_bytes": 1417120,
+      "sha256": "13c58cf0edf4dd2eaedadf6254f820842238f8a92cc8530247da4896862f30fc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000024.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000024.png",
+      "size_bytes": 1419504,
+      "sha256": "abc999ba344ba17c3094bb6ad61cb75d6f75c16a61f6508f20b4de07cd1c682a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000025.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000025.png",
+      "size_bytes": 1418300,
+      "sha256": "88e5e55390bf61d72ad9d3a6f07672ffbd8d42fa1d2a4b157b3ced5c4305470c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000026.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000026.png",
+      "size_bytes": 1420470,
+      "sha256": "2783b85cb822f3d0e79ac9c14844bb443062617f93c1283a5ddd7cae5a748f59",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000027.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000027.png",
+      "size_bytes": 1516475,
+      "sha256": "235fd2e7c383bdeba1f80720fe9fd6ead2b3cc78afb531fe7957d128fe91023f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000028.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000028.png",
+      "size_bytes": 1516109,
+      "sha256": "a968c77b846f50162139b3683ef67806b4b0a2ce606c32eee4f12bc82b7bac6b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000029.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000029.png",
+      "size_bytes": 1337418,
+      "sha256": "0acf8960fbe67eba229938e92ca3c5bcd2e77f4a7d53c29e1adcbb871c075ef2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000030.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000030.png",
+      "size_bytes": 1338967,
+      "sha256": "76280911aa0da2203529619ac6ee9f9a04051f6fd451667cc600c8eaa905b0ae",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000031.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000031.png",
+      "size_bytes": 1366408,
+      "sha256": "c7c5b6f343945a8272371d1ed17a6b0509a0994bc308a2f37066c1d15d368d9b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000032.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000032.png",
+      "size_bytes": 1361511,
+      "sha256": "aecd31f1ecf36760465cf9bdb8ec2e906a0db8420a8ebf8767c5f48a936c2ccb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000033.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000033.png",
+      "size_bytes": 1346124,
+      "sha256": "931a8c1e88bb990b68eaf12a9fd1b95f463a2021d46b7a6ce8c2df3b3748e6a8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000034.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000034.png",
+      "size_bytes": 1347248,
+      "sha256": "a8dac201ae69b897770b5b093cefe14cec8370b4fe1748878438ff221fbf3b93",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000035.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000035.png",
+      "size_bytes": 1547602,
+      "sha256": "aea2721b7090cc446c0cb3b9573641a71369f491a3184f8e4f3e3c8d72643461",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261105_105208/right_wrist/000036.png",
+      "relative_to_dataset": "images_raw/session_20261105_105208/right_wrist/000036.png",
+      "size_bytes": 1544431,
+      "sha256": "9b6415f5b51f9f1d1669f27332dfb9e90f9d7477f7bc9b5a3649e6ca58d14473",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000001.png",
+      "relative_to_dataset": "masks_v3/external/000001.png",
+      "size_bytes": 3151,
+      "sha256": "ff080ffbcd189fc53377bc53f07516c6f6e073d1f55035a470aba520463b4b87",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000002.png",
+      "relative_to_dataset": "masks_v3/external/000002.png",
+      "size_bytes": 3085,
+      "sha256": "bbcc6a567432e153f8d71cff92c99d776e4ec6a1b3ef2e0c5c7bd1e2aaa33c27",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000003.png",
+      "relative_to_dataset": "masks_v3/external/000003.png",
+      "size_bytes": 3065,
+      "sha256": "f4668471e049e2e5bdbf382071008f6b977dcc476e5f7b0749edc3accb3ab956",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000004.png",
+      "relative_to_dataset": "masks_v3/external/000004.png",
+      "size_bytes": 2975,
+      "sha256": "581020cc12ce66fbee1248c340140f77678c8a0da21369c77995534e2de1a0f4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000005.png",
+      "relative_to_dataset": "masks_v3/external/000005.png",
+      "size_bytes": 3054,
+      "sha256": "eee0f982e2d06f2d3975c44eb8301d5426eb1d1c4093a03a8c0a052ecab893c9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000006.png",
+      "relative_to_dataset": "masks_v3/external/000006.png",
+      "size_bytes": 3132,
+      "sha256": "d0fe699a639c8a7f426e193411ef9f168e115575f91c89c2d312a02ad8e026b7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000007.png",
+      "relative_to_dataset": "masks_v3/external/000007.png",
+      "size_bytes": 3033,
+      "sha256": "a0aa68f1691a358dfce33daa0a6273d9d8c54ce59fb5305f6f9bc16da64e0966",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000008.png",
+      "relative_to_dataset": "masks_v3/external/000008.png",
+      "size_bytes": 3173,
+      "sha256": "95da438cba691b6c0b5b0a2d8e65bf1eca411f6b4f5403fa70e14f127e6adf04",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000009.png",
+      "relative_to_dataset": "masks_v3/external/000009.png",
+      "size_bytes": 3021,
+      "sha256": "33bdb26e000fb94f3aad06278fbf0206a819a4068461fc51ac2894f47c517615",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000010.png",
+      "relative_to_dataset": "masks_v3/external/000010.png",
+      "size_bytes": 2867,
+      "sha256": "bb3e83c6d86b4b6d1db360eeda304f2ecf0d30b0f9a08d1b9345c97d832ece0b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000011.png",
+      "relative_to_dataset": "masks_v3/external/000011.png",
+      "size_bytes": 3103,
+      "sha256": "0987595e910af2a5608aad7569a790a088db9f43cc9ebc6b3b2c5a15cfd13809",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000012.png",
+      "relative_to_dataset": "masks_v3/external/000012.png",
+      "size_bytes": 3062,
+      "sha256": "10326c6fc3f154089ed20b87ce01bf32332f771786150eff68c2157f8e7d91ce",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000013.png",
+      "relative_to_dataset": "masks_v3/external/000013.png",
+      "size_bytes": 2989,
+      "sha256": "931b9ed01cd62cba7b8ecc710c180b6b2d0f0b124353f35716e86f8fa32d4ef1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000014.png",
+      "relative_to_dataset": "masks_v3/external/000014.png",
+      "size_bytes": 2962,
+      "sha256": "d281b9a1b48ddbf832bb0ebfb85b379abe24d158db88dfecef05e3a0cebbf738",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000015.png",
+      "relative_to_dataset": "masks_v3/external/000015.png",
+      "size_bytes": 3013,
+      "sha256": "93643c3608b311c81c3a2bc73652bcd124d5780b11649d6f7e146125ae371ba7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000016.png",
+      "relative_to_dataset": "masks_v3/external/000016.png",
+      "size_bytes": 3032,
+      "sha256": "76390896e8f31dd9c073787d04c52de9ed8cae8c58e5e347d05e6feefa68f729",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000017.png",
+      "relative_to_dataset": "masks_v3/external/000017.png",
+      "size_bytes": 2963,
+      "sha256": "fd84f16c7cad3a181c5dbd925423d9de8c20e936ddd7af5f1e23c32b464bf11b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000018.png",
+      "relative_to_dataset": "masks_v3/external/000018.png",
+      "size_bytes": 2949,
+      "sha256": "04c7795f275066dedf8686ab82a66f817dd06a31c82f9b763c6f8af795492c7e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000019.png",
+      "relative_to_dataset": "masks_v3/external/000019.png",
+      "size_bytes": 2955,
+      "sha256": "394b985a642be404b047132b4c42a0b4477e53960dadef91b8f91466705cc958",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000020.png",
+      "relative_to_dataset": "masks_v3/external/000020.png",
+      "size_bytes": 2884,
+      "sha256": "ca85af3b72f7c3d3814c49fd496adf75ff9fbe43bb833d4637ab56ac0557e67c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000021.png",
+      "relative_to_dataset": "masks_v3/external/000021.png",
+      "size_bytes": 3062,
+      "sha256": "8ae982902a9ca07a61a262672ac4d978744acbbb245f0bdf4338de5220554f40",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000022.png",
+      "relative_to_dataset": "masks_v3/external/000022.png",
+      "size_bytes": 2995,
+      "sha256": "3f63b353f3b5aec1c373c4999f8200e0e81ac658ff6692d454e8856c3a9b021e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000023.png",
+      "relative_to_dataset": "masks_v3/external/000023.png",
+      "size_bytes": 2969,
+      "sha256": "80d724db0e5040e7d825cbad3c9b81d7d93bb1362552830836dd0eb0f39dfe78",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000024.png",
+      "relative_to_dataset": "masks_v3/external/000024.png",
+      "size_bytes": 3060,
+      "sha256": "b3fbc9e942627aed003ef6beeeacf91f7ab9e6a8679933fe0fb0c8babe45d1b4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000025.png",
+      "relative_to_dataset": "masks_v3/external/000025.png",
+      "size_bytes": 2884,
+      "sha256": "2002c4cdded9fa9e640ae624bb3ac0994273d5f67d3fcc8ba1d10dd81d5116c5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000026.png",
+      "relative_to_dataset": "masks_v3/external/000026.png",
+      "size_bytes": 2968,
+      "sha256": "f88e54e851f0b9c9fc498293d4bb0bdf7552b102109bef598995181ae7ec9ac7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000027.png",
+      "relative_to_dataset": "masks_v3/external/000027.png",
+      "size_bytes": 2975,
+      "sha256": "66cc80f6ef5577215d14f14d4138b6b649aa4aefd317917e89d9dff8c630366d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000028.png",
+      "relative_to_dataset": "masks_v3/external/000028.png",
+      "size_bytes": 2947,
+      "sha256": "d56a755e85e0d6ce19b252ed98923679d5d6a428e5bd4292da569ffd9c5dac7d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000029.png",
+      "relative_to_dataset": "masks_v3/external/000029.png",
+      "size_bytes": 3090,
+      "sha256": "0c09f74300101215ff3280fabd3101ad6f24615eb0735e9a99f78393d42fbc0c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000030.png",
+      "relative_to_dataset": "masks_v3/external/000030.png",
+      "size_bytes": 3111,
+      "sha256": "7db9aa00d2a85bb4e9d7941b94e883b0f07be2898c2d58108a0cd7cec896f88c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000031.png",
+      "relative_to_dataset": "masks_v3/external/000031.png",
+      "size_bytes": 3366,
+      "sha256": "15435beb5151f2214df9802a129b7b4c098e70fafe0f351ea6107c9771d3a422",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000032.png",
+      "relative_to_dataset": "masks_v3/external/000032.png",
+      "size_bytes": 3226,
+      "sha256": "28d63b41fb22cfbae494b6c024daed42f60e0b5635467e28be8d0754fb86f348",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000033.png",
+      "relative_to_dataset": "masks_v3/external/000033.png",
+      "size_bytes": 3088,
+      "sha256": "9011c6a66abfcac81b080ad893b3f3d393206a458852f9e65d7f5a49bc26bd90",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000034.png",
+      "relative_to_dataset": "masks_v3/external/000034.png",
+      "size_bytes": 3065,
+      "sha256": "12258b8eed4171d6dee28c1165cfdbb18dad1ff7b8166210ccee3cfe3f4df368",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000035.png",
+      "relative_to_dataset": "masks_v3/external/000035.png",
+      "size_bytes": 3089,
+      "sha256": "4ab3f9da0fec6e2ce0b50e0fa52ae54afd9c8bcdc948fb052f0c4bc6551fa0e0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/external/000036.png",
+      "relative_to_dataset": "masks_v3/external/000036.png",
+      "size_bytes": 3123,
+      "sha256": "c246acca4c8ce13f5dc2009ac5bcd5ef618c38cdbf56879f0e47525b77d11e4c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000001.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000001.png",
+      "size_bytes": 4064,
+      "sha256": "a91c78a634d1a181d1e28ae601ab6b38ec5307bea7bf88a467b104d33b430fb2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000002.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000002.png",
+      "size_bytes": 4150,
+      "sha256": "2b644bae38d895dace7e48d52875d5537359cd5a13607b4fe8187ccf2eed7663",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000003.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000003.png",
+      "size_bytes": 4152,
+      "sha256": "e34a6e367c7be5354ec063b64db694048df467bc757a6ecd092a6972f99672cc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000004.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000004.png",
+      "size_bytes": 3971,
+      "sha256": "f4a0a43cdf2ebf2bb902157d2ee1278c19ff97cccd93cd1428d8a81f2432198a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000005.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000005.png",
+      "size_bytes": 4053,
+      "sha256": "1351c29b16c0e0d372dd6fd387dcc11e6b46a5103bb0ff1868e4a7953fc1c3e3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000006.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000006.png",
+      "size_bytes": 3862,
+      "sha256": "f3c138023c595dbf956a53eabc704bb33cf0cdffcaf3a5de0e312a7735c7d8d1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000007.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000007.png",
+      "size_bytes": 3832,
+      "sha256": "825b5fc88c4e3c84999ab055351df5a477d326c0d46899653b0c26d7a0f2ad5d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000008.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000008.png",
+      "size_bytes": 4055,
+      "sha256": "263e484bf3526fbb7ccdeab3f95ebbe48d25000994bd2db232b8895f03bba8e2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000009.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000009.png",
+      "size_bytes": 4069,
+      "sha256": "0142efe7799750414b51bc029fd1e134dc00a311f2232d510dc2fb7ae3e3df6a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000010.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000010.png",
+      "size_bytes": 4043,
+      "sha256": "385598f4b4aaac0df89912adbf25663003a462b70b29050df0eea3fc24702f1d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000011.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000011.png",
+      "size_bytes": 3951,
+      "sha256": "836fc547c257e5d57d2662b84cf48e2e6709c45c1a07928ba592ac293a65573c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000012.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000012.png",
+      "size_bytes": 4118,
+      "sha256": "dd34d11a4dabc21468ed26f5b2e95754a965f1bfb2480fa1b9e619a9d6c53b4a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000013.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000013.png",
+      "size_bytes": 4064,
+      "sha256": "e8cc1659bdbeaacd4e2023a176958660d0cb711a79d06b167f1f5897d1b13a13",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000014.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000014.png",
+      "size_bytes": 3958,
+      "sha256": "7ee9a457416f60fe2ca5a78a5a018efa05b214ba2ee8abb819d4e4b52c266f4b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000015.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000015.png",
+      "size_bytes": 4095,
+      "sha256": "fb94eb275ec1bb1353ba0c367757d048d4b75a9b0b4eefb2f5499fe22b714eab",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000016.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000016.png",
+      "size_bytes": 4041,
+      "sha256": "b3e711047fa9339b05d9f5397da5b5911053ba901a67dc6e7f35d051ea90501d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000017.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000017.png",
+      "size_bytes": 4107,
+      "sha256": "740e974f709a31eee9f4477e48a8c4aea54e834a0f82ff83543159f44211e1fb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000018.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000018.png",
+      "size_bytes": 4072,
+      "sha256": "440bb108b29949f27e990cba625eb77a0592f60836cba0c61c0d2c95f4ff7a06",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000019.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000019.png",
+      "size_bytes": 3960,
+      "sha256": "9c5873d19f1a4c56c53fd6bdd54b1a1af4862345b0d0c08c1376779905646408",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000020.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000020.png",
+      "size_bytes": 4058,
+      "sha256": "5124306dbb69380e8d68d278aec67a7a0f68f4344566474b9d44a1cf156167e8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000021.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000021.png",
+      "size_bytes": 4190,
+      "sha256": "13ad0896cce54cca33949aac43a4a31aea7144dd4b3b3972ea9347592ef8fa57",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000022.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000022.png",
+      "size_bytes": 4224,
+      "sha256": "5fb3c6fe04af0cdcf343e44e7201116171456d2feabf48bef4b29a4fc139bb81",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000023.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000023.png",
+      "size_bytes": 4065,
+      "sha256": "11652f4a1f474109bc01de3678e4340ad748d980c2ecb3325a3ace4a5f9eadc9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000024.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000024.png",
+      "size_bytes": 3986,
+      "sha256": "b9eaad3f2deaa258f5be1e5def8d11736e03e3829e9dcd54fb4859d41629ecfb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000025.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000025.png",
+      "size_bytes": 3936,
+      "sha256": "efbbef0663e183eda6ed87071a7bdad7b70e33b8e6e6bc633b78962cdd175e24",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000026.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000026.png",
+      "size_bytes": 3846,
+      "sha256": "4e46c64f40e04aa93738d2fafc338912ad98e2c4f98c333af7e07ff8f7359b7e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000027.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000027.png",
+      "size_bytes": 4102,
+      "sha256": "551e93c765b7a2750a6d84a81447bd925ba17cd4e910e13cd5e7164d95b2b564",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000028.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000028.png",
+      "size_bytes": 4110,
+      "sha256": "b16375b720167429e970b7f251443dc6523b9366fa9253147ad10fff9e5eeb69",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000029.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000029.png",
+      "size_bytes": 4178,
+      "sha256": "ed14c68a8ba3a572530e405992122e4199e673b045d6f90aa90a815c5275ad16",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000030.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000030.png",
+      "size_bytes": 4081,
+      "sha256": "2e3bf0b7408ab0a7c2b0cceeb4294f03c96ab0aae37b2e206c84286ad77498b0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000031.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000031.png",
+      "size_bytes": 3836,
+      "sha256": "81f80a040927dfde79ad75af73ad0d207e211806ef52d295206cabd3e87a570e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000032.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000032.png",
+      "size_bytes": 3923,
+      "sha256": "b00b3e2a45f694e90293a1a4854cbda1e40c9c2d3685425a747d8853b8310b12",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000033.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000033.png",
+      "size_bytes": 3893,
+      "sha256": "50376b8cfab0ec97aad7271eb2529dc4404ee470909ea3b4105184722f60995e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000034.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000034.png",
+      "size_bytes": 4007,
+      "sha256": "5f4b897bc7acf50487541dc975a3c70982addae4d2b74c7f4e4a25af529b9fc4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000035.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000035.png",
+      "size_bytes": 3716,
+      "sha256": "3c25e5472e537133f42045835f945a8ce9a0e9ec1fe39c3c8be4c20cee65e7a6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/left_wrist/000036.png",
+      "relative_to_dataset": "masks_v3/left_wrist/000036.png",
+      "size_bytes": 3642,
+      "sha256": "e6a3935de8d3273fcd4a0a4109a35d5d4847946dbf30e79ae2fc66535448bbf6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000001.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000001.png",
+      "size_bytes": 4540,
+      "sha256": "26c7c668767807fe523985cf186ab538488252a13171d54f378a37293ef1a26b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000002.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000002.png",
+      "size_bytes": 2377,
+      "sha256": "d59a0814f1573acdec13b2b092ca1f95aef1b7525902f94305edfc22a7d27055",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000003.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000003.png",
+      "size_bytes": 4697,
+      "sha256": "a032833d0ef1ccef3c62d6c1ceaf3bd40b9eefacf2913cc4fec068d6b7fcfe7d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000004.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000004.png",
+      "size_bytes": 3328,
+      "sha256": "c8dfa90c10cc4c709854f43f0e43af467f066b7bd95486442025d9372c382049",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000005.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000005.png",
+      "size_bytes": 4705,
+      "sha256": "b1688f87e827b0bd1b4d15bed4a3cebf02b8b4dde21fd8a3c90145c2207b17ca",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000006.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000006.png",
+      "size_bytes": 4737,
+      "sha256": "d5529dd48b14f3be4782897f38c8be3b389d7c4eb4adc61f70d5742851b9b0b7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000007.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000007.png",
+      "size_bytes": 4806,
+      "sha256": "da78afbd3ac7231dfa1a7e6a76946f40480e4c0d9eda5dbf5b3b61dc1e1ea743",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000008.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000008.png",
+      "size_bytes": 5213,
+      "sha256": "8f1e91f28854146bf92f7eb86356ec23247bb7ed5a119ac85e8fce179b42d16a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000009.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000009.png",
+      "size_bytes": 5179,
+      "sha256": "64ff8126d677a866f972347e8fb425b150942a7e158212a15f57a8d89e7b15ab",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000010.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000010.png",
+      "size_bytes": 5030,
+      "sha256": "cf11f082313fe62fb56111847dee5f942ddaafa7c6264330801d73e7c7a2de22",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000011.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000011.png",
+      "size_bytes": 5101,
+      "sha256": "7f54d82d21b71d613682b1832cd5df3268239f63b8f0e8c31b186f87febe6e49",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000012.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000012.png",
+      "size_bytes": 2831,
+      "sha256": "261c1224d42e2c438eec2d08c45d4be4280fce361b054661c4169c116d4577bf",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000013.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000013.png",
+      "size_bytes": 2856,
+      "sha256": "c9e052d98ddee8d480006a15dc32118d3c52f68430c0d2334dc12afc520c2743",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000014.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000014.png",
+      "size_bytes": 2804,
+      "sha256": "99f4741fd758db4dc2545aea88644c97d08b403c58b798902b51053b2e0dfe19",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000015.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000015.png",
+      "size_bytes": 3053,
+      "sha256": "19cd654a7af56c1b0ee17daa2a7cf065f4215b1d9b50f2b7c46b975bce9d4b3a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000016.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000016.png",
+      "size_bytes": 3061,
+      "sha256": "d47289f7f354c8bda2ad0ad2b97dacf01d7bcb8443a61bd3d2c773cd3195583e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000017.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000017.png",
+      "size_bytes": 3077,
+      "sha256": "95475fc547c514fa8cd0c137284ff43b92a629116eb94fc4a86c94de0a4c63ba",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000018.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000018.png",
+      "size_bytes": 3209,
+      "sha256": "90b9877420824d397e5918ffdccd0a46ae4542a29fa08c4a5075ca05bbafef10",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000019.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000019.png",
+      "size_bytes": 3191,
+      "sha256": "e9ce5118b76b5f643e2c920a1bc5d45b1f92080f1aab353c817081cc45ec0d81",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000020.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000020.png",
+      "size_bytes": 3208,
+      "sha256": "bf7dac3dedafd046b9a12b3785ad4218e28260619a8acdc1207da6e71bda5313",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000021.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000021.png",
+      "size_bytes": 5275,
+      "sha256": "7968a01ace36a7fcda3b25af9856820fa0e70749cb253fd3663fb16b9ee14e4d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000022.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000022.png",
+      "size_bytes": 5338,
+      "sha256": "549542c449d48b2755508db6b28c7891f615fe720d8b14e43679e8146a3d0a4a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000023.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000023.png",
+      "size_bytes": 5351,
+      "sha256": "e9996c3768fec0dbbdcb25c620a97b9001245bb781153904c663af466d59e3b6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000024.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000024.png",
+      "size_bytes": 5918,
+      "sha256": "6f19656c41a1415bb4906ffa8c54dbdc8a438cb5586d3cb5b6982f877bdff416",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000025.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000025.png",
+      "size_bytes": 5986,
+      "sha256": "aab1f3306ba3500843feb205c81a86e6f73cb9a97c1907395a8e5790ea042325",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000026.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000026.png",
+      "size_bytes": 6214,
+      "sha256": "b16ac123fcccb5ef77661a2bda2a23b99b1ebd640f866b0387e961517992d30c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000027.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000027.png",
+      "size_bytes": 4072,
+      "sha256": "5b09b8683d4328508cf0c49f4ddf3900382e225070001f3442812dde01d03b7d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000028.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000028.png",
+      "size_bytes": 4048,
+      "sha256": "3b81ad6d3b80d1bafe389b8976073c2b823037cd5da9d5fe1abe924cf241db9d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000029.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000029.png",
+      "size_bytes": 5420,
+      "sha256": "e8703ca444bca08fa7e0ed4663bf567da12636bf36edf467497abc0d00eb378e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000030.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000030.png",
+      "size_bytes": 5220,
+      "sha256": "86acc92ae0b1950cbfc640bcd62742670f3fd6611ea5c94a0bc85d5b576117b1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000031.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000031.png",
+      "size_bytes": 5516,
+      "sha256": "ce19a6fe7023f8c8854b80bce308dde0630e18bdf2a494462822247741dc4410",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000032.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000032.png",
+      "size_bytes": 5578,
+      "sha256": "0f9b303cea103c86e8f65dc1556bf32c861039beff743c8cf88b232783b3f08a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000033.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000033.png",
+      "size_bytes": 6272,
+      "sha256": "762e73e8929b99e3cbe3f75355c916ddbbe148d01f9c78aad3d6b4b836e548ac",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000034.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000034.png",
+      "size_bytes": 5941,
+      "sha256": "776377805a253cf164c1b876d7476091fc21cb33cabe783136304b51db6d1a3a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000035.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000035.png",
+      "size_bytes": 5967,
+      "sha256": "933d38d319def94f5ea58bf6f681408fe1cbd30777e6afa1ef80cad7267a9163",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/masks_v3/right_wrist/000036.png",
+      "relative_to_dataset": "masks_v3/right_wrist/000036.png",
+      "size_bytes": 6105,
+      "sha256": "8d8b082ea44983c7e1ed04dd1df19afbdac588c879cfd2e16c9b24ad00d73498",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/qa_v3/key_cases.jpg",
+      "relative_to_dataset": "qa_v3/key_cases.jpg",
+      "size_bytes": 697054,
+      "sha256": "fc303020e46c81aca8fc26b244daf3f1b0e2f8a1b522b01d733250701484ab0c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/qa_v3/visual_review/review_01.jpg",
+      "relative_to_dataset": "qa_v3/visual_review/review_01.jpg",
+      "size_bytes": 696118,
+      "sha256": "d78ef8c29b91ac8aefcac90bed5e54d2e5960ce7450da5257965e3037875c0c1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/qa_v3/visual_review/review_02.jpg",
+      "relative_to_dataset": "qa_v3/visual_review/review_02.jpg",
+      "size_bytes": 685721,
+      "sha256": "96a25737b967ceffd1533c3d7f515f24d86ad0cc6a75f43bc2037545f75221a6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/qa_v3/visual_review/review_03.jpg",
+      "relative_to_dataset": "qa_v3/visual_review/review_03.jpg",
+      "size_bytes": 676516,
+      "sha256": "4a261a7ed0a99b7688989682aa664be29b90ef76ff4108c102ba883a5ffe3781",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/qa_v3/visual_review/review_04.jpg",
+      "relative_to_dataset": "qa_v3/visual_review/review_04.jpg",
+      "size_bytes": 179304,
+      "sha256": "2494fa69a47291500eedfabcd4eb78b983a565701a87f478d343fbb5a5b43c74",
+      "uploaded": false
+    }
+  ],
+  "external_checkpoints": [
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/runs/hole_board_unet_v1/best.pt",
+      "size_bytes": 93221862,
+      "sha256": "69d5cd1bbcb234142b2132f3586a5e51eb4ca0dc96e65de0a62b1b4f29d8e782",
+      "uploaded": false,
+      "acquisition": "local workstation; separate owner transfer required; no hosted download link",
+      "environment": "tv_sam2 documented; not revalidated at runtime",
+      "experiment_period": "2026-11-04 to 2026-11-09; exact training timestamp not independently established",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z"
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/runs/hole_board_unet_v1/last.pt",
+      "size_bytes": 93221862,
+      "sha256": "22786cb75e72a61f9b9871e945395926494698472c9244f69193dc6d93b08572",
+      "uploaded": false,
+      "acquisition": "local workstation; separate owner transfer required; no hosted download link",
+      "environment": "tv_sam2 documented; not revalidated at runtime",
+      "experiment_period": "2026-11-04 to 2026-11-09; exact training timestamp not independently established",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z"
+    }
+  ],
+  "scope": "Source and metadata archive only. No training, inference, camera, controller or hardware executed. Original console Fusion/Gate/controller remain unchanged. Named SUCCESS snapshots are source provenance, not independent hardware verification."
+}

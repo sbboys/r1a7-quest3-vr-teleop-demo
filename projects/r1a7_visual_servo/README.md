@@ -43,3 +43,7 @@
 ## 2026-11-04 Right Wrist OPEN
 
 [归档报告](../../r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)保存11/03流程、技术方案、采集标注训练评估与操作记录。当前研究前端采用External/Left V2、Right Wrist V3及mask形态midpoint；控制器只归档，不替换现用控制台。
+
+## 2026-11-09 研发归档补充
+
+[11/09技术路线与SOP](../../r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md)新增选孔、FREE→HOLE与孔模型研究；所有运行入口需区分默认控制台和归档研究输出链。

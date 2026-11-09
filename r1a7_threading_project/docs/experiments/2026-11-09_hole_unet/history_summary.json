@@ -1,0 +1,22 @@
+{
+  "source": "history.csv maximum val_score, not checkpoint metadata or test result",
+  "epochs_recorded": 40,
+  "best_history_row": {
+    "epoch": "38",
+    "lr": "5.130696900547353e-06",
+    "train_loss": "0.0882416630025815",
+    "train_ce": "0.06702059691909838",
+    "train_dice_loss": "0.10946272865489677",
+    "val_board_dice": "0.9584673143610466",
+    "val_hole_dice": "0.8557273610594628",
+    "val_mean_fg_dice": "0.9070973377102547",
+    "val_score": "0.8711383540547003",
+    "external_board": "0.9722231133067434",
+    "external_hole": "0.8472016937642313",
+    "right_wrist_board": "0.9282707401661039",
+    "right_wrist_hole": "0.8443427699933276",
+    "left_wrist_board": "0.9746564679783162",
+    "left_wrist_hole": "0.8678376352147371"
+  },
+  "independent_hole_test_metrics_found": false
+}

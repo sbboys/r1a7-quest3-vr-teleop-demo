@@ -1,0 +1,20 @@
+{
+  "archive_date": "2026-11-09 Asia/Shanghai",
+  "status": "PASS",
+  "source_files_hash_verified": 34,
+  "source_python_and_backups_compiled_without_import": 23,
+  "source_paragraphs_covered": 1261,
+  "success_snapshot_pairs_identical": 4,
+  "hole_split_groups": [
+    24,
+    6,
+    6
+  ],
+  "qa_rows": 108,
+  "training_history_rows": 40,
+  "maximum_val_score_epoch": 38,
+  "local_links_checked": 66,
+  "sop_bash_blocks_syntax_only": 4,
+  "active_console_control_files_unchanged": true,
+  "runtime_or_hardware_executed": false
+}

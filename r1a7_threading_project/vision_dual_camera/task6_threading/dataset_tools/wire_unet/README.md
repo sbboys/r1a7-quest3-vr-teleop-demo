@@ -36,3 +36,9 @@ TIP→GRASP保留。FREE用于初始化和几何定向；不自动闭爪。Tempo
 单右腕标注器位于父目录 `annotate_wire_unet_v2_right_wrist_open.py`；原三相机v2标注器也保留。旧的“25个文件”是11/02归档时的数量。
 
 V3 checkpoint仍为本地绝对路径且未上传。不要在已有开放Gate/控制器运行时把本视觉脚本当作无影响的shadow演示。直接自动抓取控制器仅快照归档，未替换控制台控制器。流程、命令来源、状态差异及结果见项目docs中的 `r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md`。
+
+## 2026-11-09 夹取到选孔研究
+
+本次新增grasp→insertion v1/v2/v3与三相机采集；V3为11/09记录主要入口。原wire/tool双模型依赖保持上一归档版本；新输出链研究补丁只保存快照。
+
+技术与操作入口：项目 `docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md`。这些程序可能写共享运动JSON或启动相机；不要通过import或随意启动验证语法。模型外置，现有控制台默认控制器没有替换。

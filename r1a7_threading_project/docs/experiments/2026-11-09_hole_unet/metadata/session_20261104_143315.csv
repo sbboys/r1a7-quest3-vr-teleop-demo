@@ -1,0 +1,2 @@
+sample_id,wall_timestamp,monotonic_timestamp,external_file,right_wrist_file,left_wrist_file,external_width,external_height,right_width,right_height,left_width,left_height
+000001,1793774208.941967,2341.875429,/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261104_143315/external/000001.png,/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261104_143315/right_wrist/000001.png,/home/robot/r1a7_datasets/wire_unet/hole_tube_001/images_raw/session_20261104_143315/left_wrist/000001.png,1280,720,1280,800,1280,800

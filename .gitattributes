@@ -1,3 +1,9 @@
 # Preserve original CSV bytes and recognize CRLF as an end-of-line convention.
 r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/qa_mask_stats.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 r1a7_threading_project/docs/experiments/2026-11-03_right_wrist_open/metadata/session_20261103_112013.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Preserve original CRLF in the November 9 hole-training source CSV records.
+r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20261104_143315.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20261105_105208.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/qa_v3/qa_mask_stats.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/runs/hole_board_unet_v1/history.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

@@ -33,3 +33,7 @@
 - [原件、全文、快照与哈希](../r1a7_threading_project/docs/source_records/2026-11-02/README.md)
 
 - [2026-11-04 右腕张开镊子 V3 双模型与自动抓取归档](../r1a7_threading_project/docs/r1a7_right_wrist_open_autograsp_archive_2026-11-04_zh.md)
+
+## 2026-11-09 研发归档补充
+
+- [11/09研发核对](../r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md) · [技术路线](../r1a7_threading_project/docs/r1a7_grasp_insertion_architecture_2026-11-09_zh.md) · [操作SOP](../r1a7_threading_project/docs/r1a7_grasp_insertion_sop_2026-11-09_zh.md)
