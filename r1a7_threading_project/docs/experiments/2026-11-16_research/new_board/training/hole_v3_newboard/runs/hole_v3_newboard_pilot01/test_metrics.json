@@ -1,0 +1,31 @@
+{
+  "dataset": "NEW_BOARD_01",
+  "checkpoint": "/data/threading/new_board_dataset/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/best.pt",
+  "best_epoch": 64,
+  "test_metrics": {
+    "board_dice": 0.6291671354108074,
+    "hole_dice": 0.33090909090909093,
+    "mean_fg_dice": 0.48003811315994915,
+    "score": 0.3756477975843484,
+    "per_camera": {
+      "external": {
+        "board_dice": 0.5695116242783586,
+        "hole_dice": 0.0,
+        "mean_fg_dice": 0.2847558121391793
+      },
+      "right_wrist": {
+        "board_dice": 0.7517489128379656,
+        "hole_dice": 0.45692883895131087,
+        "mean_fg_dice": 0.6043388758946382
+      },
+      "left_wrist": {
+        "board_dice": 0.2732862673650649,
+        "hole_dice": 0.38961038961038963,
+        "mean_fg_dice": 0.33144832848772726
+      }
+    }
+  },
+  "test_used_for_training": false,
+  "test_used_for_model_selection": false,
+  "same_scene_warning": "All 21 groups are scene_000 from one capture session. This is a pilot split, not independent-scene generalization."
+}

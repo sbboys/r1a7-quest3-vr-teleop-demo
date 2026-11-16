@@ -1,0 +1,85 @@
+{
+  "dataset": "NEW_BOARD_01",
+  "expected_groups": 21,
+  "expected_views": 63,
+  "cameras": {
+    "external": {
+      "images": 21,
+      "wire_masks": 21,
+      "hole_masks": 21,
+      "wire_pixels": {
+        "0": 19260751,
+        "1": 30194,
+        "2": 62655
+      },
+      "hole_pixels": {
+        "0": 19333778,
+        "1": 19106,
+        "2": 716
+      }
+    },
+    "right_wrist": {
+      "images": 21,
+      "wire_masks": 21,
+      "hole_masks": 21,
+      "wire_pixels": {
+        "0": 21442491,
+        "1": 19533,
+        "2": 41976
+      },
+      "hole_pixels": {
+        "0": 21437254,
+        "1": 65453,
+        "2": 1293
+      }
+    },
+    "left_wrist": {
+      "images": 21,
+      "wire_masks": 21,
+      "hole_masks": 21,
+      "wire_pixels": {
+        "0": 21405971,
+        "1": 27656,
+        "2": 70373
+      },
+      "hole_pixels": {
+        "0": 21455558,
+        "1": 47594,
+        "2": 848
+      }
+    }
+  },
+  "missing_images": [],
+  "missing_wire_masks": [],
+  "missing_hole_masks": [],
+  "extra_wire_masks": [],
+  "extra_hole_masks": [],
+  "unreadable_files": [],
+  "bad_shapes": [],
+  "bad_values": [],
+  "empty_wire": [],
+  "empty_tweezer": [
+    "external/group_000003"
+  ],
+  "empty_board": [
+    "external/group_000003"
+  ],
+  "empty_hole": [
+    "external/group_000003"
+  ],
+  "class_pixels": {
+    "wire": {},
+    "hole": {}
+  },
+  "synchronized_groups": 21,
+  "image_id_union": 21,
+  "camera_image_sets_match": true,
+  "geometry_files": [
+    "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/annotations_joint/annotation_log.jsonl",
+    "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/annotations_joint/hole_geometry.jsonl"
+  ],
+  "geometry_records": 127,
+  "geometry_bad_lines": [],
+  "missing_total": 0,
+  "audit_pass": true
+}

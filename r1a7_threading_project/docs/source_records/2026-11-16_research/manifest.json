@@ -1,0 +1,3538 @@
+{
+  "archive_date": "2026-11-16 Asia/Shanghai",
+  "baseline_commit": "e5138d6e79084de9326110485eb690f522988d71",
+  "documents": [
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/R1-A7_夹取插孔调试_数据标注模型训练_程序备份_完整对话整理_20261116.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/R1-A7_夹取插孔调试_数据标注模型训练_程序备份_完整对话整理_20261116.docx",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-16_research/20261116_fulltext_zh.md",
+      "sha256": "45e2b763995f19286abf2ddad6e94f04f9b403973f1a5e6f22520316228a3322",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/R1-A7双臂机器人_抓取插孔技术路线与实验工作记录_20261113.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/R1-A7双臂机器人_抓取插孔技术路线与实验工作记录_20261113.docx",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-16_research/20261113_fulltext_zh.md",
+      "sha256": "841157cc56aae89f1e80685e7fc96a29314bb2083974f13d23cc50b887dd01e6",
+      "baseline_status": "missing"
+    },
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/R1-A7_细线抓取与穿孔_完整研发工作记录_截至2026-11-09_V2.0.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/R1-A7_细线抓取与穿孔_完整研发工作记录_截至2026-11-09_V2.0.docx",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-09_grasp_insertion/worklog_fulltext_zh.md",
+      "sha256": "c7f10261c29c0b7f9a34b98f70d9c2c3d616a6bd97dc95385259c6a92a3df611",
+      "baseline_status": "identical"
+    },
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/2026.11.3R1-A7_右腕张开镊子视觉与自动抓取工作记录_2026-11-03.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-03_right_wrist_open/2026.11.3R1-A7_右腕张开镊子视觉与自动抓取工作记录_2026-11-03.docx",
+      "transcript": "r1a7_threading_project/docs/source_records/2026-11-03_right_wrist_open/worklog_fulltext_zh.md",
+      "sha256": "85e9b358cbedd96e499bf17912404a4ae74e29c932915b6e174bef5449bcecb0",
+      "baseline_status": "identical"
+    }
+  ],
+  "files": [
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/R1-A7_夹取插孔调试_数据标注模型训练_程序备份_完整对话整理_20261116.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/R1-A7_夹取插孔调试_数据标注模型训练_程序备份_完整对话整理_20261116.docx",
+      "sha256": "45e2b763995f19286abf2ddad6e94f04f9b403973f1a5e6f22520316228a3322",
+      "size_bytes": 158030,
+      "kind": "original_document"
+    },
+    {
+      "source_path": "/home/robot/桌面/jiqiren/renwu/R1-A7双臂机器人_抓取插孔技术路线与实验工作记录_20261113.docx",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/R1-A7双臂机器人_抓取插孔技术路线与实验工作记录_20261113.docx",
+      "sha256": "841157cc56aae89f1e80685e7fc96a29314bb2083974f13d23cc50b887dd01e6",
+      "size_bytes": 55952,
+      "kind": "original_document"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_dataset_recorder_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_dataset_recorder_v1.py",
+      "sha256": "c56682809bc22de97cc7cf6743e2dce23270aac50791798923541c0692c1cb41",
+      "size_bytes": 35024,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_hard_sample_analyzer_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_hard_sample_analyzer_v1.py",
+      "sha256": "e9c9e459c0048a4cddbc8c7bdc6b14ba0a64c55d97b0ff771cd9f22ad139897e",
+      "size_bytes": 18810,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_annotation_dedup_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_annotation_dedup_v1.py",
+      "sha256": "fbda7878196e3d3d602dd1b9da38ee0ba02cc3f91a6fabefe79d7203f58ad3fd",
+      "size_bytes": 26046,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_sync_group_dedup_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/insertion_sync_group_dedup_v1.py",
+      "sha256": "38a7044f82491591982407d1a3082e8f4e526f7cccc6a7a247863ddcb23abd74",
+      "size_bytes": 25145,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/annotate_insertion_joint_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/annotate_insertion_joint_v1.py",
+      "sha256": "27a475c60173fbe8d4c902c3ea9d04ac93f509822a9072d2e4a172d18bd3d36f",
+      "size_bytes": 42825,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v4_insertion_joint.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v4_insertion_joint.py",
+      "sha256": "539339332c7db1d7d7cc023a448b59c800ff298d85495279fd69500618798a54",
+      "size_bytes": 22696,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v5_newboard.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/train_wire_unet_v5_newboard.py",
+      "sha256": "f8339aaf9a81c5378d8c9b604e9f54632aea77c333c59d87625c594dc04d753f",
+      "size_bytes": 19150,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "sha256": "c39c7a3707a840163dc6fbd00d26d277209c805d8e305337715777aeb9365109",
+      "size_bytes": 117997,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/manual_newboard_hole_capture_v1.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/manual_newboard_hole_capture_v1.py",
+      "sha256": "ab3a98260206a3b38922fefc9786f25bc251c3ebe1f65a2cd08ca5447321c400",
+      "size_bytes": 21641,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/train_hole_board_unet_v2_insertion_replay.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/train_hole_board_unet_v2_insertion_replay.py",
+      "sha256": "bd68d6b78fb90d2faa55c20b021fdca6c741dfab2591264978afec7f41aaaacc",
+      "size_bytes": 14696,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/train_hole_board_unet_v3_newboard.py",
+      "repository_path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/train_hole_board_unet_v3_newboard.py",
+      "sha256": "2848a1350c5be538b3ceef405cb865fcb82cb185bc10d460eb8581208356b7e5",
+      "size_bytes": 11939,
+      "kind": "research_source"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v4_candidate.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/candidate/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v4_candidate.py",
+      "sha256": "ddaf6be45c4daad0140f8dc70a6eacb49e07e5b63df4736bbc44713f1085498e",
+      "size_bytes": 114388,
+      "kind": "candidate_not_default"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/current/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "sha256": "c39c7a3707a840163dc6fbd00d26d277209c805d8e305337715777aeb9365109",
+      "size_bytes": 117997,
+      "kind": "archive_output_chain"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "sha256": "ae8b466a36a35839f1fef0b041e3daca385d74f1d41c92f870e20aa936dfde8b",
+      "size_bytes": 31380,
+      "kind": "archive_output_chain"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "sha256": "b31f3056a23775ed4fb8ef0acd9b94b8ff87ad838b9982c26a78ca88cdaaae85",
+      "size_bytes": 14898,
+      "kind": "archive_output_chain"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/current/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "sha256": "a2e634d2c6816c206032fd7343788275fc3c88ba0e5e1e743a1e1156573c1ea1",
+      "size_bytes": 225340,
+      "kind": "archive_output_chain"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_dynamic_hole_track_20261111_203419",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_dynamic_hole_track_20261111_203419",
+      "sha256": "a8e2e29182609b01a69f2602fbc51a1b291fa562b7d7ef4cf567d6745c7dfa41",
+      "size_bytes": 114436,
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_insertion_dataset_recorder_20261110_150903",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_insertion_dataset_recorder_20261110_150903",
+      "sha256": "1dbe58712ae961daee87173dc41fb2fdc7e0550960df63440a8aba6653e1d64e",
+      "size_bytes": 109943,
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_wirev5_holev3_20261116_090727",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.bak_before_wirev5_holev3_20261116_090727",
+      "sha256": "c39c7a3707a840163dc6fbd00d26d277209c805d8e305337715777aeb9365109",
+      "size_bytes": 117997,
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.bak_before_grasp_sequence_v3_20261110_005912",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.bak_before_grasp_sequence_v3_20261110_005912",
+      "sha256": "33817457766564f5a864327178cbf77e06fb41426a8b126e00ff92b380592855",
+      "size_bytes": 18587,
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.bak_before_fix_final_adjust_latch_20261110_012931",
+      "repository_path": "r1a7_threading_project/docs/source_records/2026-11-16_research/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.bak_before_fix_final_adjust_latch_20261110_012931",
+      "sha256": "d97a78236b3430e7d216fca41cbf8b8e2ba670244978352fdd10af89a9f695e2",
+      "size_bytes": 28535,
+      "kind": "before_change_backup"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/hole_v2_insertion_replay_seed44/history.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/hole_v2_insertion_replay_seed44/history.json",
+      "sha256": "a8c67ad0c3025822e3526dbceafc2a9773a84948ca9f16c22d274746a9700e3a",
+      "size_bytes": 31816,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/hole_v2_insertion_replay_seed44/v1_vs_v2_reserved_test.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/hole_v2_insertion_replay_seed44/v1_vs_v2_reserved_test.json",
+      "sha256": "04ed7a78c129080507baeedf3bb9988b6eb0c3b8d298df75c6ba16142c2527fd",
+      "size_bytes": 3234,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/hole_v2_insertion_replay_seed44/best_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/hole_v2_insertion_replay_seed44/best_metrics.json",
+      "sha256": "670c049e092f6be19646f7a6469801f31b5f50c0f5ef09476ce69bfb0d7e5568",
+      "size_bytes": 1427,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/hole_v2_insertion_replay_seed44/baseline_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/hole_v2_insertion_replay_seed44/baseline_metrics.json",
+      "sha256": "b42c3c214288e019dbb69786ba6fd122ad6eefb59bf0a56246d24432ac259693",
+      "size_bytes": 1562,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/wire_v4_insertion_replay_seed44/history.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/wire_v4_insertion_replay_seed44/history.json",
+      "sha256": "4755d9deb7790eedf4b39246f961ec568a6b611b965119697b2864a05a8fe73d",
+      "size_bytes": 153392,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/wire_v4_insertion_replay_seed44/v3_vs_v4_reserved_test.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/wire_v4_insertion_replay_seed44/v3_vs_v4_reserved_test.json",
+      "sha256": "f237d3b1d91c9244242dd4a7d0a473e5fe6552e50d0dd5a6ab771eb43e27be4f",
+      "size_bytes": 15367,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/wire_v4_insertion_replay_seed44/best_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/wire_v4_insertion_replay_seed44/best_metrics.json",
+      "sha256": "611ffb5941b1f9a069cb42e11f8f63b04d1b3e1815e73692bc260e0445516941",
+      "size_bytes": 6904,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/runs/wire_v4_insertion_replay_seed44/baseline_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training/wire_v4_insertion_replay_seed44/baseline_metrics.json",
+      "sha256": "ce8cdd1419aa7197f20bb40c4ce7b1987213bc125c30bf7a77f28e2fb47efda5",
+      "size_bytes": 7119,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/training_runtime/splits_insertion_joint_grouped_seed44_v1.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/training_runtime/splits_insertion_joint_grouped_seed44_v1.json",
+      "sha256": "79954f512838a8df0ce0c6cf9eb8c52a9817741ed6ec474d6df1ffdbe7bd59bc",
+      "size_bytes": 1055,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/selection/selection_summary.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/selection/selection_summary.json",
+      "sha256": "a377d436b7ffa52cd47eb6f9edce3ecd5b5a124609304471d4aa74f27381bb5a",
+      "size_bytes": 589,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/selection/sync35_manifest.csv",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/selection/sync35_manifest.csv",
+      "sha256": "25b8f25554748d9516270fc4cfbc66364f749ddab48f5e44dc34365b5c3847d0",
+      "size_bytes": 8314,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/annotations_joint/hole_geometry.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/annotations_joint/hole_geometry.jsonl",
+      "sha256": "21285f42549d73079a1dc23b9aa02bffe3700e80917d3779d6118944855ba1e4",
+      "size_bytes": 181477,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/annotations_joint/annotation_log.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/annotations_joint/annotation_log.jsonl",
+      "sha256": "91b354beba01d81eb17e554c90223bfabe22bffe8f257ed857799138c844ac6d",
+      "size_bytes": 51257,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/models/hole_v2_epoch52_reserved_test.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/frozen_results/hole_v2_epoch52_reserved_test.json",
+      "sha256": "04ed7a78c129080507baeedf3bb9988b6eb0c3b8d298df75c6ba16142c2527fd",
+      "size_bytes": 3234,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/models/wire_v4_epoch110_reserved_test.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/frozen_results/wire_v4_epoch110_reserved_test.json",
+      "sha256": "f237d3b1d91c9244242dd4a7d0a473e5fe6552e50d0dd5a6ab771eb43e27be4f",
+      "size_bytes": 15367,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/baseline_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/baseline_metrics.json",
+      "sha256": "fa1b1c7c2b692acc1a7c0ed5b51b284ff8d7570a60c355b1da39e58681c12be5",
+      "size_bytes": 9979,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/training_summary.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/training_summary.json",
+      "sha256": "8270eb68b4afe9022a73748409cdd007ba717bda7706dfdb8ba879338bdda7da",
+      "size_bytes": 557,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/newboard_test_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/newboard_test_metrics.json",
+      "sha256": "9887f1cf62fdd41c77e4913b98ce10fcb6716e3f6a4a64cb2ed5480e57968e23",
+      "size_bytes": 3053,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/history.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/history.json",
+      "sha256": "bcdbf179d2a566fc2f3d852c04f84472898f1c65fc30bdecf7e010d6efb5a8bb",
+      "size_bytes": 215475,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/best_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/wire_v5_newboard/runs/wire_v5_newboard_pilot01/best_metrics.json",
+      "sha256": "a4f23cd88d9254b487f5e8048758ecdbdeb0cc7ce782264ed2904aa9a31857fd",
+      "size_bytes": 9816,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/wire_v5_newboard/splits/newboard_grouped_timeblock_v1.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/wire_v5_newboard/splits/newboard_grouped_timeblock_v1.json",
+      "sha256": "17290f7981c53092dc5fb4288526daf1876a5af25685b49209ef2c5e82711441",
+      "size_bytes": 834,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/baseline_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/baseline_metrics.json",
+      "sha256": "ba982326beca5757d2ff266e6a66c8f2fbf4f8567be3c3568189e0aa63a7f1c2",
+      "size_bytes": 798,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/test_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/test_metrics.json",
+      "sha256": "2953a44bf7e8d75977761c6d218d33d8d8d375a127a536b4cd0fa69c6f6ffee9",
+      "size_bytes": 1046,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/training_summary.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/training_summary.json",
+      "sha256": "fe0208e73eaccb083d302f5c29905b71f6457defaff77efb0b81167d0ade91fe",
+      "size_bytes": 611,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/history.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/history.json",
+      "sha256": "e592147f94273bd5cf9b65b6b045ffe517c75774dce6841f36d4e79b6f1abe14",
+      "size_bytes": 17845,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/best_metrics.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/hole_v3_newboard/runs/hole_v3_newboard_pilot01/best_metrics.json",
+      "sha256": "2c9c1ac4371edfa09c87c9fd65a23bf7fe8688a78b6ff9bb0f0a1f6d993e4c8e",
+      "size_bytes": 827,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/training/hole_v3_newboard/splits/newboard_grouped_timeblock_v1.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/training/hole_v3_newboard/splits/newboard_grouped_timeblock_v1.json",
+      "sha256": "17290f7981c53092dc5fb4288526daf1876a5af25685b49209ef2c5e82711441",
+      "size_bytes": 834,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/metadata/annotation_audit_v1.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/annotation_audit/annotation_audit_v1.json",
+      "sha256": "9a2e9aa4066a8ec2e2a206232dcbc09f010c4c525d51e5191a0fd783ef46ea3b",
+      "size_bytes": 1790,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/metadata/annotation_audit_v2.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/annotation_audit/annotation_audit_v2.json",
+      "sha256": "49a5950a8f1647b931377a5c93213264f43d7485dd30fe68d1c0edaea2a396e1",
+      "size_bytes": 2523,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/annotations_joint/annotation_log.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/annotations_joint/annotation_log.jsonl",
+      "sha256": "9f9450a2c3e1ddf7d38afb5bb82ad6ed799e7228bf5acd0036d3d68a86ae34a0",
+      "size_bytes": 28353,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/annotations_joint/hole_geometry.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/annotations_joint/hole_geometry.jsonl",
+      "sha256": "c6130dadc0e47397a50eba60184f39b8044454ac0de66dc63e807203848f71a1",
+      "size_bytes": 21245,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/metadata/capture_manifest.jsonl",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/capture_metadata/capture_manifest.jsonl",
+      "sha256": "80ef518c024e2c8464dab0768107896d01a606d4dd482ba6fda8b2afaccba5da",
+      "size_bytes": 23962,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/metadata/capture_config.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/capture_metadata/capture_config.json",
+      "sha256": "5a1001eb182e0f421d5db9b24f44939d13471d7847de12cb9fb0e2fba764288b",
+      "size_bytes": 685,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/metadata/board_metadata.yaml",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/new_board/capture_metadata/board_metadata.yaml",
+      "sha256": "95b81216200b1ff709aa95681bc0791491b6eece36127e49523424cab57b5245",
+      "size_bytes": 381,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_runtime_001/raw_sessions/20261110_152101_491/session_summary.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/raw_session_summary/session_summary.json",
+      "sha256": "77d3674932acfa22d68b14f4242cdd56b5222e072751a16d9e91bcd7ec2b8879",
+      "size_bytes": 1113,
+      "kind": "historical_data_or_metrics"
+    },
+    {
+      "source_path": "/home/robot/r1a7_datasets/wire_unet/insertion_runtime_001/raw_sessions/20261110_152101_491/session_start.json",
+      "repository_path": "r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/raw_session_summary/session_start.json",
+      "sha256": "38721e4a1da5ee184edcef62900352c6817707ea76302e10a3e32bbb4f5a48fa",
+      "size_bytes": 453,
+      "kind": "historical_data_or_metrics"
+    }
+  ],
+  "external_packages_models": [
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/models/wire_v4_insertion_replay_seed44_epoch110.pt",
+      "size_bytes": 93262040,
+      "sha256": "31dcc17b4353be524af6bd75613ecf8802745ad0a2f07fdc1bb19d0587be88d7",
+      "uploaded": false,
+      "environment": "tv_sam2 documented; not runtime validated",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "experiment_period": "2026-11-10 to 2026-11-16",
+      "acquisition": "Local workstation only; separate owner transfer required; no hosted URL"
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/models/hole_v2_insertion_replay_seed44_epoch52.pt",
+      "size_bytes": 93222182,
+      "sha256": "467c57b3e74f9b885013bc8c0a77a3881fad53283d0325b2e0ba3f450d0a6b52",
+      "uploaded": false,
+      "environment": "tv_sam2 documented; not runtime validated",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "experiment_period": "2026-11-10 to 2026-11-16",
+      "acquisition": "Local workstation only; separate owner transfer required; no hosted URL"
+    },
+    {
+      "path": "/data/threading/new_board_dataset/frozen/models/wire_v5_newboard_seed44_epoch123.pt",
+      "size_bytes": 93263320,
+      "sha256": "c72a9f40c4890094a33db2ed3f50da54e5e7ce5ebb11c56ed906d6b3d174a4e7",
+      "uploaded": false,
+      "environment": "tv_sam2 documented; not runtime validated",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "experiment_period": "2026-11-10 to 2026-11-16",
+      "acquisition": "Local workstation only; separate owner transfer required; no hosted URL"
+    },
+    {
+      "path": "/data/threading/new_board_dataset/frozen/models/hole_v3_newboard_seed44_epoch64.pt",
+      "size_bytes": 93222118,
+      "sha256": "4ec3923e49e12925520985b8b331c465d24c44bf14dce89107984fd9d6685763",
+      "uploaded": false,
+      "environment": "tv_sam2 documented; not runtime validated",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "experiment_period": "2026-11-10 to 2026-11-16",
+      "acquisition": "Local workstation only; separate owner transfer required; no hosted URL"
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/insertion_joint_annotation_complete_20261111_165043.tar.gz",
+      "size_bytes": 22398638,
+      "sha256": "9ad042afbb39543ec8deaa1c5d80512f8335fb2bbe6e9c18b237b82540334321",
+      "uploaded": false,
+      "environment": "tv_sam2 documented; not runtime validated",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "experiment_period": "2026-11-10 to 2026-11-16",
+      "acquisition": "Local workstation only; separate owner transfer required; no hosted URL"
+    },
+    {
+      "path": "/data/threading/new_board_dataset/archives/NEW_BOARD_01/NEW_BOARD_01_annotation_final_20261113_210547.tar.gz",
+      "size_bytes": 18513849,
+      "sha256": "462288ecc3ba00c1f6c63d6b6cbd3f9eab120a1b98135966b531a435fa95c9f4",
+      "uploaded": false,
+      "environment": "tv_sam2 documented; not runtime validated",
+      "device": "External USB ZOOM; Orbbec CPCBC53000C5/CPCBC530007Z",
+      "experiment_period": "2026-11-10 to 2026-11-16",
+      "acquisition": "Local workstation only; separate owner transfer required; no hosted URL"
+    }
+  ],
+  "external_rgb_masks": [
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000001.png",
+      "size_bytes": 1077947,
+      "sha256": "1af1bfbdd395504e95cacb57f4a9e6b4849d9595e5c75f339dce23480d5477db",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000002.png",
+      "size_bytes": 1088958,
+      "sha256": "6e5a9594189ef7167b417c928c7b993ca1d9e24496f66ea70de48f3b838cf881",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000003.png",
+      "size_bytes": 1057932,
+      "sha256": "626235eaebf1ab5747e669f71c59d46581857c25f3a3a71074299a4841dd4805",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000004.png",
+      "size_bytes": 1090452,
+      "sha256": "59200953dbe97806c1889199a3d301c27e1c32d4aa30a891f04e92a59aba4e7a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000005.png",
+      "size_bytes": 1088651,
+      "sha256": "9fee9c26af15306bc62b9b911501428ecd2a8d7b03aec16f7d0b9c97a17baed6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000006.png",
+      "size_bytes": 1088962,
+      "sha256": "5f66521c9bb91499af94378f8dcb80e0c143c8ef3047c1a039eb0837d615378b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000007.png",
+      "size_bytes": 1073696,
+      "sha256": "9c034a17b186f2050ba2c5551e89035d1f27dec2bbc03fd200a5b2d471a92a8e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000008.png",
+      "size_bytes": 1048559,
+      "sha256": "7536cf86c854468ef7500edff894339ff8d53977bd3001e86d7bcf64ebd54cdc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000009.png",
+      "size_bytes": 1081017,
+      "sha256": "e406cd7d26123c0ce2c15eecd100edb8125861a6d5a78c156af61bfe9e81b3b6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000010.png",
+      "size_bytes": 1080903,
+      "sha256": "7012d817dc2d471efc0b8ac3fbefea2d4b91c16db27762339186f1fc138ecefa",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000011.png",
+      "size_bytes": 1099324,
+      "sha256": "2dee1a315d8016da3cac0859a207ba40d160ef8f0390ea865a26f811565afd6e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000012.png",
+      "size_bytes": 1089039,
+      "sha256": "d03ab11b9d612d6647876ddf5265905ec0bde90def44dc64e7d09b866b86cd90",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000013.png",
+      "size_bytes": 1090721,
+      "sha256": "4262e9804ca869165473c9617f67aa6dc61cab2fedd46ce4c620e41e0ced7510",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000014.png",
+      "size_bytes": 1079896,
+      "sha256": "309cd55458099ffc7c53ac42525705834cfacd9eca7e2b98d5ab13696b68cdff",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000015.png",
+      "size_bytes": 1072750,
+      "sha256": "4afe5d5b6eb340346f23d6662e80ddcc29536860412bb136e680f7c88112ea83",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000016.png",
+      "size_bytes": 1075314,
+      "sha256": "56428d004299ffc313f3d9dfd91e85a64c267ce04834240829c3c959479ea9f2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000017.png",
+      "size_bytes": 1092736,
+      "sha256": "b2a666b8f8978857e3e2bbe4d135aa5b14aa695346d93236b023330f5ae6535a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000018.png",
+      "size_bytes": 1075893,
+      "sha256": "a6d718bc90768f98d40245e6df4e342a57198da56fc6f2214d0788a41ce047e9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000019.png",
+      "size_bytes": 1091997,
+      "sha256": "222362a2f0c6bc2738f71e3b8e6bc98dcb31d35fa13040d6b96b0b1e159a6458",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000020.png",
+      "size_bytes": 1080137,
+      "sha256": "341536a7328f9d9149c0c1456b842327be0fe9679b1b2bb251c9a618efd552f7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000021.png",
+      "size_bytes": 1082297,
+      "sha256": "434f392e8c95bc6411cd37d5cbfb95854524afbd7415ee5103bb8b96f0b9b500",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000022.png",
+      "size_bytes": 1081240,
+      "sha256": "368e5d0e6ec9c693b090b81f723fe8be0724fd4b05017d91c97d5bacb7187897",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000023.png",
+      "size_bytes": 1086298,
+      "sha256": "e814ba1511e026de032ad294904eece264fc86529cf5be423a0d2a77e00e29f1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000024.png",
+      "size_bytes": 1087954,
+      "sha256": "ee832982e4364ab3cc8172b665bb77ab54d7d3572c43b67cca775904818b8374",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000025.png",
+      "size_bytes": 1085726,
+      "sha256": "3060c686ce3b601b659b22c0893c9e74070d1d7332ddd2802265de9a7f646cc0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000026.png",
+      "size_bytes": 1086322,
+      "sha256": "4905a49b5e6cba6fee1a55d4e6bf4c4edab54468b5835ae10bd1810cd4ce2408",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000027.png",
+      "size_bytes": 1075955,
+      "sha256": "d350681cc631618d766b316bca3f2ca3d15599dc7960cb36736fe6d87f3a0dce",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000028.png",
+      "size_bytes": 1053121,
+      "sha256": "1adfa5de8ce3072c8e458f65e2bc676fde9ca2c185790dea9d30cb578f33707f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000029.png",
+      "size_bytes": 1076108,
+      "sha256": "dd434716d626b111b8efef6e779a2ad4d3aed9e07be692f8089fa987ddf8b96d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000030.png",
+      "size_bytes": 1076134,
+      "sha256": "4e117ea228b55b7d40cad1f2cc9aa427b615b51dc8dde4f5c88dd5c702a07351",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000031.png",
+      "size_bytes": 1053898,
+      "sha256": "a503aa214b968672eaf0d6c4db51ea705b08553a2be7de40278b058035444b12",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000032.png",
+      "size_bytes": 1078625,
+      "sha256": "d198b7109c27e276bce313d6b958551903384d902d68cb9836d7d728c16cf0aa",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000033.png",
+      "size_bytes": 1008481,
+      "sha256": "b6d9fd7b0588c57aec3751fba2bb47d6ab7efc841b269c66c354b92caafba501",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000034.png",
+      "size_bytes": 1086284,
+      "sha256": "2f14b9c2a596e25b052c05de982ae7ef27ec6e6a564645a3a20ef24cbb7cad45",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/external/000035.png",
+      "size_bytes": 1068638,
+      "sha256": "425b944883580086fc27d4c9aaa21421df2a540effb58a0c3c9f95bc243b3051",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000001.png",
+      "size_bytes": 1461957,
+      "sha256": "1519102fcc49d72a042b39905cf7e4ad32c9ce4eebf076943d3c0f96de339f54",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000002.png",
+      "size_bytes": 1461782,
+      "sha256": "c67fbaecc4c7614ee9e66a4e024b098e02e9b58d4a47c292d97fda62d82bbc74",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000003.png",
+      "size_bytes": 1461199,
+      "sha256": "d15b13248a1d8f001a4f9902bdf61ca38b13d1729d3737113055c7313f34aa5e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000004.png",
+      "size_bytes": 1462214,
+      "sha256": "940e6b4f3e0fc1d75f8d009f8d321bd817f5b9fbc5ba4d31411a69cf45f31ffb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000005.png",
+      "size_bytes": 1462887,
+      "sha256": "87e259e80dfb0d656e9f98f4a2a5cb0b0f85e30ec0a44393bb3e34db7874e5a3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000006.png",
+      "size_bytes": 1466399,
+      "sha256": "5e09ee6acc28ba45f3a8fe3999d7f9c351dffc5f1292f1f9d5287f964f652ab0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000007.png",
+      "size_bytes": 1462334,
+      "sha256": "b9b2804d5375903b8d26d495337c25f6d0952f84ec520c88ec42ec5268ce5fdf",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000008.png",
+      "size_bytes": 1465921,
+      "sha256": "8a43f39cf2155a71a16ede4b9ffd8fc33061b4345387a2ba68254d4bed653954",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000009.png",
+      "size_bytes": 1465943,
+      "sha256": "05293224bb13335ad36c43891481b7f45faa0ee63ad85d3a5cc3a141e6eb8f91",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000010.png",
+      "size_bytes": 1463592,
+      "sha256": "bc100271ad5f12e0d4ca10c470a185ce9f732a4dc60ba612476a6cefc4fe4e3c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000011.png",
+      "size_bytes": 1464667,
+      "sha256": "4af7a23b53cf9f4b41d5c4de117756036fd8d0e5fcdbcb9b392ce764b86623cf",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000012.png",
+      "size_bytes": 1462925,
+      "sha256": "0784f62581998850c5c1b842c3b2f6c8b10a54557f2867121ce3b645c6330ce6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000013.png",
+      "size_bytes": 1465425,
+      "sha256": "52556cc7059d3011f0d24973bc42c63256790a80b065e5a9057c459fadc97954",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000014.png",
+      "size_bytes": 1465453,
+      "sha256": "b2d2fd677c6090070380f8e05d83492905766e630240e2da52b1ba9dfd79367a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000015.png",
+      "size_bytes": 1463894,
+      "sha256": "63fffb3e16063a85e2e61ec279fe5dc8dc856db5e07c1634d4a6b7e826be4a13",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000016.png",
+      "size_bytes": 1465937,
+      "sha256": "956e8fbb7328224461e4afc2751f9e59c7dd2936faaac565b2960b5a7722a63c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000017.png",
+      "size_bytes": 1469175,
+      "sha256": "1c65269ef6f428456b697dd55683aac3f24ebfb48bcfaab09080c4958a9b10f4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000018.png",
+      "size_bytes": 1466434,
+      "sha256": "fcf8be442fc0263948795e2c97816cc03457178f7b38d498b0a0449bbe8e568b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000019.png",
+      "size_bytes": 1469966,
+      "sha256": "4fb1570ba80ba506a034a219f0629b24d672c186f97aeb91230f672f34ce50da",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000020.png",
+      "size_bytes": 1468578,
+      "sha256": "476e52b1a1069094b40cc96422ecbf8e51ea00afada802f677b1fd3dac781fa6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000021.png",
+      "size_bytes": 1467836,
+      "sha256": "78779d827c9510e8c103e467589e82bef7b0ebda30d3de5ece4a7a7ef0fe503f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000022.png",
+      "size_bytes": 1470140,
+      "sha256": "f905c3f258ec06e949f1ab35691415e9079657e88c0c20dde0cecfbcea34c003",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000023.png",
+      "size_bytes": 1471287,
+      "sha256": "6e24f31d93d6d9688d7f6835f3e70dae3da95db20853eff21d1650ac0f47c925",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000024.png",
+      "size_bytes": 1473331,
+      "sha256": "dbe9521b7ecad131003be2e08060a0b072efc3c0357f303e8a31910c86762d72",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000025.png",
+      "size_bytes": 1474313,
+      "sha256": "8b6217060cca11747154164366fb867530269c354192f281f8b5a6795b30b31b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000026.png",
+      "size_bytes": 1475101,
+      "sha256": "4999ca7156fbc631b5a716437648e253aaa108e93586e34ada903e519e2b0cb0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000027.png",
+      "size_bytes": 1474150,
+      "sha256": "1b37db6f233a05232a20db297c935b984482c88f669700934c947827e23a9a98",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000028.png",
+      "size_bytes": 1470690,
+      "sha256": "25482435f17ea2eb9dc47c368319fb645452906e35186b1e410ae38457d1f278",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000029.png",
+      "size_bytes": 1472993,
+      "sha256": "ad33b1e2b7dcce0c60f99b4c738b0c176ad8dfb36ae2781f1f05bcd433fbba7e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000030.png",
+      "size_bytes": 1471210,
+      "sha256": "60a9cad9a65de13fac12ac6e7a98f28eb27dd28830df8b8a000cf9aad3de71e0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000031.png",
+      "size_bytes": 1480603,
+      "sha256": "01dc4aa5f72cb412ecf0598e0e1597c59022a69346bd3a5a7df25ba9ab5812ce",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000032.png",
+      "size_bytes": 1456734,
+      "sha256": "84a8707929cdc8dd99a75ced7a18595589f4b441a65cd57265cc74eac68fdc53",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000033.png",
+      "size_bytes": 1458846,
+      "sha256": "a030675c3582b1a9edeb808d169c4068f3278630443701a6f2d29030731f826d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000034.png",
+      "size_bytes": 1439870,
+      "sha256": "c42b37256c604a985e32208d199517faf0f82f707effae54b4d74ad12e3fe4a1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/left_wrist/000035.png",
+      "size_bytes": 1428046,
+      "sha256": "44c086d31ae55b20a1984854d140dc8a4fd50868c5730e79ecc5e9c98373b82e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000001.png",
+      "size_bytes": 1364759,
+      "sha256": "f05cc1c264b03b29c3387809d1c4d01f5adb80c405b222087b488ba9285279b0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000002.png",
+      "size_bytes": 1365779,
+      "sha256": "bbd14bfd54c98c2407cd9cfa3d2b6e6f558f2e897707ea6f50e3f0d86945b6b8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000003.png",
+      "size_bytes": 1368442,
+      "sha256": "49ad9af9d9100761a2da81c3d5a6788c5cb06a5e03caab6332706720cbd41991",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000004.png",
+      "size_bytes": 1366163,
+      "sha256": "0e31876ad0e345bd30d0a99c75d76e5060c312ce1988d4f8c1687fef09389a61",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000005.png",
+      "size_bytes": 1366384,
+      "sha256": "bf019699f0e54090a7b4cb2488b3ab7c0e99732466e3dc1d38d63328567908cf",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000006.png",
+      "size_bytes": 1366424,
+      "sha256": "dcae92ed7113e12b87959ff032bb6dd77dafbad252c72f66a1ba87171a681966",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000007.png",
+      "size_bytes": 1369843,
+      "sha256": "c222c8f724af955f3a5c8a393afa5f881d9e7184f3adb7e842ff34c77865fad6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000008.png",
+      "size_bytes": 1367720,
+      "sha256": "b643b086f80595e25614781b6e573bc50094eaca8f0591400d972c053efd50a7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000009.png",
+      "size_bytes": 1368714,
+      "sha256": "96a63f41b3bb03b409a71668ca84e60037234a7398269b02058e93775a30d345",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000010.png",
+      "size_bytes": 1369653,
+      "sha256": "7918b37b79521a0cf1472ae676b1041794c06572a94fd427da082dec354238d4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000011.png",
+      "size_bytes": 1370162,
+      "sha256": "b443b32c8ce272a6910b81256a41c21719914410991a94e4fb1425aa5e8c92fe",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000012.png",
+      "size_bytes": 1369984,
+      "sha256": "30214b9cb50f681181616b27df732879e100ceed26a69acf9853ce240c4f88c1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000013.png",
+      "size_bytes": 1369848,
+      "sha256": "4c5a66b391b6aca38bae3b4fd5f2eb8f15903812624adca1e88b310f7077e7df",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000014.png",
+      "size_bytes": 1370140,
+      "sha256": "a9633d0da26b0772843bbe35dd369677929774cd3f1631b2449c0d72a2477033",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000015.png",
+      "size_bytes": 1374509,
+      "sha256": "d63158dd76bd0a6b3a67505e1de17a59093cca9d2392c4932de14e7574bec00a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000016.png",
+      "size_bytes": 1379163,
+      "sha256": "d675e05dcc3164b471a672add13deed9615e6ef93e08839549a2d17fd03c4da2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000017.png",
+      "size_bytes": 1378367,
+      "sha256": "61d3f5e9677d4691a805f23ee49a12f3656dd2309b8abf45694bcd0a9a90cd33",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000018.png",
+      "size_bytes": 1379428,
+      "sha256": "62c7a22d5ddb111b15cd2e918a59412cfe981532c89b50044f82be56d785591a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000019.png",
+      "size_bytes": 1381842,
+      "sha256": "01e1b4121bfb0ddd8edc3f0908d9d54463512b646b94f6b6d3d01d71f9c95c3d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000020.png",
+      "size_bytes": 1381446,
+      "sha256": "0e575554a1e096967aa8deb4980720eb5a31f44f34255f53f9e9f6d534a49222",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000021.png",
+      "size_bytes": 1401898,
+      "sha256": "a51656563641608f4833c7ea7a3b3bcb2b28da316788be425c39546ca768946a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000022.png",
+      "size_bytes": 1439557,
+      "sha256": "b4dbb87c0abb0b1764501335c35f7d20a35714c70228913fb1c5af82105ca05d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000023.png",
+      "size_bytes": 1445980,
+      "sha256": "ebfccd7f4294a6c98a1b784d5f27e80dd449e3c03eee59c84d5566370b54cfb8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000024.png",
+      "size_bytes": 1447731,
+      "sha256": "fa910fd0447fa3e8d7fb36092eee919ab99785636b6972e5eea10e05320ed6e4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000025.png",
+      "size_bytes": 1444752,
+      "sha256": "964dfe19888fbf5988f07d37e28feda2f29191426d6acd267405494f44867c40",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000026.png",
+      "size_bytes": 1449583,
+      "sha256": "eca69df2b6afa6e1feb22b2c36a66a5ecce50c484a54aa8fbba2f6019e975fee",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000027.png",
+      "size_bytes": 1449371,
+      "sha256": "9b5e136afd745f8d047193e84743e0e921b9ac6cbf184d3cd595765fc5d48145",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000028.png",
+      "size_bytes": 1440216,
+      "sha256": "e2774d80244aa58e02a2dbb02de8c3161c08a4e01b4407b3198746cd749dde66",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000029.png",
+      "size_bytes": 1446212,
+      "sha256": "3271b81d91d038360363a67ea336f24588ba724ac52deff5b5ad3dd78a2b2e98",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000030.png",
+      "size_bytes": 1448651,
+      "sha256": "795f45aef005edb3dc9404e3f5684618a75284fb932195291ae10f433f684ef4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000031.png",
+      "size_bytes": 1439043,
+      "sha256": "d45cf23d145227805c7ed61ce86060b8c78e8dccea626e88ecc38dbb86083a97",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000032.png",
+      "size_bytes": 1444275,
+      "sha256": "f7941df27c54966a7b11697d7c5a857ed14da8789b6a38b32449611a7decbac7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000033.png",
+      "size_bytes": 1437626,
+      "sha256": "e26985e05bc8c9f6dddeb52d48dba40fa045bd60cf92ecdd64e881a5c06847e7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000034.png",
+      "size_bytes": 1434272,
+      "sha256": "57e7bb4996af91b44de3ea19ad71433a70d1f2f96943cde03bb3aa408e1b7bd5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35/right_wrist/000035.png",
+      "size_bytes": 1432176,
+      "sha256": "37628dae70e05f27766cd91121f8ea25a2db994e1ccba697096a6794a5efd9f4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000001.png",
+      "size_bytes": 3762,
+      "sha256": "f684192ed84f0022795ae6732450711fb30849718b9b521bdab4a55425120e3e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000002.png",
+      "size_bytes": 3511,
+      "sha256": "e0ce3f7596f1eadd78e9ddbd8768fb20d22548d51e1331510b9651b1556a5d4b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000003.png",
+      "size_bytes": 3497,
+      "sha256": "2465d4fedbb2e27aa1653aaf08ee9fc74004c208d0f154c8267c84c67ed9f069",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000004.png",
+      "size_bytes": 3508,
+      "sha256": "07df67ab07e475856d175a1dc945d47ff48d4b986d5c2d3642855542aeeb2f7a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000005.png",
+      "size_bytes": 3513,
+      "sha256": "eddf3f27a9f1cd5f026c4f4ee1054c8e088f6857be8f32a1499a043c39e007d9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000006.png",
+      "size_bytes": 3505,
+      "sha256": "65309220b51a9aa1a61e22473021fc8b85203527069d65b3b6a8077c06432568",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000007.png",
+      "size_bytes": 3504,
+      "sha256": "770c0e481c55af03f75d01b5498d14e3db704ecbaccc24af8f31c74fb19fde77",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000008.png",
+      "size_bytes": 3808,
+      "sha256": "5f55944904c7e05333ba240016da59f25e49c2ae60290753602f9ca279313974",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000009.png",
+      "size_bytes": 3504,
+      "sha256": "a68a1ed0de343457df94a3291f2b96d605cfbc043c08ab21b63e1ac7e5a62fbc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000010.png",
+      "size_bytes": 3501,
+      "sha256": "7719123841b0769fc17b1938952d1313ec8e473600eb57202594fd6fce33a0ca",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000011.png",
+      "size_bytes": 3512,
+      "sha256": "44d658b20fd8ccc4f124fbdcf5d028bfd7702c45e76c41f09948963a57765d70",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000012.png",
+      "size_bytes": 3521,
+      "sha256": "d3ccb5b10b1403e333c24d32bd37953c117c76d3572308f84b6f521801e4b76b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000013.png",
+      "size_bytes": 3539,
+      "sha256": "a285b4e54ad63709ce21732418269bafe4ba79ba18971658eaf4123f442e5d7d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000014.png",
+      "size_bytes": 3479,
+      "sha256": "0cf62b75f017402430e0c5ff383339daad2754fda9a6d580b4ba2541b7f0d15e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000015.png",
+      "size_bytes": 3572,
+      "sha256": "8872fe84dee5438adc3d7d2199fb90b4a2ba0358c636148f54c8ecaea4861d97",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000016.png",
+      "size_bytes": 3619,
+      "sha256": "a230a49a2551a52f64a67d6a4d8fa4f5533be53b1b2dfa17a585b5ba243e7874",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000017.png",
+      "size_bytes": 3642,
+      "sha256": "910ea31b4469ffc67ec606d5c90528bdb077a4d38574abc31cd9cfaa852cc1e1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000018.png",
+      "size_bytes": 3656,
+      "sha256": "7152be063768428fbc44137dfac7011b363ad5b57bf07336a16099abb3b2c8b5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000019.png",
+      "size_bytes": 4106,
+      "sha256": "511fbdc005225d30ffa887bf49e1aa5322580d21a5e4d3379ddb991e3dd7a5e8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000020.png",
+      "size_bytes": 3645,
+      "sha256": "a12d22bc508c778a1df03c04e2a7ca96460c765cbd7949960af4cad716b66948",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000021.png",
+      "size_bytes": 4159,
+      "sha256": "437190264c73db8e75171906c6a3873f916d08a8d3c3d5fded504eb50ff00fe7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000022.png",
+      "size_bytes": 4157,
+      "sha256": "9f0e5f6870b5683b54b12f3dde0c5459ba024054239052d45907a28f6021a63c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000023.png",
+      "size_bytes": 4131,
+      "sha256": "2702acdf79893303e03ac1f88d3dce786100ec9fca072626bdaf640fed893299",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000024.png",
+      "size_bytes": 4221,
+      "sha256": "2b87c6f42a9bfecc8fdd568387b72cfb7d5c4edb41183e9e33f0830f5d6efa28",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000025.png",
+      "size_bytes": 4205,
+      "sha256": "41a552f2bb735e20270aa5f9c6ab99bec15d16992877b3bf64d5bec66733775a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000026.png",
+      "size_bytes": 4232,
+      "sha256": "2460c5d8c5c68cbe46651fcd1d91b39570468c8c8136b53b3c8b66d873c8ff00",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000027.png",
+      "size_bytes": 3674,
+      "sha256": "ebcc5e0a865bdfa42bf8867b3252ac98ce60ed47a7dd7d0bd4575b16c73ee6f7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000028.png",
+      "size_bytes": 3058,
+      "sha256": "43f932e34e2ef89223a272544b632dcc76ee841809d77b621231d6872717ab2f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000029.png",
+      "size_bytes": 3485,
+      "sha256": "6dc8531c5e9e007347aaa129a4fa02e0b19cb34a940dd373193a073901a10329",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000030.png",
+      "size_bytes": 3519,
+      "sha256": "9e522f4fd6f8e4098eb1c204ca478e042a53a8a45ae1f663ddcd2229c53907d1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000031.png",
+      "size_bytes": 3846,
+      "sha256": "e9cec280f0a2389d339ef59e18d56c229eae042c314faea1defc56718edacc8f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000032.png",
+      "size_bytes": 3911,
+      "sha256": "ca51d49046967ac17276ff388efa6a6886fd192b6803034678c30ce37c7b8c35",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000033.png",
+      "size_bytes": 2344,
+      "sha256": "b6c0d3a2e9d98f17221da5cc0c75cf7c83a763d2cd02f529f9177c20cad2b430",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000034.png",
+      "size_bytes": 3482,
+      "sha256": "06403e12306247c8c7fe5550b006b72c9edb5d93562dac245d14c85f92995107",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/external/000035.png",
+      "size_bytes": 3925,
+      "sha256": "2d87187841e3f1c0bb6bc7115522f51ca3e534f6a004390c00887aa4675bb9ab",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000001.png",
+      "size_bytes": 3849,
+      "sha256": "23bc3c423626d96bd9bdfc096d27274f982523a2464d5a3161dd89d46daefeea",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000002.png",
+      "size_bytes": 4028,
+      "sha256": "da13c77da1faed26b0b717fb4bfadd6c26dfae641bc785b4895703eaa21739ae",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000003.png",
+      "size_bytes": 3991,
+      "sha256": "f4483143869b5f5bd9371fd71316e8632d793b422367553a8fc3824ade717b73",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000004.png",
+      "size_bytes": 4000,
+      "sha256": "d071afae48b075b474db8ea3c2d357ffa793841dd48e78aa48fbb18e8124ebe4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000005.png",
+      "size_bytes": 4023,
+      "sha256": "351ea36437757086cb917f6cf3836d761b5780c27216ecac0a898b1afd690f2c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000006.png",
+      "size_bytes": 4028,
+      "sha256": "77b374d697afc6f763baee6573e6837a0c9d356ab882c9b629cbc06c5e73db12",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000007.png",
+      "size_bytes": 4022,
+      "sha256": "5d76db30e4bef9c99ee795c933f9e802aab7c93660b67f21e9e7e72397baf17b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000008.png",
+      "size_bytes": 4034,
+      "sha256": "0ec686f0cf19fff075bfe0da95623ef99b5a0e79013066c1bc0740b68c790bcf",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000009.png",
+      "size_bytes": 4021,
+      "sha256": "9d663e3cb861cb67df43b191c4f9b859c56d81a5d10336b691129c5c6506ae23",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000010.png",
+      "size_bytes": 4016,
+      "sha256": "3a080068ccc9deee78429c014c9d2db35ced63b1a12eeaf12a581132153d8347",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000011.png",
+      "size_bytes": 4045,
+      "sha256": "c414b41c3c05602f90a468680cd53a58c03a14d70d23573a261e49aaf63696e7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000012.png",
+      "size_bytes": 3955,
+      "sha256": "f5496b284585ccc7a187baa3c90ca0b15a02448dc2cbaf9f0fd7abf81c9bd331",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000013.png",
+      "size_bytes": 3994,
+      "sha256": "631885a9804a8be16dfcfd74d96bef3a13fd910f8c3cd1c7106e56a976dd614a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000014.png",
+      "size_bytes": 4014,
+      "sha256": "bb020dac9b0529dfc8d37636b4cb69561cdc1bc1e57f76860fb1b8215a39a22d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000015.png",
+      "size_bytes": 4076,
+      "sha256": "eb50df43d8a987aec1cf1e5c4949fa733a45c3981a5b1a4fb385549e45522790",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000016.png",
+      "size_bytes": 4095,
+      "sha256": "5cd45fd7b24667a8b9774bae6738fbda29efcff46ceb0f205a0b6518dc92b754",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000017.png",
+      "size_bytes": 4058,
+      "sha256": "1edb1df43cfbda80c9a986950bb59ee8b0347942b0b7c43c9f3eccbe6be941c8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000018.png",
+      "size_bytes": 4064,
+      "sha256": "dd387d107bf96c998188b0b9cb3054b645c1a9699cff3a8be15de2450c078697",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000019.png",
+      "size_bytes": 4083,
+      "sha256": "ce8099feacf2a9d82226a0225a92d44750e44f4baa8059b54e8a88896eebcdfb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000020.png",
+      "size_bytes": 4053,
+      "sha256": "82f7e987a3919973252f76ff433102c4da5b2abb81dbb0f27854edcebeec1657",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000021.png",
+      "size_bytes": 4115,
+      "sha256": "7712380ad3881cc437822cd942319ef9a3f76c85127428fc7805d111b1346325",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000022.png",
+      "size_bytes": 4109,
+      "sha256": "8fa9180a7e56fffe0be915cd084593a491b12174a6e835fcdd2ea73ae4345b46",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000023.png",
+      "size_bytes": 4141,
+      "sha256": "5de21542b127f24c5aab97a411f7b016c31decb85453835fbda8b25ce42402c2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000024.png",
+      "size_bytes": 4132,
+      "sha256": "2be05749c1442681bfd4dddd4f4d4e91a64834c29dc17c1a8fa5b5184c865701",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000025.png",
+      "size_bytes": 4073,
+      "sha256": "fc912c3c55f2b44de455a79022cf45b0087f1ed210f67fdea0b966b2ab9a417c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000026.png",
+      "size_bytes": 4099,
+      "sha256": "86b0dfb9be20d00e510e309ad20dfa6b77c92cafbf39f78649b0ab69cea401f3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000027.png",
+      "size_bytes": 4097,
+      "sha256": "31e0a0e112d31126e9d1f52b10a08048aef2189318c9baec2e719291d9eece18",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000028.png",
+      "size_bytes": 3675,
+      "sha256": "8dfdce21280da08f73f011ed6f5879c1240d6031796c9cf8e137a652fb5fc61a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000029.png",
+      "size_bytes": 4053,
+      "sha256": "c1eb5db429c014e77c767154c7a330453aec368d1cc0d5f8f62be6a31de4aba9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000030.png",
+      "size_bytes": 4089,
+      "sha256": "0dba14844c1645a79dccdc5506d8d988107fc0028db4636256151b3fec46ac08",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000031.png",
+      "size_bytes": 4088,
+      "sha256": "7c84beacbf43dba68f9a20a12e521295b2b9b2d87a6ed28fb0216df5ea6f00fc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000032.png",
+      "size_bytes": 4128,
+      "sha256": "d3056e3c0018c1bfa3066530347dbba91f5c61e33670e0982670fb05e1b210af",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000033.png",
+      "size_bytes": 4203,
+      "sha256": "381e076416a86696f485bd60da83fface557d269c883fd0d7a211e73b44c3aa0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000034.png",
+      "size_bytes": 4161,
+      "sha256": "a6e0c89fe46bbc6462600e2661b3060a925b7fdc101479e657875132fcc946fc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/left_wrist/000035.png",
+      "size_bytes": 4151,
+      "sha256": "398fe81db0d3d5dd9fb86c47231453c5dad2006df1ad51b79b8662642a3b7660",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000001.png",
+      "size_bytes": 4916,
+      "sha256": "67a4c19760317a1f9460451b9c0b90e91ca4d159cfd6109f1eb4786f59b30b80",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000002.png",
+      "size_bytes": 4973,
+      "sha256": "1f9ac775d8ee7b3a608f3af33ddcf6dba9137181e2b0143323d7c7431ef1fefd",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000003.png",
+      "size_bytes": 4937,
+      "sha256": "d042e4964144218c74dc27bc131952d7cb5db34cbdcda20de8ff6bf151b70e34",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000004.png",
+      "size_bytes": 4970,
+      "sha256": "c03ed7b4adee50c0852d4920ddc136ed179d334eac1a0f5f792035ba9e21ba53",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000005.png",
+      "size_bytes": 4948,
+      "sha256": "a5e870087766082d756da5879e50d7ba2b3d0aa593c068d025b7cf9d176f7782",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000006.png",
+      "size_bytes": 4987,
+      "sha256": "4c5cfc4c63134890d44a222e12f3dae1a9dad2e6755c6d444b9ead58284f1a4e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000007.png",
+      "size_bytes": 4949,
+      "sha256": "d66c829c135d4a7e0f524e572a663472cb855b40984a42de206cea1a2cf7c72b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000008.png",
+      "size_bytes": 4948,
+      "sha256": "3ece66468eb108e60501b147473cacddb06cbb6de490f1fb119e42f1df6e3cda",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000009.png",
+      "size_bytes": 4967,
+      "sha256": "0d2a59007b8c97f99034e7b04961dfe7d06daa85d9da87cb7d1e5c9d552a6ece",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000010.png",
+      "size_bytes": 4936,
+      "sha256": "37ebe040edda8f581e4f1af95475ecae7ce910e75e3d3d6fec0f34fc6296d1c1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000011.png",
+      "size_bytes": 4970,
+      "sha256": "fc263241274f9f728e68fe20a774e5720ec13991a98b6b8114d7b0f6d14c69b1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000012.png",
+      "size_bytes": 4909,
+      "sha256": "6e555272b2446eb800b5c3323bff3fa6cab6441c1a3dccd6a4be391f2534e98d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000013.png",
+      "size_bytes": 4879,
+      "sha256": "9d8d8a8670145195251735711ec9dbf7db6dde2e7379e270cca10a8520447bea",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000014.png",
+      "size_bytes": 4854,
+      "sha256": "3607422380133cd1b9064bfbdf300a4796a6965777edfb20591c3a34403859d9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000015.png",
+      "size_bytes": 4858,
+      "sha256": "839aa80b71add1963aa5c028c7161616e5770727a24275901e56e743789e28d2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000016.png",
+      "size_bytes": 4839,
+      "sha256": "73f8a92535dd46112b49e45e64767d432cde0141460d924f9fad3c750b1a8133",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000017.png",
+      "size_bytes": 4801,
+      "sha256": "fadc4e040935d88ce783cff71073c733288b36dde3a0695eba9f01fe7bdeb4d8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000018.png",
+      "size_bytes": 4844,
+      "sha256": "e1aa5d3295118d0de839484e3b682f1f643401b7b50592fec195f3a061a7dff1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000019.png",
+      "size_bytes": 4793,
+      "sha256": "bdde7795773510a0796a2641dbcb1c918ccb2c3ad266c4e1fd7499168922d7b4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000020.png",
+      "size_bytes": 4771,
+      "sha256": "6c79ac8a571da749f96763b2b3100c9a0eb9e2ff1ac13ee4ccea473a28d9c2b8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000021.png",
+      "size_bytes": 4683,
+      "sha256": "1e27e99d0ef13148aaf958e9b07f1fd1b8263909e90e2b69cf7f59f938ec60d8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000022.png",
+      "size_bytes": 4694,
+      "sha256": "6ba635889198b7d5ac562eef94c0bbba652323bf5b9a7ce58ef5008a99a7dbbf",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000023.png",
+      "size_bytes": 4695,
+      "sha256": "d0e375523f238dec7e37cebade107c39811fed66defd0340032f105c2dc10ff1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000024.png",
+      "size_bytes": 4687,
+      "sha256": "666487f66aa56ef9feab87b16c89beb2c7775d83df9f58c4b0eefcb040a23a62",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000025.png",
+      "size_bytes": 4673,
+      "sha256": "a430a6553689a04c243ffb8fe47060beb7be7df2b6c2cb0ea60bf5449f846c82",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000026.png",
+      "size_bytes": 4670,
+      "sha256": "2626aef0c87d9522c77a1ad981dc7baf39f469d2f0f5cb702870bdd3927f7c02",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000027.png",
+      "size_bytes": 4605,
+      "sha256": "27fac48763a86161e692850e31ca156b4419b530d8aa7cc9600de0fcd4445063",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000028.png",
+      "size_bytes": 4707,
+      "sha256": "71cacafc05cc94b08de25115fb006c39ddb31983c4110ca7bd4c539be2acdfa7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000029.png",
+      "size_bytes": 5175,
+      "sha256": "2441094e78b537b41465ec3e45c605b925a7bbd14b14ee25cd8b7ad35f61b880",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000030.png",
+      "size_bytes": 4908,
+      "sha256": "0722259a71f3bd53247c835110b79f91b6aae27d437e03add8ed34b97fc94cd8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000031.png",
+      "size_bytes": 4900,
+      "sha256": "1d68c2906dbbf6bdc338fea025114b913824d56eb8afb5505ce1554f85c47afa",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000032.png",
+      "size_bytes": 4875,
+      "sha256": "f1087310579aed200808fc9951d5311a0dcc49b1267c726fe95d3bda4cc99626",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000033.png",
+      "size_bytes": 4778,
+      "sha256": "cbebb4c85cb99ae7f794cd82427462eb561889f823605dee5ed21ba50e33785c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000034.png",
+      "size_bytes": 4699,
+      "sha256": "b710536587179bc6d79840de54ff5f9c2830b10907697b86ee9b132871187be6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_wire/right_wrist/000035.png",
+      "size_bytes": 4644,
+      "sha256": "2bd96ca74f262870b6621371ededc69fa175eb28488458357d8332f0166ac1f1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000001.png",
+      "size_bytes": 3448,
+      "sha256": "08be74e4b612bc5cd143c7ec94142df7e508f659bf453c89e96d270ed4642e0d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000002.png",
+      "size_bytes": 3543,
+      "sha256": "cfe3cbab64c64d0178ee316611b06af4577d0bc090a59d4e1653e736d07fd202",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000003.png",
+      "size_bytes": 3325,
+      "sha256": "3e5d975982487f99532c28e6a67f81029ea89b3cd5db147fb97b5eef944557eb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000004.png",
+      "size_bytes": 3399,
+      "sha256": "817fac7fd130795a45b1fe070895923060ce8e40f027fabeb7d86b671e80040b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000005.png",
+      "size_bytes": 3208,
+      "sha256": "1099fef1cf7cd46f497790093c0127cb56b8931ded70f38bfeef1083e9668684",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000006.png",
+      "size_bytes": 3229,
+      "sha256": "06dee78be1b855b7d1054db79e31037da44b268053180a289bb7865a3eed7d9f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000007.png",
+      "size_bytes": 3236,
+      "sha256": "46e70490d8e7e3b49c410925bf782e5de586d63e8e2c4016974a3a4f4a46bd55",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000008.png",
+      "size_bytes": 3390,
+      "sha256": "a3a545fab4df32b314a2659f176d4dffd53e778bd53443698e8c5a14d69b82a5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000009.png",
+      "size_bytes": 3362,
+      "sha256": "4edff2f97c043587280e48c72688d7a2701f948dd3a1464d9b6571ca931e0cb0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000010.png",
+      "size_bytes": 3233,
+      "sha256": "49977e1c7c7249b4f21c1a4a2a4af87c3fef3b66c99e58acb0f3c82bab2daf77",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000011.png",
+      "size_bytes": 3286,
+      "sha256": "c1864a20d16bfc022a0a5b31278617da693904d774f5903b702149301e4e71d8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000012.png",
+      "size_bytes": 3217,
+      "sha256": "acf9c06564b78949644363331290d74210535609fa23276b56e2073e450d2392",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000013.png",
+      "size_bytes": 3315,
+      "sha256": "70183af9d33010e3e2573af795d886e3835b655bd23e4cf2b6e4bbb6ff599b10",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000014.png",
+      "size_bytes": 3203,
+      "sha256": "28b4b46adf4ef1d4fd479a369b5e069930e7b12934bcbb5c115cc4c6f9e22d26",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000015.png",
+      "size_bytes": 3171,
+      "sha256": "472d34cfa2e75d93863b60f6c52cd38a8918b605caf32e253fed56e23cec8992",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000016.png",
+      "size_bytes": 3253,
+      "sha256": "62f451c04087567ed38aaab1df1a0e7e191a7ff23b241aca2c75cac1f9a46122",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000017.png",
+      "size_bytes": 3249,
+      "sha256": "335b40600a45da0989c49e555824a619af1386e02ac6818a70d38d4dc25dc5ac",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000018.png",
+      "size_bytes": 3103,
+      "sha256": "efebf408790a7af4f263907649f68d0925f10edb44f4099224ed2098913e18fb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000019.png",
+      "size_bytes": 3197,
+      "sha256": "4e6e577b5089b8838ce7abab4494fc0b7e151017e2e186823e6fac81ff439732",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000020.png",
+      "size_bytes": 3248,
+      "sha256": "a6e07ce2111b3ab9ccd5df486e5630e9bb48aadda30d788a9e33d1e8eda1249a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000021.png",
+      "size_bytes": 3227,
+      "sha256": "07ea43d832e54f8afb69ed680215d128e5e9ea8f68e78e31998f69968ddd8198",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000022.png",
+      "size_bytes": 3204,
+      "sha256": "b16e51404242fcf1a3fb9e216f9a1f710d8be4a6c0fe7d390c1d8bb003a2de16",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000023.png",
+      "size_bytes": 3207,
+      "sha256": "cefbd7c8945c7e342b8b693bd47558088146f44ca027ce543ae7baeaa80db7b5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000024.png",
+      "size_bytes": 3209,
+      "sha256": "3549db9c1c65d36d099dfaec7170a6016938c58c8066eed4b78e0c2ee37c6fdc",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000025.png",
+      "size_bytes": 3242,
+      "sha256": "b556e4f8508198bd6584655905e03f310c70d0b60d4ba4cdba48499ec374e574",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000026.png",
+      "size_bytes": 3236,
+      "sha256": "2c6058f9427ea19fd171709dec4d206ccf4d67f1ac424df692fec252069094e4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000027.png",
+      "size_bytes": 3146,
+      "sha256": "5cb8dc7e7b4c497b07a1b3dcb47e02ac7c2d5cc4348faf66075b180c90a9c5be",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000028.png",
+      "size_bytes": 3203,
+      "sha256": "d639cf2e1179fb15597c9b015d7b3aa130745ac2bb98bf9dfaa5673ddbf564b7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000029.png",
+      "size_bytes": 3197,
+      "sha256": "e48ca6d45bcfb0b5aff294d81397ce4bb86b1b2a97955a193a58728e61bc15b7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000030.png",
+      "size_bytes": 3217,
+      "sha256": "bbfcd0f449bb44a260b0e11e3b71653ef1e1fed720e2338e27c5f0371bd7c22e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000031.png",
+      "size_bytes": 3122,
+      "sha256": "a20d3e3638fd441a4f0d2513e08886760792776e48cfac5a41a6c17f8e359694",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000032.png",
+      "size_bytes": 3159,
+      "sha256": "6c5d94ecf7f74fcbc558844cd95fbc262fbb55d04f0ae4390cb99cb125d26c57",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000033.png",
+      "size_bytes": 3279,
+      "sha256": "76c0b9e45b1bea32c3d88582b9dcfdbd113922c5109daf00d1805b65bf0b744f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000034.png",
+      "size_bytes": 3178,
+      "sha256": "50d78b8aefe91da2f4f8673d0fa048a9c46aff6ae1224ded1e4fcafa9fcc4d9a",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/external/000035.png",
+      "size_bytes": 3093,
+      "sha256": "1f9f0c4fce786ab32a79cb1aefc9ac3d799100751f1f817ad23e0707088d4aef",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000001.png",
+      "size_bytes": 3675,
+      "sha256": "df930e51285049ec4f85ac3cf9b831bb5f715fc22b0eb1a6aa6c9e753aa9aa6c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000002.png",
+      "size_bytes": 3658,
+      "sha256": "598ca8e3437b18689d90f2a02b3b3debd5d179e0fd569a32d41632cbcac52c73",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000003.png",
+      "size_bytes": 3568,
+      "sha256": "cfe1472f9ea2275774535c5854354615f4b9768c4847fa34e5c7c6ca1cfac873",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000004.png",
+      "size_bytes": 3549,
+      "sha256": "4aa9f523deef2d29ddc1fde363ca71c06d15d7e69082d47621ccf54ef61c9089",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000005.png",
+      "size_bytes": 3470,
+      "sha256": "7a8b113ece0bb02d1d03426ee708bdad6babd3d910009eee27fe111fb7ece1ef",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000006.png",
+      "size_bytes": 3595,
+      "sha256": "c3933d8bf9291ad99db03849c93a0c655b36777137e2570ed1f9797a151d4fed",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000007.png",
+      "size_bytes": 3486,
+      "sha256": "814b87590d48877b29c40448a7ad97da5c136309a085255015bb6b5471d3e159",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000008.png",
+      "size_bytes": 3440,
+      "sha256": "5867631dd7eec2dbadca029d048b7799058d8807cd15feb3d9a797d4c864e631",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000009.png",
+      "size_bytes": 3499,
+      "sha256": "2d71ab010d277309e772777c344b5f295f14c4c738a73c735749266d3bcb5137",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000010.png",
+      "size_bytes": 3489,
+      "sha256": "81494e4e9698218c2c55d9dba28e89d026fe2b16e6d4ae64fd7387d4cab5cfd5",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000011.png",
+      "size_bytes": 3488,
+      "sha256": "7f986b236f181e384d95bd99e48f8776def312fa6b628f696f48b988aa1e72f2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000012.png",
+      "size_bytes": 3472,
+      "sha256": "2e8ce58c0157b4c57c92e76d8662a7dee3e5fba5d5b808d6f8fb2b9083a47fe9",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000013.png",
+      "size_bytes": 3510,
+      "sha256": "51648af42b01c3ebeaea3cefd952bfae26573ffe29e178e20ed10a828ab5dcd2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000014.png",
+      "size_bytes": 3597,
+      "sha256": "853381160e08c2741e2698a0717322c18024689e4ad8ce053066bdc8f94881a7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000015.png",
+      "size_bytes": 3509,
+      "sha256": "35f59b84bf81ab9764176eb3bb66002ab21943c1704427812c89450050bc68fd",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000016.png",
+      "size_bytes": 3476,
+      "sha256": "07a12038f19c717bc4e5e0814489fac2eea9f28798f3a852d970be5b2a889638",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000017.png",
+      "size_bytes": 3482,
+      "sha256": "947ff76237ec550ccb184c62fa847ddb96551bad731d1ac9971f5faae1e1a281",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000018.png",
+      "size_bytes": 3408,
+      "sha256": "c4fcd19ee525b1e2b5abd20fe01b2c98102121cd1f618bef6da64cbbe195ba27",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000019.png",
+      "size_bytes": 3487,
+      "sha256": "038c29db64fc25172fe23a31bca7270d7968e50adf4a70ca8443ee7ee088e85f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000020.png",
+      "size_bytes": 3412,
+      "sha256": "f086ed82413768229b708d8ca8a089030d68032be44fb6ddf6e839106e15d4b7",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000021.png",
+      "size_bytes": 3367,
+      "sha256": "8fce817a77e42e37b4bc8db3e1a02d457758cec8841e8606b07813c898a3b089",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000022.png",
+      "size_bytes": 3407,
+      "sha256": "3f39594650e09b7f9adac90b72be6b995ab37017c1bd1450f9efbb7c45e5e5a2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000023.png",
+      "size_bytes": 3439,
+      "sha256": "4f948167114248d2edfd6f8ea3ef9ae7b1f7c515e7f6857853b067584c22ecc3",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000024.png",
+      "size_bytes": 3455,
+      "sha256": "b59331b7c91a04676c00071bb6f90f795568a898e2b6d390dad00d3afc9a5602",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000025.png",
+      "size_bytes": 3444,
+      "sha256": "6922a8fdf4001b297d07cefff1b6a95ad2b37981be0e68315d830b2b89399732",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000026.png",
+      "size_bytes": 3401,
+      "sha256": "63d66c06a3315fc9e80e10ff02745b5860fa97da8201ae3625a6e4b0f7d957bb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000027.png",
+      "size_bytes": 3417,
+      "sha256": "d572767440d99f16966b71e0f36adc0346a91982269ee59fb5ccea541491e831",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000028.png",
+      "size_bytes": 3285,
+      "sha256": "03d2d53680d41f4ad562bd3e16d2b03b9c0d2521579dabe2d233236d28c70248",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000029.png",
+      "size_bytes": 3317,
+      "sha256": "b778ede16cf23c44b997fa428c3ef97f50480cd911ff769d50e292560163c616",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000030.png",
+      "size_bytes": 3333,
+      "sha256": "a1abeaf6b107c25e0fde59917b0c6cf45e870bfd884df98e866f12cdc89a3d91",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000031.png",
+      "size_bytes": 3389,
+      "sha256": "7c5044606115e1c37d941e5faa8f1e89760b37efc9cf02059f3dc1c9278f112b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000032.png",
+      "size_bytes": 3420,
+      "sha256": "9c56903cd206472cad8564a35d7355f934f3170d67cb1420f4120133254d8003",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000033.png",
+      "size_bytes": 3526,
+      "sha256": "30dca63c1c9127965b1483c4c0657ece002c6745910de9d16eae2dd548a000cb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000034.png",
+      "size_bytes": 3430,
+      "sha256": "eb2acd84d139d03d990b7129ef056181fb9a7e325521034e8539e67568929ce6",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/left_wrist/000035.png",
+      "size_bytes": 3480,
+      "sha256": "ec5521c0f0855897f8bdd06704340d28934da03e479022ceb407ea416caf8ce1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000001.png",
+      "size_bytes": 3082,
+      "sha256": "0eb8e38da92c22104976b47fcbc038e8220c430907448d2a29fca24feaf247c0",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000002.png",
+      "size_bytes": 2997,
+      "sha256": "d09700ba1436a2ccb11fd2fcdaef4802edb6383657e1776de34e76b5ffa77218",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000003.png",
+      "size_bytes": 2970,
+      "sha256": "3ab723deb989b8e5f09be2b9907ee0235ba6bfc1311d3ce03da8ee640dc152be",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000004.png",
+      "size_bytes": 2980,
+      "sha256": "dedad9d0f15b378b2be3ae543b8de15c6f9e3aa7a793d89152b891546489fcef",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000005.png",
+      "size_bytes": 3037,
+      "sha256": "2a6126301b36157181a5122a2c15a6232dde7559e7a4cde563b2ac977b09a29e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000006.png",
+      "size_bytes": 3028,
+      "sha256": "4c0670370a10ca44ea28d24833f5d4a28936f2bd45f3c9e81c77b02d30e6fe4d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000007.png",
+      "size_bytes": 3010,
+      "sha256": "9e3c0a394fa287d8e79e8dcb4df5f785719091807ea1def2f958e989d63c7ee1",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000008.png",
+      "size_bytes": 2377,
+      "sha256": "d59a0814f1573acdec13b2b092ca1f95aef1b7525902f94305edfc22a7d27055",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000009.png",
+      "size_bytes": 3002,
+      "sha256": "e253e738508d34644bb9ebd098eca4c2af85ba89e1ad116af5da0b1a53f5e3d8",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000010.png",
+      "size_bytes": 3004,
+      "sha256": "f86042d6799d11808fbef1b69d05bf6459ac92814e14b7f66be390758bba20b4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000011.png",
+      "size_bytes": 2999,
+      "sha256": "0ee5db587e9d4bf37a3b6c71e23ef88e524369aa32fe271531a5f04527d503f2",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000012.png",
+      "size_bytes": 3017,
+      "sha256": "312b433d590fc40037355c5a18d2dce2d04baeb3af57c12357f978dca66d4e68",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000013.png",
+      "size_bytes": 2985,
+      "sha256": "b223f0eede718699693251dcbdbbba4f34e3a930d9296774e56d393689db863e",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000014.png",
+      "size_bytes": 3203,
+      "sha256": "e0249137b8361cf4720584ed39f0c37fae64efe28cae53e1a4abd81f71f3e5ff",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000015.png",
+      "size_bytes": 3630,
+      "sha256": "ca09a52a8edd1f3027b017a6907be5c53741e6f369c5270f87b24698c1496317",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000016.png",
+      "size_bytes": 3891,
+      "sha256": "353f990a3974649ba722e60231f90ed0c5115fc6de7f4483db12799df1907b61",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000017.png",
+      "size_bytes": 4164,
+      "sha256": "1c6f041121e65954e288eaa726232d601231a1a294bb5d2d2eb060f1b420729c",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000018.png",
+      "size_bytes": 3935,
+      "sha256": "32505efa195447658b52a28742b27c54a604a44f249dcfe0b79c1e060cce0157",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000019.png",
+      "size_bytes": 3978,
+      "sha256": "4ec527e05b47d2574dda564519753f30e334032cecbbd03c815b2217ab343881",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000020.png",
+      "size_bytes": 4101,
+      "sha256": "97062e493187bf5fc5778052edff77ef2ec0ab3559826bc93776cbb696d51482",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000021.png",
+      "size_bytes": 4487,
+      "sha256": "4fda94b2dad8fd81c2c7f7556920fced0d554d3f69c311ce323f1d6c0d9858ee",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000022.png",
+      "size_bytes": 4597,
+      "sha256": "5d6fe2ce33ff0b3dfe9988d06c82b744c7de128a5ee7c7fdbad17b6e29e30e94",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000023.png",
+      "size_bytes": 5036,
+      "sha256": "4040e3bfd2aa97c4d9f620772e82b6ea56b63495e305c3dfb8a1affe2f022fe4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000024.png",
+      "size_bytes": 5289,
+      "sha256": "d97e2d7ab9562d523b2cebc7aafb5f8cac5cc761c61bb67fd81238f148a5a1cb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000025.png",
+      "size_bytes": 5058,
+      "sha256": "f0cb7fe1e0159bc7e0d9704c4c4c1f7fb6a6a80a048d07529d485ea6f745c7eb",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000026.png",
+      "size_bytes": 5051,
+      "sha256": "a7830f07057d958b42f03fe340f10fca529299456c7b2dfa13afc4c48ebe8d8b",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000027.png",
+      "size_bytes": 5225,
+      "sha256": "396f48c20a8346de03ccb56a7eb56a833ff5d01080ac9cf707a13ffd7600200f",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000028.png",
+      "size_bytes": 6095,
+      "sha256": "54a7acfbf17e48a9a3ad12c91eaa70aa50bf3c8060269e388aec9bbe037b6251",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000029.png",
+      "size_bytes": 6060,
+      "sha256": "8bcf05c58a914a9672877c1d8ce790a3402efc0631e595f692e2a921527d6e17",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000030.png",
+      "size_bytes": 7202,
+      "sha256": "6b342f680870c6ae941eea342dfce8b98440861c0dc490fda2189d08a5060144",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000031.png",
+      "size_bytes": 7221,
+      "sha256": "97e6cd0f250a498e2981b438768b6814e3ee8e7ae35f0ad656c3c0d50879f27d",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000032.png",
+      "size_bytes": 6425,
+      "sha256": "7dce727e0b1b7553cf7c1e9f59784b011b2eadb909ddcaf8fa24ff0b307d2533",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000033.png",
+      "size_bytes": 4665,
+      "sha256": "b1f43e22f0ae189e2f94edff73c91a1d171481fb940cd7402bd3a5a0fd906a28",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000034.png",
+      "size_bytes": 4648,
+      "sha256": "0ef4ccaa8b6c7eee7cf9b4efd80fa7edf4d43f0d1e1bf99fb781c6fe96d349f4",
+      "uploaded": false
+    },
+    {
+      "path": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/masks_hole/right_wrist/000035.png",
+      "size_bytes": 4524,
+      "sha256": "201eb7467771d85d1953bd810789ff7423ccf0428df46a9dc91638dc93c96573",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000001.png",
+      "size_bytes": 1039539,
+      "sha256": "534067d6df454d900684e43ae5e9e3109a42baa7dc9c4e9e15146a5519052874",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000002.png",
+      "size_bytes": 1048801,
+      "sha256": "754b49677cd8c40f4b296157cbfafd20bd98febbddf3752bcf0737f3607b6003",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000003.png",
+      "size_bytes": 1037676,
+      "sha256": "d9a095825d687cb9f7af3fb17bf371c7c78328ea8c0ab320217a946eb543bc22",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000004.png",
+      "size_bytes": 1021324,
+      "sha256": "53510ddab747cc666f2fee27d2785a682bcde616617f6d736278604f24e32946",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000005.png",
+      "size_bytes": 991310,
+      "sha256": "df4d0cc0da4f341c3f2fc06a87176852b556310737a42de3c6d74ed359a822c1",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000006.png",
+      "size_bytes": 1035069,
+      "sha256": "710860ffdb64b2c2f693526b418a26096c41063c72c8a47e3b1399b2871ee902",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000007.png",
+      "size_bytes": 1059926,
+      "sha256": "113972f8516de0faf4bed3ef27c8b3ff4cce0e0e5c8fe7fd4ac2a3ededbad112",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000008.png",
+      "size_bytes": 1019934,
+      "sha256": "72796bbedd45bcc82c468d5da18b9635a2cb93cbd0156adbb510f36c8e8643d8",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000009.png",
+      "size_bytes": 1059469,
+      "sha256": "acc03dab27a70c4c7317312e046bf7a26f2b2c94fe1b1cf3044e17cbca47be8b",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000010.png",
+      "size_bytes": 1070400,
+      "sha256": "1c6e0143439e811eb9face2047492be946df921463f8395a09e3510893618b79",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000011.png",
+      "size_bytes": 1091045,
+      "sha256": "1181821310b1341815f48a1b13739704c340735a611714fb2636114b6f4db645",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000012.png",
+      "size_bytes": 1090464,
+      "sha256": "f78b7e6c44c861dae8b1e649db92e49ee9c887adf8a789a61627c2407914779d",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000013.png",
+      "size_bytes": 1062909,
+      "sha256": "823dcfc64db80a2bd8390e22ff0163f3f5a192cbf84f7e45e7c2e4709edb93a9",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000014.png",
+      "size_bytes": 1078605,
+      "sha256": "1882c5236e95778869930f69a54cda69a4184c3eebb288810658e89197515758",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000015.png",
+      "size_bytes": 1037485,
+      "sha256": "44f515a57d7e95285a07014fb8f1d60108b1fcd2770818623b133901af7ebc65",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000016.png",
+      "size_bytes": 1114289,
+      "sha256": "4095e2dd81efd7acbae43db1996438805b23591f0276200d14b38e0d9841fb0e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000017.png",
+      "size_bytes": 1101037,
+      "sha256": "a4bba662ff6bdeb50ce6ec56422fa5903f86432cfbadba30c3afb8636d9ef479",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000018.png",
+      "size_bytes": 1108842,
+      "sha256": "87efff4226805ca770a4d16ea50ad2259f8456e886a290587d5ef841a67342f0",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000019.png",
+      "size_bytes": 1059952,
+      "sha256": "ef0554575e678bae519b6ae17ac14d73a5688221977d48a6bce9ef54d90a7d65",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000020.png",
+      "size_bytes": 1068177,
+      "sha256": "4ab29c0911bf990ba51730d3cd03c766166adc0807ef5f2bf55540a8a2566174",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/external/group_000021.png",
+      "size_bytes": 1055412,
+      "sha256": "b4ec680ffc3b608b78d09d159905ad4cab18f675db37aadd302b09677ab410b9",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000001.png",
+      "size_bytes": 1336792,
+      "sha256": "455b5933e5b821be6f3a37073b81a0b7c371fce48fad4af9def377fc2bd9eeea",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000002.png",
+      "size_bytes": 1336273,
+      "sha256": "db7aa1659dfd47373871a5e7324ac8fca9dba8547b99253bc396c8a4072ac815",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000003.png",
+      "size_bytes": 1338585,
+      "sha256": "a455f10b7dd94cfc9af21d180143ac46681bff47aea3adebb42130deb70f29de",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000004.png",
+      "size_bytes": 1350239,
+      "sha256": "6b21347329930b007f82e9090d9de24c37274cbd5cd6598a447fe32812b8f1dd",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000005.png",
+      "size_bytes": 1353636,
+      "sha256": "6dbf858f6e746871dcec45af28ac452a4be8f379922d9b1a6f3079ef97026896",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000006.png",
+      "size_bytes": 1372697,
+      "sha256": "73dc9350a294123ec63de23f02235187abffe00a9b196d6fbf26ab183a5c8ce9",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000007.png",
+      "size_bytes": 1411976,
+      "sha256": "bfe07d4fc1aa3049b2dc1de7c48ac841fb2d1368b48655498806fdd5f4b04878",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000008.png",
+      "size_bytes": 1427193,
+      "sha256": "e0a54374abc315d5934687ac3631da3ef9911af0b40d3d4aceafce663f7c6851",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000009.png",
+      "size_bytes": 1424163,
+      "sha256": "2bc58f5d8255e33abd0a5bde8b2e0a1dcae699976012c0007494050877c010a0",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000010.png",
+      "size_bytes": 1407611,
+      "sha256": "d594cd737424c9c29b3835edde5bba4f83abd6fc4b7c0c703adfa27500232330",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000011.png",
+      "size_bytes": 1419904,
+      "sha256": "45fe9ceaeef8ee799c57178a61ab7eee1958431923716fa7799dca41d1657515",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000012.png",
+      "size_bytes": 1418484,
+      "sha256": "94d8c8ddd55d5633f72257db7de984fd3d384d62342661378b179f43edb21871",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000013.png",
+      "size_bytes": 1429387,
+      "sha256": "53b35d187becf401ffc819f9c69f380ffaeff1662df5a8f85ed0c1a260894764",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000014.png",
+      "size_bytes": 1422312,
+      "sha256": "8401223e0b30142d928d8676f75050d617c182871a231fe609f1cda435498a5d",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000015.png",
+      "size_bytes": 1422828,
+      "sha256": "acf0a86c082560abbf3aea9f924f6449832c2649b7f866d1d6cfa90e85840873",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000016.png",
+      "size_bytes": 1438944,
+      "sha256": "447e789269af003274cd7b980c438abad39ae2cea6c4e98af3236293ed675d00",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000017.png",
+      "size_bytes": 1431845,
+      "sha256": "5530a06e19ef12d51d4e19f3355d5baa592cdb4cac06f01507e8583fa4cf1e3f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000018.png",
+      "size_bytes": 1420397,
+      "sha256": "6dd7613f29d887430d282fb8a3a3ebd778cddde28477edf5286303113b72b80a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000019.png",
+      "size_bytes": 1419370,
+      "sha256": "8041ffebe45453e9918b8909e9b0f1ec410b0b2df706c6c9f83f16c71bc801ae",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000020.png",
+      "size_bytes": 1429714,
+      "sha256": "6cfe390aef01f36c172036990348b2e57793c6c79954c487b6073559db4fbdc0",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/left_wrist/group_000021.png",
+      "size_bytes": 1439319,
+      "sha256": "ef5f705b0a755b9d0ca1869c42824c596eec282e1c5d8875d9bede100c3be45e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000001.png",
+      "size_bytes": 1241755,
+      "sha256": "faee66da0f650d31f2360166a26d72c91936823d0c403000deaef8d34eb8e31d",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000002.png",
+      "size_bytes": 1242741,
+      "sha256": "49e52678c473ba65568e2a500ba276589300b254bdb14679e3ba690b029db92c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000003.png",
+      "size_bytes": 1243325,
+      "sha256": "bc0b25c420f3ff619984e21302692119d239860e61de325e0b31cb2bb1ffa7d5",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000004.png",
+      "size_bytes": 1253323,
+      "sha256": "8a3e41c236166791a4f00b3f6d46aa6251d8a5a995afc6836a44cc0285a67262",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000005.png",
+      "size_bytes": 1255014,
+      "sha256": "1ffe03243d04d4eb23d3415180c68a9bde893683b85abe3ab0144a7eafc9b96f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000006.png",
+      "size_bytes": 1271421,
+      "sha256": "179eddcf1416ee6048a5300995b9d40023452937d52fdf041daf7c1dba7c80de",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000007.png",
+      "size_bytes": 1381197,
+      "sha256": "b63d06e46e0deb42e5ab4332876cc536f797623fe57cf6f2521358cc19e19501",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000008.png",
+      "size_bytes": 1364648,
+      "sha256": "ee9a9468af9873bbba1bca139b57fee81219c4af7a1fe49be83a45862e4c5f58",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000009.png",
+      "size_bytes": 1365730,
+      "sha256": "21df6819ece577b560437593f8ed23ed586123aa9a6182a392cb17a6631a26ae",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000010.png",
+      "size_bytes": 1352762,
+      "sha256": "d989e2f54602770e4adc08a1238836bc0247a9e8ea3a21412f2956bdadfbfcf5",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000011.png",
+      "size_bytes": 1352135,
+      "sha256": "4eadf43dece03f69b6877e8e8702a6e8880faea1c6a3d83028655c43b13e586f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000012.png",
+      "size_bytes": 1367005,
+      "sha256": "4c73f86d51b9e6acf9d6e89c232acd30968caf2b079d8b2a8d20afb7a3e4f9fe",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000013.png",
+      "size_bytes": 1365203,
+      "sha256": "05a8ed49f95fe14677a01473ca6ef40b3a259a48741d76000e613af0b3205a0f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000014.png",
+      "size_bytes": 1352335,
+      "sha256": "3f2196876655f3d5c7d61ebb39fd6f99e9f4fe64e8d51226b46fa7f83ee5cf37",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000015.png",
+      "size_bytes": 1349975,
+      "sha256": "8a4512fbfa19fd8350506a44bd8c65ecce3d361bb289513a5b8223c3ac325932",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000016.png",
+      "size_bytes": 1372689,
+      "sha256": "499b441c2289cf88884dd2b75557c4b167a1b33d7bb35e7553ac58aee78bc958",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000017.png",
+      "size_bytes": 1357829,
+      "sha256": "38d21ec2b075f06aabcca086a5afc6c6a4e64f7b128da120430223842759bcec",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000018.png",
+      "size_bytes": 1349594,
+      "sha256": "8b73bc5688327229179040a796c84da45869edd01fdc664b37875d77d086a44b",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000019.png",
+      "size_bytes": 1338647,
+      "sha256": "ea907516824012eae1ff52dea50a2e03bf2ce0ef780a9cad3d44ed6470d061fc",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000020.png",
+      "size_bytes": 1352207,
+      "sha256": "f7cdcf87aee8def84f47523885cf7e3e04816999080ec382707abf64a0a878c3",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/manual_capture/NEW_BOARD_01/20261113_102305_manual01/images/right_wrist/group_000021.png",
+      "size_bytes": 1352165,
+      "sha256": "40e0e8d3414362c2b5d34e169ac948def619807f268b8ffd35e184f4aa132793",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000001.png",
+      "size_bytes": 3946,
+      "sha256": "5ed5a7c0ec4f7985be779d4ce583432464c3091359951617f3bf6d52379f6b1b",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000002.png",
+      "size_bytes": 3917,
+      "sha256": "b4cc88ff89e4b408c8375d8a77cd3e8363036a6e82f5caf4583aad37ce9d157e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000003.png",
+      "size_bytes": 4056,
+      "sha256": "cbe0d154a411e80ee71f2c9fd43bb030765fda140892914ff11bba6fcc825ee7",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000004.png",
+      "size_bytes": 3925,
+      "sha256": "79292f1230acd4a7c9393664866d91a9ff41bd7cb980d737d16bf5b409d22a94",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000005.png",
+      "size_bytes": 3927,
+      "sha256": "f95d65ebc832efb4528f69a82bf0355d30b32fd76e464f0d38be5fd467b390c5",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000006.png",
+      "size_bytes": 3945,
+      "sha256": "1e55b5a7a297f59a8346a7cb4f9f798bde9b9cc6d2ce628972b5873d03584fa3",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000007.png",
+      "size_bytes": 3915,
+      "sha256": "5468e8ab05e713eadc6743ff939925abab8b3321aa4de74278cbec5819215c91",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000008.png",
+      "size_bytes": 3927,
+      "sha256": "d156a9f4f92add50fa85caa267bc766bc1ec88dae1c52c7f4eebe97503c608bd",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000009.png",
+      "size_bytes": 3924,
+      "sha256": "28da3f4ba2c350af570f5758d626094fe89b09e1efe9dd8e91a14422736caafa",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000010.png",
+      "size_bytes": 3927,
+      "sha256": "ff2ec52384815579a12d9a2130f152296c5503d2f5d024ee3f60d82e52020ad0",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000011.png",
+      "size_bytes": 3904,
+      "sha256": "5ca0ef8285efdc896046aa86e6e99cf22ec2cb143bdd4ba7e4316d169d38115f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000012.png",
+      "size_bytes": 3933,
+      "sha256": "14ffa2a5e39637048603dfdb5450d94544e6b094f51652fb58ca5147d05b39a2",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000013.png",
+      "size_bytes": 3913,
+      "sha256": "fad9814b7161fcdb3e4a92cff7398206a373d1826bd24ea5d9da6f01dc572e17",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000014.png",
+      "size_bytes": 3929,
+      "sha256": "6ce2c30b950b778b9b152f547d96b36cdceeb20175b24f0c368615cb8a458596",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000015.png",
+      "size_bytes": 3931,
+      "sha256": "4c8b2fcdf5c10bbf8854549defa9ae46508943352eb04f4d720b0d6154a52606",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000016.png",
+      "size_bytes": 3936,
+      "sha256": "098aa5527aa6e4468c4bbbccbc797d23a7f12269cc4d12d3bc9c6ebd6b9998e8",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000017.png",
+      "size_bytes": 4068,
+      "sha256": "4e7f0d15f13620d2f49f341ee96ecd71094c15d5e5dba7d688a13fcb71192c80",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000018.png",
+      "size_bytes": 3927,
+      "sha256": "740314d79f52c522874f65c2e02e3ee149c75f54866b11558838fb0619fd7ff3",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000019.png",
+      "size_bytes": 3949,
+      "sha256": "2e34b7ed9d754a5a831c541e2bcb1afcc204840afe6e300b326de8679fadde6d",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000020.png",
+      "size_bytes": 3970,
+      "sha256": "7c97e2277e12e30317ac1cac9ffa9a351542712b879a9bd75b503a2c59646d2c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000021.png",
+      "size_bytes": 3957,
+      "sha256": "55377cf25aed6baa5eeee806dd6ba769bf9020bfcbeea2866558dac28caaf05c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000001.png",
+      "size_bytes": 4020,
+      "sha256": "aace13a8e1f1172ceb104f8d9e2ec990ef1a36561506f907e8eda9939bd03083",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000002.png",
+      "size_bytes": 4029,
+      "sha256": "681f283415e966b3f4bf4470b086e8b25ce61a2cda8ed48bfd404400d4dddd3c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000003.png",
+      "size_bytes": 4020,
+      "sha256": "af2a073c057ed08a3f2ee42652b74b08c3f23065a541dcc11698c09c80564093",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000004.png",
+      "size_bytes": 4024,
+      "sha256": "78bb0a02d9024fb7d655cd11fdff93ca902ad5c9f7261b8706dcc97da1e9ab2a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000005.png",
+      "size_bytes": 4032,
+      "sha256": "c958ee07523f011fc077e2be84a192111fda34e4e43850bc69291cd16c553dc9",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000006.png",
+      "size_bytes": 4023,
+      "sha256": "63069544f19bcf5defff1f0bcc54311b8d4fb3628e2ba4baaccb5c20eb4c96ea",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000007.png",
+      "size_bytes": 4026,
+      "sha256": "d54e16c003627d93010d841cda6e9fb816553c6c6385e1fb94b4f6792c264e6f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000008.png",
+      "size_bytes": 4028,
+      "sha256": "1839ff2d8aef9aa71e59466f7b667e042d1b61974e71ac68d721cf1deda24cdc",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000009.png",
+      "size_bytes": 4032,
+      "sha256": "7c99dead92d6573d54671b4e60576c9dfa2758ec0030f114646ac57bc60d578f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000010.png",
+      "size_bytes": 4018,
+      "sha256": "6c10ebba327ec09bad29895f7431c19d2bb965d3b6ef1a90823f10ed2761210e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000011.png",
+      "size_bytes": 4025,
+      "sha256": "5223577a7e099c5122f0f972baa463256610a7c87f08f3297572a4d82e4d9950",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000012.png",
+      "size_bytes": 4018,
+      "sha256": "c1df35d679428d65728a72207c63dd5f2b59d7214c69078812536c27c0e9f97a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000013.png",
+      "size_bytes": 4022,
+      "sha256": "ec4ac30a6b1fa7e6cedef6d016566e104be245339c771ce10860a903db20525c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000014.png",
+      "size_bytes": 4021,
+      "sha256": "033403ae312e703962a5f014bcd7eb5b161fac992ed53a64cbf3291526f85c6c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000015.png",
+      "size_bytes": 4016,
+      "sha256": "354cec1b6ea0d805846748fbb420da6fd2deaca189bae627591c3370b977f1d3",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000016.png",
+      "size_bytes": 4012,
+      "sha256": "c26c39429f0728d2bbeff7d45f1ee98c8ead6c6543a0ca7ea17f5d92d36246ab",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000017.png",
+      "size_bytes": 4006,
+      "sha256": "7f97af8a4b6a5e3f103d4f6e3dd5c603a8a5c544cc61f2e1be59b13a0c2adbc4",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000018.png",
+      "size_bytes": 4024,
+      "sha256": "fc414926891e2c74d1757ae589a59780d782355fa832410ad3b43d3dcdefe8f9",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000019.png",
+      "size_bytes": 4042,
+      "sha256": "0f5bf3d1b3d1c0a34c26ab97b0bd964a11e29eae52196af74f841066762bf1d8",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000020.png",
+      "size_bytes": 4024,
+      "sha256": "91afce285a5145278bb47233eec4f31e7fe3a0e220edc209e1c259027666babd",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/left_wrist/group_000021.png",
+      "size_bytes": 4024,
+      "sha256": "e6a203c038ca749445e498123db58c49768251d374ca07645e25074179357d37",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000001.png",
+      "size_bytes": 4362,
+      "sha256": "49cf2edb10ed6d0ce3e9a69dc2792f8b1fc02141ba971f460f74be54f5b233f0",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000002.png",
+      "size_bytes": 4302,
+      "sha256": "0c94b1518ebde81d777a87c5a24c1336d208dd3e697d489abfcf6fdb1ee57731",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000003.png",
+      "size_bytes": 4322,
+      "sha256": "0e7f05c10d27ea4683b6fb785ea839c60e476c72f25c6fa4d7db859d5999e466",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000004.png",
+      "size_bytes": 4342,
+      "sha256": "b5a377eff31f1090ca26cf303b22c69e434b4db195e671e0ae0d428880859050",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000005.png",
+      "size_bytes": 4395,
+      "sha256": "5c1dc8175e23458e8e7cd210ced36e3c982b5768247f62609a03950f8d140bca",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000006.png",
+      "size_bytes": 4316,
+      "sha256": "1ef2f295b38a251a3f425f1e376b2d633274dd5073446d50d673d03a1fbbaeab",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000007.png",
+      "size_bytes": 4311,
+      "sha256": "56caa3d047394ba2c6e511ebb9b45a41680ab4c18c1d62024b27f9f3b0abcc3e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000008.png",
+      "size_bytes": 4308,
+      "sha256": "a545340748d617d1e4b1ea5d383d0174cdaf50a5c3a161482b6f75f8cc1ee79c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000009.png",
+      "size_bytes": 4317,
+      "sha256": "10e0d1d2961d90a3093b0b680d7d99a001d453a606846e3a29d990f258ecd93a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000010.png",
+      "size_bytes": 4333,
+      "sha256": "237b2119b46ef3ae28a023589997555f87b19423d1240ef6c8454aed421a75e2",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000011.png",
+      "size_bytes": 4320,
+      "sha256": "0b4d59423b958b44ec466fa0e885add6f15f4c43585274038cc3ae965df384e4",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000012.png",
+      "size_bytes": 4324,
+      "sha256": "fd4cba8f5365db924ada7428aabbc32ecf74aad56af2518483e8d2c636530ab3",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000013.png",
+      "size_bytes": 4314,
+      "sha256": "c88fde4900b1917de66fd7b4bc225de676450ea914a27f34fe5db5f58b72488c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000014.png",
+      "size_bytes": 4386,
+      "sha256": "0772167e4cd7bfbd658bd288953925281298d5b9548218423f8ff4c358799c00",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000015.png",
+      "size_bytes": 4278,
+      "sha256": "122b5a64bc924053715a87dd8790473782fd588907327986830f51ada01b8eef",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000016.png",
+      "size_bytes": 4372,
+      "sha256": "9475ba183d4f9a09d8c27297a35125f58b74e9df3993e809e67498b6ba6627ef",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000017.png",
+      "size_bytes": 4296,
+      "sha256": "1a8915756fdd4513f6dbdace52590e2bd7d86e7a02996c1cca1013c1cf785bb4",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000018.png",
+      "size_bytes": 4348,
+      "sha256": "6bb938be7dcb60264e9d3756280cd971e7b23ea2b97e259dccfa6eee4ea21343",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000019.png",
+      "size_bytes": 4339,
+      "sha256": "ccbc544210b27e060197b2e210b44eedc7254a0c651d5cbd050a48a881485f00",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000020.png",
+      "size_bytes": 4344,
+      "sha256": "2bfa9fbfc3936664adb3c7cda5a19b3bdaab204c06525ed7043ec70a16d19ecb",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/right_wrist/group_000021.png",
+      "size_bytes": 4386,
+      "sha256": "62e5c3e4d0ad807f687a2d7fa49e2efd2489cefdcf92f9aadcd3cd79b3dee799",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000001.png",
+      "size_bytes": 2395,
+      "sha256": "468881cb11294214fa0d0e8c5e5d3e0abbf83f66b485392af23e32e00f992dab",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000002.png",
+      "size_bytes": 2399,
+      "sha256": "3922fea67877fb6ed7cea6cf79846e5166ee9d87a668ffc917ee6319c1e9d3ed",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000003.png",
+      "size_bytes": 2401,
+      "sha256": "42132015bb137a22d2e32d4225a6aa66d49e87375240c0de764df922ae85565a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000004.png",
+      "size_bytes": 2358,
+      "sha256": "4266e791d086ba53fb429e0a9ab1f6ce9d5a22f45259aaeffcf2153418875395",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000005.png",
+      "size_bytes": 2350,
+      "sha256": "585a4855b96a3dcdc980ef8f522421655fa23c2ceea0690cfb545fb72aff2644",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000006.png",
+      "size_bytes": 2432,
+      "sha256": "a35c3df58ddb7d6e4bdd831f828129f97582f9c31dffce9400b9d93d485aa248",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000007.png",
+      "size_bytes": 2388,
+      "sha256": "2527406555549c037ac5287c71dc3b81562357cfe949dfb9955020eea0c4695c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000008.png",
+      "size_bytes": 2385,
+      "sha256": "ffb1761df0bb103a1ddd7d0c6f3c954a78c05d3eedfa64b23cc9417457dc4a1d",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000009.png",
+      "size_bytes": 2384,
+      "sha256": "02f75b2a1a885c4f3f7c1c04479d26a00884308e0c28838649bdbb64289e2266",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000010.png",
+      "size_bytes": 2445,
+      "sha256": "47de450afdab3d93260573d2aeda0f3fbf617337d248b3517034cd46e64e8da5",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000011.png",
+      "size_bytes": 2453,
+      "sha256": "81aee98a4ae57f9f3c64f0b2264d42a746a97b73cef891591200bc82d09c3013",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000012.png",
+      "size_bytes": 2447,
+      "sha256": "67dcf6d91a1582c47cb7bb4f6d314dc9c6023961883d6c3818c5d32f5eeb8742",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000013.png",
+      "size_bytes": 2258,
+      "sha256": "f03884e5a1a52a91f5647db58a1001d7934152993573ae3912e76651ff3c2233",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000014.png",
+      "size_bytes": 2247,
+      "sha256": "797b2ba0fe8e6bf35cfa991e485e248ea25e3e9f2a744aabae0e13fd7ffd27a1",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000015.png",
+      "size_bytes": 2259,
+      "sha256": "9e24e5ec2489e92770bf8dc5f27f5ef0af101d7d6829a24964c737fbc58d0723",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000016.png",
+      "size_bytes": 2376,
+      "sha256": "8e6b84c2f11990564be872aa1d6b17b7179eb4f48b4ccdfeab6191117c962a66",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000017.png",
+      "size_bytes": 2377,
+      "sha256": "c08a273d330131f1e1eb05a8717219745f7b802e1ac134a073f690e7bd0a7dc5",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000018.png",
+      "size_bytes": 2379,
+      "sha256": "921b8a870c4366a73034f783d7eb838dddbb97d1da4ad9556559b93c259e423a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000019.png",
+      "size_bytes": 2485,
+      "sha256": "cc8aa11c265a705a7e51ae5fe4113bbe420b62ae92fae83a099ea251738f4f72",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000020.png",
+      "size_bytes": 2486,
+      "sha256": "295f631f2bb310b0b5973080cf7cda2a53572cbea21cb62b14ebfff89e67749e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000021.png",
+      "size_bytes": 2480,
+      "sha256": "5b95fe95cef5c531ec17e1bb3c7f5c40bdc85d8f0242f363e225a7cf807338eb",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000001.png",
+      "size_bytes": 2750,
+      "sha256": "849e6a02ca1aa1b107174d78b57ea85e84b27112407ecf2a8c32f684bca2150a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000002.png",
+      "size_bytes": 2756,
+      "sha256": "f8e5e9e920e23a74bcda0a32c8ecb193cad6055428e8182fa43e4623cef526bb",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000003.png",
+      "size_bytes": 2759,
+      "sha256": "7d9f669811396945c42aaadda661d656599b989ec2f195b8bb5873fccb6c6bc7",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000004.png",
+      "size_bytes": 2766,
+      "sha256": "0e491475f61f95215461c0078f73038717664146163e323f591702d07352d8db",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000005.png",
+      "size_bytes": 2749,
+      "sha256": "0ede70fb66a854a451a6ebfd067098828c9a7b307e5374bbc16b1014486203f8",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000006.png",
+      "size_bytes": 2677,
+      "sha256": "e9ef94fd2e6ea3cebf7c2a87c9b86716174dbea2c50ccaf59ee766cfc8fec8a5",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000007.png",
+      "size_bytes": 2696,
+      "sha256": "6ff610cf77cc80959396f1f7cf05799d83573c8f752f401165adbec427aab4ae",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000008.png",
+      "size_bytes": 2689,
+      "sha256": "22a158b1eca69809a7e759d97d14bfa55d1e9fdbd7fa085462789cc74fcc578b",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000009.png",
+      "size_bytes": 2683,
+      "sha256": "36b2d65cf26fd829b0bee510c9dd98e405df9550ce0937f64160babcd0b4c989",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000010.png",
+      "size_bytes": 2602,
+      "sha256": "445ae435c9e8572877133419e007e5b663618a677128776bfc9a136b4e478e7c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000011.png",
+      "size_bytes": 2603,
+      "sha256": "27613bb2dc2b6d21c25a04a009d13e84a2e489708bf3ab9a4e963a65013e5f29",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000012.png",
+      "size_bytes": 2609,
+      "sha256": "e84438a92747a1c17a5033fd05419020be68da09679b5fc7c69c16965e443e8e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000013.png",
+      "size_bytes": 2811,
+      "sha256": "6e3cbdc9ce074a35eefb708c4ba63ebe086ba8a2427fac66d45155040c297221",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000014.png",
+      "size_bytes": 2811,
+      "sha256": "75174d62ea278ab2a30a310c85dd9e9cbeb220403a4b44275314f563d293504d",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000015.png",
+      "size_bytes": 2800,
+      "sha256": "ed0abd2a40419c72862465f3dfb4b4ff0d7245902a8dc6fd82eb2c05d15d2b01",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000016.png",
+      "size_bytes": 2882,
+      "sha256": "6676d4b59e8f308f6a435f647dd9e544611fb883cdec76983fe0daa27ab6a9c9",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000017.png",
+      "size_bytes": 2863,
+      "sha256": "7132a36b285f63663ca69b5b42345520a6d807d059e8d6017555860c649368d4",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000018.png",
+      "size_bytes": 2862,
+      "sha256": "0d47a81db8dcd7addece159fae8a28a5837d850965e73682a463b7bb726075be",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000019.png",
+      "size_bytes": 2622,
+      "sha256": "19d9317438ed33280c14d357a751ea4e92979105f912bb1c791a473f38d3cbf2",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000020.png",
+      "size_bytes": 2629,
+      "sha256": "d7e3478384adcae7e1d6feb88fa1bc0aaaa47deaf4ddd18f29b21cc576a82aa5",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/left_wrist/group_000021.png",
+      "size_bytes": 2635,
+      "sha256": "c648a6830cb0933d8c37c7c0025f179ce64e404f5a985adacae96a3b8a9f2965",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000001.png",
+      "size_bytes": 2900,
+      "sha256": "9c964fc72b5e5d1bf481246dc4e1a02d437b9ed7e4df5752509f5ea4b307df22",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000002.png",
+      "size_bytes": 2903,
+      "sha256": "36f2898dc620aa81cfddf43ed674445f4c4fa9d9d43168609bfd3ddde1fd799b",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000003.png",
+      "size_bytes": 2896,
+      "sha256": "0a5b59e627f451ac913e82984b6817e1592465789a0aafd1055d6f0fb0771c1f",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000004.png",
+      "size_bytes": 2880,
+      "sha256": "abe1ccd2ea000e9eaed766c95a6441c4226958f0952c7cd8117b33cc0633396a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000005.png",
+      "size_bytes": 2978,
+      "sha256": "068a3e9aa29061d09b3804c54dba5aad44750ea010981ce5f0c39e5227fdea43",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000006.png",
+      "size_bytes": 2736,
+      "sha256": "723929ab3b9093fcf8324b633a2ad77a7461afc709cc42222592a60130eb9819",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000007.png",
+      "size_bytes": 2720,
+      "sha256": "9912f917d404e380caa4c473e5a2ea18cf3c12d9a307be79e4b7b5ccd084981a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000008.png",
+      "size_bytes": 2714,
+      "sha256": "60e2ed1b8ec5ecf8e2150ec50ccb8ec6488f7409d96c565a10abcec405e719b4",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000009.png",
+      "size_bytes": 2726,
+      "sha256": "5f935c5af768d9217ab8834d1a46fe96b297aa077a89ba0b34e79a724f554988",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000010.png",
+      "size_bytes": 2727,
+      "sha256": "72c88a8338c22a841e82b96d425995feda2cce1dd4a438039aed0ded6873710e",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000011.png",
+      "size_bytes": 2731,
+      "sha256": "81d46f367c0fd92a565ce23638c4233a1579146afa63cf12d9f7424b6f381cdb",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000012.png",
+      "size_bytes": 2747,
+      "sha256": "a73430e3de2169715974004d953ad3d92da799f6509eebc6b3573278f51311d0",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000013.png",
+      "size_bytes": 2888,
+      "sha256": "a61c48f1224c9f24c6808b5db3c84397d24fe2f6d68d4c759bb75cbaa236da6a",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000014.png",
+      "size_bytes": 2902,
+      "sha256": "ccfdd9846d8eb428726b0852e6384576716904b46e276cf4ca04b4901b8a064c",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000015.png",
+      "size_bytes": 2909,
+      "sha256": "0057142ef2ff40c1e809e00d28387193d6a268fa8f59cb017c7a2c198182d903",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000016.png",
+      "size_bytes": 2840,
+      "sha256": "110fa923e062036d70ed52bf4a7921590253b41befc42d14e41d8b35438921dc",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000017.png",
+      "size_bytes": 2824,
+      "sha256": "c04b22163b1480efc39aa83e158570b51d8e45f528b62bb8478329cf8de695f9",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000018.png",
+      "size_bytes": 2822,
+      "sha256": "a11f1638f5c8d8fc585b6014c3bced2b056f309dd0b98ae6579299ec8713aade",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000019.png",
+      "size_bytes": 2814,
+      "sha256": "05e517cb7f2e347a90bf0800e45a2c9fab0544b288e9a9765e45cc1a39740053",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000020.png",
+      "size_bytes": 2822,
+      "sha256": "67560d0b99dd0236653e085525d9a4eb4fd391b350be8e03c4bf1a0e7f8fcd17",
+      "uploaded": false
+    },
+    {
+      "path": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/right_wrist/group_000021.png",
+      "size_bytes": 2828,
+      "sha256": "859e5de8cdcbd5a94263cf01fee3024305bbaf7e03917c0428cafc93275e1a21",
+      "uploaded": false
+    }
+  ],
+  "scope": "Original evidence and source archive only. No training/inference/camera/Gate/LowCmd/hardware execution. Console default output chain preserved."
+}

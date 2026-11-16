@@ -1,0 +1,23 @@
+board_id: NEW_BOARD_01
+
+board_material: UNKNOWN
+
+board_width_mm: UNKNOWN
+board_height_mm: UNKNOWN
+board_thickness_mm: UNKNOWN
+
+hole_diameter_mm: UNKNOWN
+hole_pitch_mm: UNKNOWN
+
+hole_rows: UNKNOWN
+hole_columns: UNKNOWN
+
+target_hole_id: UNKNOWN
+
+board_mounting_position: UNKNOWN
+board_mounting_orientation: UNKNOWN
+
+surface_reflection: UNKNOWN
+lighting_condition: UNKNOWN
+
+notes: ""

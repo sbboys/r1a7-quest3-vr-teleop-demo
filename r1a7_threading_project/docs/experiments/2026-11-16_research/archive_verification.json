@@ -1,0 +1,24 @@
+{
+  "archive_date": "2026-11-16 Asia/Shanghai",
+  "status": "PASS",
+  "source_file_hashes": 59,
+  "documents_verified": 4,
+  "source_paragraphs_covered": 3057,
+  "python_sources_and_backups_compiled_without_import": 21,
+  "old_joint_split_groups": [
+    25,
+    5,
+    5
+  ],
+  "newboard_split_groups": [
+    15,
+    3,
+    3
+  ],
+  "model_and_GT_package_hashes": 6,
+  "external_rgb_mask_manifest_entries": 504,
+  "local_links_checked": 83,
+  "sop_shell_blocks_syntax_only": 3,
+  "active_console_output_chain_unchanged": true,
+  "runtime_or_hardware_executed": false
+}

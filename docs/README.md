@@ -37,3 +37,7 @@
 ## 2026-11-09 研发归档补充
 
 - [11/09研发核对](../r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md) · [技术路线](../r1a7_threading_project/docs/r1a7_grasp_insertion_architecture_2026-11-09_zh.md) · [操作SOP](../r1a7_threading_project/docs/r1a7_grasp_insertion_sop_2026-11-09_zh.md)
+
+## 2026-11-16 研发归档
+
+[四文档核对](../r1a7_threading_project/docs/r1a7_four_document_research_audit_2026-11-16_zh.md) · [技术路线](../r1a7_threading_project/docs/r1a7_research_architecture_2026-11-16_zh.md) · [操作步骤](../r1a7_threading_project/docs/r1a7_research_sop_2026-11-16_zh.md)

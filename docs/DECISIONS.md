@@ -51,3 +51,7 @@
 ## 2026-11-09 研发归档补充
 
 保留11/02、11/03与11/04历史；11/09新增near-Z、corridor和settle状态只按源码/文档用户反馈分级。删除图像误差硬门控及BLIND_GRACE放行作为研究变更公开记录，不静默升级成稳定保护策略。孔训练hist最大val不是独立test；SUCCESS命名不是物理证据。
+
+## 2026-11-16 研发归档
+
+保留旧域退化和Hole V3 External test=0，不将高Wire指标推广为识孔可靠。新模型路径“已写源码”与“实际加载/运动”分开。V4 candidate、暂停/重选建议不擅自部署；输出链只归档。Hole V2旧test的score与meanFG按原JSON纠正标签，来源DOCX不改写。

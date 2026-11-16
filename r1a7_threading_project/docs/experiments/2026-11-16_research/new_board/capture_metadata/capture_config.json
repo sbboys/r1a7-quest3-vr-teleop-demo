@@ -1,0 +1,39 @@
+{
+  "board_id": "NEW_BOARD_01",
+  "camera_order": [
+    "external",
+    "right_wrist",
+    "left_wrist"
+  ],
+  "external": {
+    "device": "ALP USB Zoom Camera",
+    "resolution": [
+      1280,
+      720
+    ],
+    "fps": 30
+  },
+  "right_wrist": {
+    "device": "Orbbec",
+    "serial": "CPCBC53000C5",
+    "resolution": [
+      1280,
+      800
+    ],
+    "fps": 30
+  },
+  "left_wrist": {
+    "device": "Orbbec",
+    "serial": "CPCBC530007Z",
+    "resolution": [
+      1280,
+      800
+    ],
+    "fps": 30
+  },
+  "model_inference": false,
+  "robot_commands": false,
+  "image_format": "PNG",
+  "timestamp_type": "host_read_completion",
+  "created_at": "2026-11-13T10:32:08.645+08:00"
+}

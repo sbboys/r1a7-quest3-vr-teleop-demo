@@ -1,0 +1,31 @@
+{
+  "epoch": 64,
+  "local_epoch": 12,
+  "train_loss": 0.12542374521049102,
+  "learning_rate": 4.109423525312737e-06,
+  "new_board_val": {
+    "board_dice": 0.8361939747081302,
+    "hole_dice": 0.6826666666666666,
+    "mean_fg_dice": 0.7594303206873985,
+    "score": 0.7056957628728862,
+    "per_camera": {
+      "external": {
+        "board_dice": 0.6818932305998899,
+        "hole_dice": 0.02,
+        "mean_fg_dice": 0.350946615299945
+      },
+      "right_wrist": {
+        "board_dice": 0.8813837050523441,
+        "hole_dice": 0.7588235294117647,
+        "mean_fg_dice": 0.8201036172320544
+      },
+      "left_wrist": {
+        "board_dice": 0.8163396590543583,
+        "hole_dice": 0.8129032258064516,
+        "mean_fg_dice": 0.814621442430405
+      }
+    }
+  },
+  "best_score": 0.7056957628728862,
+  "improved": true
+}

@@ -1,0 +1,39 @@
+{
+  "dataset": "NEW_BOARD_01",
+  "split_version": "newboard_grouped_timeblock_v1",
+  "split_basis": "chronological_capture_group",
+  "same_scene_warning": "All 21 groups are scene_000 from one capture session. This is a pilot split, not independent-scene generalization.",
+  "cameras": [
+    "external",
+    "right_wrist",
+    "left_wrist"
+  ],
+  "num_groups": 21,
+  "train": [
+    "group_000001",
+    "group_000002",
+    "group_000003",
+    "group_000004",
+    "group_000005",
+    "group_000006",
+    "group_000007",
+    "group_000008",
+    "group_000009",
+    "group_000010",
+    "group_000011",
+    "group_000012",
+    "group_000013",
+    "group_000014",
+    "group_000015"
+  ],
+  "val": [
+    "group_000016",
+    "group_000017",
+    "group_000018"
+  ],
+  "test": [
+    "group_000019",
+    "group_000020",
+    "group_000021"
+  ]
+}

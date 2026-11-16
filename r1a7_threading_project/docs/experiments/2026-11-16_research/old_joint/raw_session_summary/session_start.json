@@ -1,0 +1,15 @@
+{
+  "kind": "session_start",
+  "session_id": "20261110_152101_491",
+  "session_dir": "/home/robot/r1a7_datasets/wire_unet/insertion_runtime_001/raw_sessions/20261110_152101_491",
+  "timestamp": 1794295261.4914758,
+  "phase": "WAIT_HOLE_TARGET",
+  "frame_counter": 1900,
+  "extra": {
+    "target_confirmed": false,
+    "selected_control_cameras": [],
+    "valid_control_cameras": [],
+    "control_target_count": 0,
+    "degraded_single_view": false
+  }
+}

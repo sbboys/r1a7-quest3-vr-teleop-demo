@@ -1,0 +1,18 @@
+{
+  "source_session": "/home/robot/r1a7_datasets/wire_unet/insertion_runtime_001/raw_sessions/20261110_152101_491",
+  "output_root": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001",
+  "output_session": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/images_raw/session_20261110_152101_sync35",
+  "candidate_groups": 197,
+  "selected_groups": 35,
+  "selected_images": 105,
+  "phase_counts": {
+    "WAIT_HOLE_TARGET": 10,
+    "INSERTION_TRACKING": 25
+  },
+  "category_counts": {
+    "hard": 35
+  },
+  "normal_fraction": 0.2,
+  "min_time_gap": 0.75,
+  "hash_threshold": 8
+}

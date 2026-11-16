@@ -68,3 +68,7 @@
 ## 2026-11-09 研发归档补充
 
 [截至11/09夹取到插孔归档](r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md)：关键程序、阶段路线、操作步骤、孔位训练补录和四份成功命名快照。用户功能反馈与独立量化验收分开记录。
+
+## 2026-11-16 研发归档
+
+[11/16联合插孔与新孔板归档](r1a7_threading_project/docs/r1a7_four_document_research_audit_2026-11-16_zh.md)承接11/03和11/09，补齐recorder/标注/训练、新板V5/Hole V3与当前状态差异；模型数据外置。

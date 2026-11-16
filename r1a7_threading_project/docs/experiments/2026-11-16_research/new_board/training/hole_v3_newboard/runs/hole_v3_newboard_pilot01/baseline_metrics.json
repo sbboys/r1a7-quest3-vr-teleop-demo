@@ -1,0 +1,29 @@
+{
+  "source_checkpoint": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/models/hole_v2_insertion_replay_seed44_epoch52.pt",
+  "source_epoch": 52,
+  "new_board_val": {
+    "board_dice": 0.07299306449603389,
+    "hole_dice": 0.15612382234185734,
+    "mean_fg_dice": 0.11455844341894561,
+    "score": 0.14365420866498382,
+    "per_camera": {
+      "external": {
+        "board_dice": 0.0,
+        "hole_dice": 0.0,
+        "mean_fg_dice": 0.0
+      },
+      "right_wrist": {
+        "board_dice": 0.0,
+        "hole_dice": 0.0,
+        "mean_fg_dice": 0.0
+      },
+      "left_wrist": {
+        "board_dice": 0.2025398142386319,
+        "hole_dice": 0.7918088737201365,
+        "mean_fg_dice": 0.4971743439793842
+      }
+    }
+  },
+  "new_test_used": 0,
+  "old_board_replay": false
+}

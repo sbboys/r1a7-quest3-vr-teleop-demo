@@ -1,0 +1,53 @@
+{
+  "source_checkpoint": "/home/robot/r1a7_datasets/wire_unet/hole_tube_001/runs/hole_board_unet_v1/best.pt",
+  "source_epoch": 38,
+  "old_val": {
+    "board_dice": 0.9584673143610466,
+    "hole_dice": 0.8557273610594628,
+    "mean_fg_dice": 0.9070973377102547,
+    "score": 0.8711383540547003,
+    "per_camera": {
+      "external": {
+        "board_dice": 0.9722231133067434,
+        "hole_dice": 0.8472016937642313,
+        "mean_fg_dice": 0.9097124035354873
+      },
+      "right_wrist": {
+        "board_dice": 0.9282707401661039,
+        "hole_dice": 0.8443427699933276,
+        "mean_fg_dice": 0.8863067550797157
+      },
+      "left_wrist": {
+        "board_dice": 0.9746564679783162,
+        "hole_dice": 0.8678376352147371,
+        "mean_fg_dice": 0.9212470515965266
+      }
+    }
+  },
+  "new_val": {
+    "board_dice": 0.8394056134493687,
+    "hole_dice": 0.6585071112075109,
+    "mean_fg_dice": 0.7489563623284399,
+    "score": 0.6856418865437895,
+    "per_camera": {
+      "external": {
+        "board_dice": 0.8129464620185961,
+        "hole_dice": 0.7244717568818925,
+        "mean_fg_dice": 0.7687091094502443
+      },
+      "right_wrist": {
+        "board_dice": 0.8536219748800163,
+        "hole_dice": 0.5837180670975685,
+        "mean_fg_dice": 0.7186700209887924
+      },
+      "left_wrist": {
+        "board_dice": 0.8538741090960412,
+        "hole_dice": 0.6839686401730197,
+        "mean_fg_dice": 0.7689213746345305
+      }
+    }
+  },
+  "combined_score": 0.7505656501726083,
+  "old_guard_floor": 0.8411383540547003,
+  "new_test_used": 0
+}

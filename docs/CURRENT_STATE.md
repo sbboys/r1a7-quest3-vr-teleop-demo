@@ -121,3 +121,7 @@
 ## 2026-11-09 研发归档补充
 
 [11/09完整研发归档](../r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md)已核对当前研究四脚本与同时间SUCCESS快照相同，补入孔位36组三相机、40轮历史及val摘要。新增V3阶段视觉、孔位采集标注训练/QA程序；Fusion/Gate/直接controller仅保存输出链快照。文档用户反馈夹取功能正常不等于本次真机验收或穿孔成功。下一步仍是多轮jaw复位、阶段/停止回归、独立孔test和真实出线验证。
+
+## 2026-11-16 研发归档
+
+[11/16四文档与源码核对](../r1a7_threading_project/docs/r1a7_four_document_research_audit_2026-11-16_zh.md)：两旧原件SHA相同，两新原件及全文新增。当前研究V3路径已指Wire V5/Hole V3，raw孔搜索中心与EMA分离、optional控制相机、recorder已存在；实际加载/新模型闭环未验收。Gate输出仍要求CLI显式授权；历史False的具体cmdline缺失。本次不运行模型/硬件。

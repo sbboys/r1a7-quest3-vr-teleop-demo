@@ -42,3 +42,7 @@ V3 checkpoint仍为本地绝对路径且未上传。不要在已有开放Gate/�
 本次新增grasp→insertion v1/v2/v3与三相机采集；V3为11/09记录主要入口。原wire/tool双模型依赖保持上一归档版本；新输出链研究补丁只保存快照。
 
 技术与操作入口：项目 `docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md`。这些程序可能写共享运动JSON或启动相机；不要通过import或随意启动验证语法。模型外置，现有控制台默认控制器没有替换。
+
+## 2026-11-16 后续研究
+
+新增recorder/筛选/联合标注与Wire V4/V5、Hole V2/V3/新板采集。当前Visual V3原变量名WIRE_V4_CHECKPOINT实际指Wire V5，Hole指V3；属于实验源码更新，不是控制台自动部署。模型/数据外置，candidate和输出链快照只归档。最新核对入口为项目 `docs/r1a7_four_document_research_audit_2026-11-16_zh.md`。

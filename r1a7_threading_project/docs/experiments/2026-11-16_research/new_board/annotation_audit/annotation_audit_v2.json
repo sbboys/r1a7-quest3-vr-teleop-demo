@@ -1,0 +1,116 @@
+{
+  "dataset": "NEW_BOARD_01",
+  "audit_version": "v2_after_external_group000003_reannotation",
+  "expected_groups": 21,
+  "expected_views": 63,
+  "cameras": {
+    "external": {
+      "images": 21,
+      "wire_pixels": {
+        "0": 19257461,
+        "1": 30194,
+        "2": 65945
+      },
+      "hole_pixels": {
+        "0": 19332705,
+        "1": 20138,
+        "2": 757
+      }
+    },
+    "right_wrist": {
+      "images": 21,
+      "wire_pixels": {
+        "0": 21442491,
+        "1": 19533,
+        "2": 41976
+      },
+      "hole_pixels": {
+        "0": 21437254,
+        "1": 65453,
+        "2": 1293
+      }
+    },
+    "left_wrist": {
+      "images": 21,
+      "wire_pixels": {
+        "0": 21405971,
+        "1": 27656,
+        "2": 70373
+      },
+      "hole_pixels": {
+        "0": 21455558,
+        "1": 47594,
+        "2": 848
+      }
+    }
+  },
+  "missing_files": [],
+  "bad_shapes": [],
+  "bad_values": [],
+  "empty_classes": [],
+  "annotation_log_coverage": 63,
+  "geometry_log_coverage": 63,
+  "group_000003_external": {
+    "wire": {
+      "0": 916680,
+      "1": 1630,
+      "2": 3290
+    },
+    "hole": {
+      "0": 920527,
+      "1": 1032,
+      "2": 41
+    },
+    "latest_log": {
+      "timestamp": "2026-11-13T20:50:30",
+      "sample_id": "group_000003",
+      "camera": "external",
+      "wire_mask": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_wire/external/group_000003.png",
+      "hole_mask": "/data/threading/new_board_dataset/annotation/NEW_BOARD_01/masks_hole/external/group_000003.png",
+      "wire_pixels": 1630,
+      "tool_pixels": 3290,
+      "board_pixels": 1032,
+      "hole_pixels": 41,
+      "reference_holes": 1,
+      "hole_count": 1
+    },
+    "latest_geometry": {
+      "board_visible": true,
+      "ellipse_refs": [
+        {
+          "center_uv": [
+            307,
+            457
+          ],
+          "axes_px": [
+            5.0,
+            2.23606797749979
+          ],
+          "angle_deg": 0.0,
+          "method": "reference_3point"
+        }
+      ],
+      "holes": [
+        {
+          "center_uv": [
+            307,
+            457
+          ],
+          "axes_px": [
+            5.0,
+            2.23606797749979
+          ],
+          "angle_deg": 0.0,
+          "method": "reference_3point"
+        }
+      ]
+    }
+  },
+  "synchronized_groups": 21,
+  "camera_image_sets_match": true,
+  "annotation_log_bad_lines": [],
+  "geometry_log_bad_lines": [],
+  "annotation_log_records": 65,
+  "geometry_log_records": 63,
+  "audit_pass": true
+}

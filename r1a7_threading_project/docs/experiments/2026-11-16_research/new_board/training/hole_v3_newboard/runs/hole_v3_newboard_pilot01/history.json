@@ -1,0 +1,622 @@
+[
+  {
+    "epoch": 53,
+    "local_epoch": 1,
+    "train_loss": 0.4657508174874889,
+    "learning_rate": 9.94459753267812e-06,
+    "new_board_val": {
+      "board_dice": 0.3318558536435631,
+      "hole_dice": 0.14783526927138332,
+      "mean_fg_dice": 0.2398455614574732,
+      "score": 0.17543835692721027,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.0016482610845557936,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.0008241305422778968
+        },
+        "right_wrist": {
+          "board_dice": 0.4461659288876196,
+          "hole_dice": 0.20771513353115728,
+          "mean_fg_dice": 0.32694053120938843
+        },
+        "left_wrist": {
+          "board_dice": 0.4115576748410536,
+          "hole_dice": 0.43209876543209874,
+          "mean_fg_dice": 0.42182822013657617
+        }
+      }
+    },
+    "best_score": 0.17543835692721027,
+    "improved": true
+  },
+  {
+    "epoch": 54,
+    "local_epoch": 2,
+    "train_loss": 0.3034553761357692,
+    "learning_rate": 9.779754323328192e-06,
+    "new_board_val": {
+      "board_dice": 0.6099940035978413,
+      "hole_dice": 0.37388724035608306,
+      "mean_fg_dice": 0.4919406219769622,
+      "score": 0.40930325484234675,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.1332819722650231,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.06664098613251156
+        },
+        "right_wrist": {
+          "board_dice": 0.6834482439498404,
+          "hole_dice": 0.8413461538461539,
+          "mean_fg_dice": 0.7623971988979972
+        },
+        "left_wrist": {
+          "board_dice": 0.6482111335945236,
+          "hole_dice": 0.521415270018622,
+          "mean_fg_dice": 0.5848132018065728
+        }
+      }
+    },
+    "best_score": 0.40930325484234675,
+    "improved": true
+  },
+  {
+    "epoch": 55,
+    "local_epoch": 3,
+    "train_loss": 0.24820495875024084,
+    "learning_rate": 9.509529358847655e-06,
+    "new_board_val": {
+      "board_dice": 0.73382727394559,
+      "hole_dice": 0.5418894830659536,
+      "mean_fg_dice": 0.6378583785057719,
+      "score": 0.5706801516978991,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.43474407267892756,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.21737203633946378
+        },
+        "right_wrist": {
+          "board_dice": 0.7961606466279364,
+          "hole_dice": 0.8733850129198967,
+          "mean_fg_dice": 0.8347728297739165
+        },
+        "left_wrist": {
+          "board_dice": 0.7283651840106818,
+          "hole_dice": 0.6537530266343826,
+          "mean_fg_dice": 0.6910591053225322
+        }
+      }
+    },
+    "best_score": 0.5706801516978991,
+    "improved": true
+  },
+  {
+    "epoch": 56,
+    "local_epoch": 4,
+    "train_loss": 0.21424385238049634,
+    "learning_rate": 9.140576474687263e-06,
+    "new_board_val": {
+      "board_dice": 0.7710953306621177,
+      "hole_dice": 0.580301685891748,
+      "mean_fg_dice": 0.6756985082769329,
+      "score": 0.6089207326073034,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.5898922949461475,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.29494614747307374
+        },
+        "right_wrist": {
+          "board_dice": 0.8245710654522347,
+          "hole_dice": 0.8336933045356372,
+          "mean_fg_dice": 0.8291321849939359
+        },
+        "left_wrist": {
+          "board_dice": 0.7449542867000173,
+          "hole_dice": 0.639618138424821,
+          "mean_fg_dice": 0.6922862125624192
+        }
+      }
+    },
+    "best_score": 0.6089207326073034,
+    "improved": true
+  },
+  {
+    "epoch": 57,
+    "local_epoch": 5,
+    "train_loss": 0.20221203876965083,
+    "learning_rate": 8.681980515339463e-06,
+    "new_board_val": {
+      "board_dice": 0.7951665833568774,
+      "hole_dice": 0.6288659793814433,
+      "mean_fg_dice": 0.7120162813691604,
+      "score": 0.6538110699777584,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.5566323440339188,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.2783161720169594
+        },
+        "right_wrist": {
+          "board_dice": 0.8537655261578243,
+          "hole_dice": 0.8361858190709046,
+          "mean_fg_dice": 0.8449756726143645
+        },
+        "left_wrist": {
+          "board_dice": 0.7722998005129666,
+          "hole_dice": 0.694300518134715,
+          "mean_fg_dice": 0.7333001593238408
+        }
+      }
+    },
+    "best_score": 0.6538110699777584,
+    "improved": true
+  },
+  {
+    "epoch": 58,
+    "local_epoch": 6,
+    "train_loss": 0.17272192184160004,
+    "learning_rate": 8.145033635316128e-06,
+    "new_board_val": {
+      "board_dice": 0.7927975061583066,
+      "hole_dice": 0.6546854942233633,
+      "mean_fg_dice": 0.7237415001908349,
+      "score": 0.6754022960136048,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.4600197433366239,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.23000987166831194
+        },
+        "right_wrist": {
+          "board_dice": 0.8624061860359336,
+          "hole_dice": 0.7469879518072289,
+          "mean_fg_dice": 0.8046970689215812
+        },
+        "left_wrist": {
+          "board_dice": 0.7679025372919565,
+          "hole_dice": 0.7728613569321534,
+          "mean_fg_dice": 0.770381947112055
+        }
+      }
+    },
+    "best_score": 0.6754022960136048,
+    "improved": true
+  },
+  {
+    "epoch": 59,
+    "local_epoch": 7,
+    "train_loss": 0.1642500475716235,
+    "learning_rate": 7.54295724882796e-06,
+    "new_board_val": {
+      "board_dice": 0.8062916666666666,
+      "hole_dice": 0.647594278283485,
+      "mean_fg_dice": 0.7269429724750758,
+      "score": 0.6713988865409622,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.563603164942179,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.2818015824710895
+        },
+        "right_wrist": {
+          "board_dice": 0.8557252905078992,
+          "hole_dice": 0.72,
+          "mean_fg_dice": 0.7878626452539497
+        },
+        "left_wrist": {
+          "board_dice": 0.7907254910981276,
+          "hole_dice": 0.7927927927927928,
+          "mean_fg_dice": 0.7917591419454602
+        }
+      }
+    },
+    "best_score": 0.6754022960136048,
+    "improved": false
+  },
+  {
+    "epoch": 60,
+    "local_epoch": 8,
+    "train_loss": 0.16513369454821544,
+    "learning_rate": 6.890576474687264e-06,
+    "new_board_val": {
+      "board_dice": 0.8010126811184701,
+      "hole_dice": 0.6878980891719745,
+      "mean_fg_dice": 0.7444553851452222,
+      "score": 0.7048652779639488,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.5414091470951793,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.27070457354758964
+        },
+        "right_wrist": {
+          "board_dice": 0.8690533629257937,
+          "hole_dice": 0.7873563218390804,
+          "mean_fg_dice": 0.8282048423824371
+        },
+        "left_wrist": {
+          "board_dice": 0.7728953987276225,
+          "hole_dice": 0.7869822485207101,
+          "mean_fg_dice": 0.7799388236241662
+        }
+      }
+    },
+    "best_score": 0.7048652779639488,
+    "improved": true
+  },
+  {
+    "epoch": 61,
+    "local_epoch": 9,
+    "train_loss": 0.14440965118692883,
+    "learning_rate": 6.2039550926810394e-06,
+    "new_board_val": {
+      "board_dice": 0.8201628974958842,
+      "hole_dice": 0.6467391304347826,
+      "mean_fg_dice": 0.7334510139653334,
+      "score": 0.6727526954939478,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.686059275521405,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.3430296377607025
+        },
+        "right_wrist": {
+          "board_dice": 0.8712584636936727,
+          "hole_dice": 0.6835443037974683,
+          "mean_fg_dice": 0.7774013837455704
+        },
+        "left_wrist": {
+          "board_dice": 0.7914712153518124,
+          "hole_dice": 0.8099688473520249,
+          "mean_fg_dice": 0.8007200313519187
+        }
+      }
+    },
+    "best_score": 0.7048652779639488,
+    "improved": false
+  },
+  {
+    "epoch": 62,
+    "local_epoch": 10,
+    "train_loss": 0.14497205759607143,
+    "learning_rate": 5.5e-06,
+    "new_board_val": {
+      "board_dice": 0.8165802201650143,
+      "hole_dice": 0.6476190476190476,
+      "mean_fg_dice": 0.7320996338920309,
+      "score": 0.6729632235009426,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.6338797814207651,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.31693989071038253
+        },
+        "right_wrist": {
+          "board_dice": 0.8670395262490013,
+          "hole_dice": 0.69375,
+          "mean_fg_dice": 0.7803947631245006
+        },
+        "left_wrist": {
+          "board_dice": 0.7956444911409332,
+          "hole_dice": 0.8037974683544303,
+          "mean_fg_dice": 0.7997209797476817
+        }
+      }
+    },
+    "best_score": 0.7048652779639488,
+    "improved": false
+  },
+  {
+    "epoch": 63,
+    "local_epoch": 11,
+    "train_loss": 0.1309242357513798,
+    "learning_rate": 4.796044907318962e-06,
+    "new_board_val": {
+      "board_dice": 0.8329139406139909,
+      "hole_dice": 0.6510989010989011,
+      "mean_fg_dice": 0.7420064208564461,
+      "score": 0.6783711570261646,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.6895611883346962,
+          "hole_dice": 0.0,
+          "mean_fg_dice": 0.3447805941673481
+        },
+        "right_wrist": {
+          "board_dice": 0.8759665385484965,
+          "hole_dice": 0.6978193146417445,
+          "mean_fg_dice": 0.7868929265951206
+        },
+        "left_wrist": {
+          "board_dice": 0.8134587289992695,
+          "hole_dice": 0.8116883116883117,
+          "mean_fg_dice": 0.8125735203437906
+        }
+      }
+    },
+    "best_score": 0.7048652779639488,
+    "improved": false
+  },
+  {
+    "epoch": 64,
+    "local_epoch": 12,
+    "train_loss": 0.12542374521049102,
+    "learning_rate": 4.109423525312737e-06,
+    "new_board_val": {
+      "board_dice": 0.8361939747081302,
+      "hole_dice": 0.6826666666666666,
+      "mean_fg_dice": 0.7594303206873985,
+      "score": 0.7056957628728862,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.6818932305998899,
+          "hole_dice": 0.02,
+          "mean_fg_dice": 0.350946615299945
+        },
+        "right_wrist": {
+          "board_dice": 0.8813837050523441,
+          "hole_dice": 0.7588235294117647,
+          "mean_fg_dice": 0.8201036172320544
+        },
+        "left_wrist": {
+          "board_dice": 0.8163396590543583,
+          "hole_dice": 0.8129032258064516,
+          "mean_fg_dice": 0.814621442430405
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": true
+  },
+  {
+    "epoch": 65,
+    "local_epoch": 13,
+    "train_loss": 0.12966661911402175,
+    "learning_rate": 3.45704275117204e-06,
+    "new_board_val": {
+      "board_dice": 0.836970367740723,
+      "hole_dice": 0.6685159500693482,
+      "mean_fg_dice": 0.7527431589050355,
+      "score": 0.6937841127200544,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.7162666666666667,
+          "hole_dice": 0.1320754716981132,
+          "mean_fg_dice": 0.42417106918238995
+        },
+        "right_wrist": {
+          "board_dice": 0.8727650352176268,
+          "hole_dice": 0.7040498442367601,
+          "mean_fg_dice": 0.7884074397271934
+        },
+        "left_wrist": {
+          "board_dice": 0.8215016599208695,
+          "hole_dice": 0.8231292517006803,
+          "mean_fg_dice": 0.8223154558107749
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  },
+  {
+    "epoch": 66,
+    "local_epoch": 14,
+    "train_loss": 0.1188218473498501,
+    "learning_rate": 2.8549663646838717e-06,
+    "new_board_val": {
+      "board_dice": 0.840138732259506,
+      "hole_dice": 0.6178623718887262,
+      "mean_fg_dice": 0.7290005520741161,
+      "score": 0.6512038259443431,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.7207397622192867,
+          "hole_dice": 0.02,
+          "mean_fg_dice": 0.37036988110964336
+        },
+        "right_wrist": {
+          "board_dice": 0.8818584888232034,
+          "hole_dice": 0.6270627062706271,
+          "mean_fg_dice": 0.7544605975469152
+        },
+        "left_wrist": {
+          "board_dice": 0.8192022263450834,
+          "hole_dice": 0.8214285714285714,
+          "mean_fg_dice": 0.8203153988868275
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  },
+  {
+    "epoch": 67,
+    "local_epoch": 15,
+    "train_loss": 0.12709417750141513,
+    "learning_rate": 2.3180194846605367e-06,
+    "new_board_val": {
+      "board_dice": 0.8435889344693384,
+      "hole_dice": 0.6657381615598886,
+      "mean_fg_dice": 0.7546635480146135,
+      "score": 0.692415777496306,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.7132156233279828,
+          "hole_dice": 0.058823529411764705,
+          "mean_fg_dice": 0.3860195763698738
+        },
+        "right_wrist": {
+          "board_dice": 0.8802923041790363,
+          "hole_dice": 0.7177914110429447,
+          "mean_fg_dice": 0.7990418576109906
+        },
+        "left_wrist": {
+          "board_dice": 0.8291480230115971,
+          "hole_dice": 0.8206896551724138,
+          "mean_fg_dice": 0.8249188390920055
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  },
+  {
+    "epoch": 68,
+    "local_epoch": 16,
+    "train_loss": 0.11856843319846623,
+    "learning_rate": 1.859423525312737e-06,
+    "new_board_val": {
+      "board_dice": 0.8371249371708298,
+      "hole_dice": 0.6505681818181818,
+      "mean_fg_dice": 0.7438465594945058,
+      "score": 0.6785516951210789,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.6608450704225353,
+          "hole_dice": 0.02,
+          "mean_fg_dice": 0.34042253521126764
+        },
+        "right_wrist": {
+          "board_dice": 0.8890469416785206,
+          "hole_dice": 0.6855345911949685,
+          "mean_fg_dice": 0.7872907664367446
+        },
+        "left_wrist": {
+          "board_dice": 0.8149060088072352,
+          "hole_dice": 0.8321678321678322,
+          "mean_fg_dice": 0.8235369204875337
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  },
+  {
+    "epoch": 69,
+    "local_epoch": 17,
+    "train_loss": 0.11802497617344358,
+    "learning_rate": 1.4904706411523449e-06,
+    "new_board_val": {
+      "board_dice": 0.8427024239298607,
+      "hole_dice": 0.6446991404011462,
+      "mean_fg_dice": 0.7437007821655035,
+      "score": 0.6743996329304534,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.6954620010934938,
+          "hole_dice": 0.02,
+          "mean_fg_dice": 0.3577310005467469
+        },
+        "right_wrist": {
+          "board_dice": 0.8881416094530848,
+          "hole_dice": 0.6751592356687898,
+          "mean_fg_dice": 0.7816504225609373
+        },
+        "left_wrist": {
+          "board_dice": 0.8224717007499883,
+          "hole_dice": 0.8309859154929577,
+          "mean_fg_dice": 0.826728808121473
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  },
+  {
+    "epoch": 70,
+    "local_epoch": 18,
+    "train_loss": 0.11940105270538758,
+    "learning_rate": 1.220245676671809e-06,
+    "new_board_val": {
+      "board_dice": 0.84398018522507,
+      "hole_dice": 0.6629370629370629,
+      "mean_fg_dice": 0.7534586240810665,
+      "score": 0.6900935312802638,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.7085806799784133,
+          "hole_dice": 0.058823529411764705,
+          "mean_fg_dice": 0.38370210469508903
+        },
+        "right_wrist": {
+          "board_dice": 0.888242196667449,
+          "hole_dice": 0.7076923076923077,
+          "mean_fg_dice": 0.7979672521798784
+        },
+        "left_wrist": {
+          "board_dice": 0.8233811102292358,
+          "hole_dice": 0.8263888888888888,
+          "mean_fg_dice": 0.8248849995590624
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  },
+  {
+    "epoch": 71,
+    "local_epoch": 19,
+    "train_loss": 0.11294559767441963,
+    "learning_rate": 1.0554024673218804e-06,
+    "new_board_val": {
+      "board_dice": 0.84744726383369,
+      "hole_dice": 0.6573033707865169,
+      "mean_fg_dice": 0.7523753173101034,
+      "score": 0.6858249547435928,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.6931506849315069,
+          "hole_dice": 0.02,
+          "mean_fg_dice": 0.35657534246575345
+        },
+        "right_wrist": {
+          "board_dice": 0.8982116315865177,
+          "hole_dice": 0.7076923076923077,
+          "mean_fg_dice": 0.8029519696394127
+        },
+        "left_wrist": {
+          "board_dice": 0.824164983323155,
+          "hole_dice": 0.8222996515679443,
+          "mean_fg_dice": 0.8232323174455496
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  },
+  {
+    "epoch": 72,
+    "local_epoch": 20,
+    "train_loss": 0.11534168126422968,
+    "learning_rate": 1e-06,
+    "new_board_val": {
+      "board_dice": 0.849432064510535,
+      "hole_dice": 0.6657381615598886,
+      "mean_fg_dice": 0.7575851130352118,
+      "score": 0.6932922470024856,
+      "per_camera": {
+        "external": {
+          "board_dice": 0.7095379627127804,
+          "hole_dice": 0.058823529411764705,
+          "mean_fg_dice": 0.38418074606227254
+        },
+        "right_wrist": {
+          "board_dice": 0.8994150378085319,
+          "hole_dice": 0.7195121951219512,
+          "mean_fg_dice": 0.8094636164652416
+        },
+        "left_wrist": {
+          "board_dice": 0.8245187815361614,
+          "hole_dice": 0.8194444444444444,
+          "mean_fg_dice": 0.8219816129903029
+        }
+      }
+    },
+    "best_score": 0.7056957628728862,
+    "improved": false
+  }
+]

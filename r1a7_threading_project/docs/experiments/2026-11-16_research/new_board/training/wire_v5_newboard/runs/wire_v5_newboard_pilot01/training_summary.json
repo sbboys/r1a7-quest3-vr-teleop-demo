@@ -1,0 +1,15 @@
+{
+  "model": "Wire V5 NEW_BOARD_01",
+  "source_checkpoint": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/models/wire_v4_insertion_replay_seed44_epoch110.pt",
+  "source_epoch": 110,
+  "best_epoch": 123,
+  "best_source": "wire_v5_training",
+  "best_combined_score": 0.826245962522068,
+  "epochs_requested": 20,
+  "newboard_train_groups": 15,
+  "newboard_val_groups": 3,
+  "newboard_test_groups": 3,
+  "newboard_test_score": 0.9026257394079478,
+  "newboard_test_used_for_training": false,
+  "newboard_test_used_for_model_selection": false
+}

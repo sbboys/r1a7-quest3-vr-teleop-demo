@@ -30,6 +30,9 @@ if str(HOLE_DIR) not in sys.path:
 import live_visual_guidance_shadow_v1 as grasp
 import live_hole_board_unet_three_camera_v1 as hole_live
 
+# INSERTION_DATASET_RECORDER_INTEGRATION_V1
+import insertion_dataset_recorder_v1 as insertion_recorder
+
 
 # ============================================================
 # Configuration
@@ -41,6 +44,22 @@ CAMERA_ORDER = (
     "external",
     "right_wrist",
     "left_wrist",
+)
+
+# OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+#
+# External and Right Wrist are insertion control cameras.
+# Left Wrist is optional monitoring / dataset coverage only.
+#
+# Insertion may start when AT LEAST ONE control camera has:
+#   - manual target selected
+#   - target_uv available
+#   - target currently valid
+#
+# Left Wrist alone must never start insertion.
+INSERTION_CONTROL_CAMERAS = (
+    "external",
+    "right_wrist",
 )
 
 FIXED_WIRE_CAMERAS = {
@@ -66,9 +85,17 @@ PERCEPTION_STATE_OUT = Path(
 )
 
 
+# WIRE_V4_HOLE_V2_RUNTIME_INTEGRATION_V1
+# WIRE_V5_HOLE_V3_RUNTIME_INTEGRATION_V1
+# Legacy variable name retained to minimize changes downstream.
+WIRE_V4_CHECKPOINT = Path(
+    "/data/threading/new_board_dataset/frozen/models/"
+    "wire_v5_newboard_seed44_epoch123.pt"
+)
+
 HOLE_CHECKPOINT = Path(
-    "/home/robot/r1a7_datasets/wire_unet/"
-    "hole_tube_001/runs/hole_board_unet_v1/best.pt"
+    "/data/threading/new_board_dataset/frozen/models/"
+    "hole_v3_newboard_seed44_epoch64.pt"
 )
 
 HOLE_TILE = 512
@@ -91,9 +118,46 @@ HOLE_CLICK_MAX_PX = 55.0
 # After selection:
 #   ignore all other holes and only search inside a local ROI
 #   around the previously selected physical hole.
-HOLE_TRACK_MAX_JUMP_PX = 75.0
+HOLE_TRACK_MAX_JUMP_PX = 25.0
 
-HOLE_TARGET_ROI_RADIUS_PX = 90
+# DYNAMIC_SELECTED_HOLE_TRACK_V1
+# Wrist cameras move with the arm, therefore their selected-hole
+# image motion can be substantially larger than the fixed external view.
+HOLE_TRACK_MAX_JUMP_BY_CAMERA = {
+    "external": 25.0,
+    "right_wrist": 55.0,
+    "left_wrist": 45.0,
+}
+
+# INSERTION_VISUAL_STABILITY_V1
+#
+# Hole:
+#   keep the existing ROI / identity association,
+#   then low-pass the accepted selected-hole center.
+#
+# FREE:
+#   reject implausible one-frame endpoint jumps,
+#   then low-pass accepted measurements.
+HOLE_TRACK_EMA_ALPHA = 0.15
+
+# External stays strongly smoothed.
+# Wrist targets need lower lag while the cameras move with the arms.
+HOLE_TRACK_EMA_ALPHA_BY_CAMERA = {
+    "external": 0.15,
+    "right_wrist": 0.45,
+    "left_wrist": 0.30,
+}
+FREE_TRACK_EMA_ALPHA = 0.20
+FREE_TRACK_MAX_JUMP_PX = 35.0
+
+HOLE_TARGET_ROI_RADIUS_PX = 50
+
+# Search region for the identity-locked physical hole.
+HOLE_TRACK_ROI_RADIUS_BY_CAMERA = {
+    "external": 50,
+    "right_wrist": 90,
+    "left_wrist": 75,
+}
 
 # Short detection dropouts must not immediately invalidate
 # a manually selected physical target.
@@ -108,6 +172,15 @@ TIP_FREE_FALLBACK_MAX_AGE_S = 0.50
 
 # Predicted FREE receives reduced authority.
 TIP_FREE_FALLBACK_SPEED_SCALE = 0.40
+
+
+# FREE_CONTROL_HOLD_V1
+#
+# Bridge only very short measured-FREE dropouts.
+# At the current insertion speed cap of 1 mm/s,
+# 0.25 s corresponds to at most about 0.25 mm motion.
+FREE_CONTROL_HOLD_S = 0.25
+FREE_CONTROL_HOLD_SPEED_SCALE = 0.20
 
 
 # Close signal must be fresh.
@@ -851,6 +924,7 @@ def nearest_hole(
 def track_selected_hole(
     pred,
     previous_uv,
+    camera,
 ):
 
     if (
@@ -871,8 +945,19 @@ def track_selected_hole(
         previous_uv[1]
     )
 
+    # DYNAMIC_SELECTED_HOLE_TRACK_V1
     r = int(
-        HOLE_TARGET_ROI_RADIUS_PX
+        HOLE_TRACK_ROI_RADIUS_BY_CAMERA.get(
+            camera,
+            HOLE_TARGET_ROI_RADIUS_PX,
+        )
+    )
+
+    max_jump = float(
+        HOLE_TRACK_MAX_JUMP_BY_CAMERA.get(
+            camera,
+            HOLE_TRACK_MAX_JUMP_PX,
+        )
     )
 
 
@@ -969,7 +1054,7 @@ def track_selected_hole(
         or
         distance
         >
-        HOLE_TRACK_MAX_JUMP_PX
+        max_jump
     ):
         return None
 
@@ -1112,6 +1197,7 @@ def insertion_guidance(
         free_source
         in (
             "MEASURED",
+            "MEASURED_HOLD",
             "TIP_RELATIVE_PRED",
         )
     )
@@ -1149,15 +1235,26 @@ def insertion_guidance(
             )
         )
 
-        speed_scale = (
-            TIP_FREE_FALLBACK_SPEED_SCALE
-            if
+        if (
             free_source
             ==
             "TIP_RELATIVE_PRED"
-            else
-            1.0
-        )
+        ):
+            speed_scale = (
+                TIP_FREE_FALLBACK_SPEED_SCALE
+            )
+
+        elif (
+            free_source
+            ==
+            "MEASURED_HOLD"
+        ):
+            speed_scale = (
+                FREE_CONTROL_HOLD_SPEED_SCALE
+            )
+
+        else:
+            speed_scale = 1.0
 
         if camera == "external":
 
@@ -1743,15 +1840,38 @@ def main():
     # Existing wire models
     # --------------------------------------------------------
 
-    model, device = (
+    # WIRE_V4_HOLE_V2_RUNTIME_INTEGRATION_V1
+    #
+    # Reuse the existing validated device initialization, but replace
+    # the actual inference model for all three cameras with Wire V5.
+    _legacy_model, device = (
         grasp.base.load_model()
+    )
+
+    model = (
+        grasp.load_model_from_checkpoint(
+            WIRE_V4_CHECKPOINT,
+            device,
+        )
     )
 
     model_right_wrist = (
         grasp.load_model_from_checkpoint(
-            grasp.RIGHT_WRIST_V3_CHECKPOINT,
+            WIRE_V4_CHECKPOINT,
             device,
         )
+    )
+
+    del _legacy_model
+
+    print(
+        "[MODEL] Wire V5 all cameras =",
+        WIRE_V4_CHECKPOINT,
+    )
+
+    print(
+        "[MODEL] Hole V3 after CLOSE =",
+        HOLE_CHECKPOINT,
     )
 
 
@@ -1916,6 +2036,31 @@ def main():
     }
 
 
+    # FREE_CONTROL_HOLD_V1
+    last_control_free_uv = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+    last_control_free_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    # INSERTION_VISUAL_STABILITY_V1
+    free_filtered_uv = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+
     latest_free_guidance = {
         camera:
             {
@@ -1981,25 +2126,36 @@ def main():
                 return
 
 
-            all_selected = all(
-                target_selected.values()
-            )
+            # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+            #
+            # At least one REAL insertion-control camera must
+            # have a manually selected and currently valid hole.
+            #
+            # Left Wrist is optional and never starts insertion
+            # by itself.
 
-            all_have_targets = all(
-                target_uv[
-                    camera_name
-                ]
-                is not None
+            control_ready_cameras = [
+                camera_name
                 for camera_name
-                in CAMERA_ORDER
-            )
+                in INSERTION_CONTROL_CAMERAS
+                if (
+                    target_selected[
+                        camera_name
+                    ]
+                    and
+                    target_uv[
+                        camera_name
+                    ]
+                    is not None
+                    and
+                    target_valid[
+                        camera_name
+                    ]
+                )
+            ]
 
 
-            if (
-                all_selected
-                and
-                all_have_targets
-            ):
+            if control_ready_cameras:
 
                 target_confirmed = True
 
@@ -2364,6 +2520,15 @@ def main():
             ),
         )
 
+        # DYNAMIC_SELECTED_HOLE_TRACK_V1
+        # Preserve the raw selected-hole measurement separately from
+        # the smoothed target_uv used by insertion guidance.
+        latest_holes[
+            camera
+        ] = [
+            hole
+        ]
+
         target_valid[
             camera
         ] = True
@@ -2391,6 +2556,29 @@ def main():
     left = None
 
     frame_counter = 0
+
+    # INSERTION_DATASET_RECORDER_INTEGRATION_V1
+    #
+    # Recorder is inactive during GRASP.
+    # A session starts automatically in:
+    #   WAIT_HOLE_TARGET
+    #   INSERTION_TRACKING
+    #
+    # Normal frames: 5 Hz
+    # Event frames:  10 Hz + immediate state transitions
+    dataset_recorder = (
+        insertion_recorder.InsertionDatasetRecorder(
+            normal_hz=5.0,
+            event_hz=10.0,
+            jpeg_quality=95,
+            max_queue=128,
+        )
+    )
+
+    print(
+        "[DATA RECORDER] initialized",
+        flush=True,
+    )
     last_print = 0.0
 
 
@@ -2987,12 +3175,59 @@ def main():
 
                             else:
 
+                                # ====================================
+                                # DYNAMIC_SELECTED_HOLE_TRACK_V1
+                                #
+                                # Tracking search center:
+                                #   last RAW measured hole center
+                                #
+                                # Control target:
+                                #   EMA-smoothed target_uv
+                                #
+                                # Do not use the smoothed control target as
+                                # the next-frame search center.  On a moving
+                                # wrist camera that creates large tracking lag.
+                                # ====================================
+
+                                tracking_previous_uv = (
+                                    target_uv[
+                                        camera
+                                    ]
+                                )
+
+                                previous_selected_holes = (
+                                    latest_holes.get(
+                                        camera,
+                                        [],
+                                    )
+                                )
+
+                                if previous_selected_holes:
+
+                                    previous_raw_center = (
+                                        previous_selected_holes[
+                                            0
+                                        ].get(
+                                            "center_uv"
+                                        )
+                                    )
+
+                                    if previous_raw_center is not None:
+
+                                        tracking_previous_uv = (
+                                            float(
+                                                previous_raw_center[0]
+                                            ),
+                                            float(
+                                                previous_raw_center[1]
+                                            ),
+                                        )
+
                                 tracked = (
                                     track_selected_hole(
                                         pred,
-                                        target_uv[
-                                            camera
-                                        ],
+                                        tracking_previous_uv,
+                                        camera,
                                     )
                                 )
 
@@ -3003,15 +3238,71 @@ def main():
                                         "center_uv"
                                     ]
 
-                                    target_uv[
-                                        camera
-                                    ] = (
+                                    # ====================================
+                                    # INSERTION_VISUAL_STABILITY_V1
+                                    # Smooth the center of the already
+                                    # identity-locked physical hole.
+                                    # ====================================
+
+                                    raw_hole_uv = (
                                         float(
                                             c[0]
                                         ),
                                         float(
                                             c[1]
                                         ),
+                                    )
+
+                                    previous_hole_uv = (
+                                        target_uv[
+                                            camera
+                                        ]
+                                    )
+
+                                    if previous_hole_uv is None:
+
+                                        filtered_hole_uv = (
+                                            raw_hole_uv
+                                        )
+
+                                    else:
+
+                                        a = float(
+                                            HOLE_TRACK_EMA_ALPHA_BY_CAMERA.get(
+                                                camera,
+                                                HOLE_TRACK_EMA_ALPHA,
+                                            )
+                                        )
+
+                                        filtered_hole_uv = (
+                                            (
+                                                1.0 - a
+                                            )
+                                            *
+                                            float(
+                                                previous_hole_uv[0]
+                                            )
+                                            +
+                                            a
+                                            *
+                                            raw_hole_uv[0],
+                                            (
+                                                1.0 - a
+                                            )
+                                            *
+                                            float(
+                                                previous_hole_uv[1]
+                                            )
+                                            +
+                                            a
+                                            *
+                                            raw_hole_uv[1],
+                                        )
+
+                                    target_uv[
+                                        camera
+                                    ] = (
+                                        filtered_hole_uv
                                     )
 
                                     target_valid[
@@ -3127,6 +3418,103 @@ def main():
                             ]
                         )
                     )
+
+
+                    # ============================================
+                    # INSERTION_VISUAL_STABILITY_V1
+                    # FREE endpoint:
+                    #   raw measurement
+                    #      -> jump rejection
+                    #      -> EMA
+                    #      -> control / TIP-relative history
+                    # ============================================
+
+                    if measured is not None:
+
+                        raw_free = (
+                            float(
+                                measured[0]
+                            ),
+                            float(
+                                measured[1]
+                            ),
+                        )
+
+                        previous_free = (
+                            free_filtered_uv[
+                                camera
+                            ]
+                        )
+
+                        if previous_free is not None:
+
+                            free_jump_px = (
+                                point_distance(
+                                    raw_free,
+                                    previous_free,
+                                )
+                            )
+
+                            if (
+                                free_jump_px
+                                >
+                                FREE_TRACK_MAX_JUMP_PX
+                            ):
+
+                                # Reject one-frame geometry jump.
+                                # Existing DISPLAY_ONLY /
+                                # TIP_RELATIVE_PRED fallback below
+                                # handles this frame.
+                                measured = None
+
+                            else:
+
+                                a = (
+                                    FREE_TRACK_EMA_ALPHA
+                                )
+
+                                filtered_free = (
+                                    (
+                                        1.0 - a
+                                    )
+                                    *
+                                    float(
+                                        previous_free[0]
+                                    )
+                                    +
+                                    a
+                                    *
+                                    raw_free[0],
+                                    (
+                                        1.0 - a
+                                    )
+                                    *
+                                    float(
+                                        previous_free[1]
+                                    )
+                                    +
+                                    a
+                                    *
+                                    raw_free[1],
+                                )
+
+                                free_filtered_uv[
+                                    camera
+                                ] = (
+                                    filtered_free
+                                )
+
+                                measured = (
+                                    filtered_free
+                                )
+
+                        else:
+
+                            free_filtered_uv[
+                                camera
+                            ] = raw_free
+
+                            measured = raw_free
 
                     display_free = (
                         display_free_uv(
@@ -3281,6 +3669,174 @@ def main():
                             )
 
 
+                    # ============================================
+                    # DISPLAY_ONLY_TO_TIP_PRED_V1
+                    #
+                    # A temporally-held DISPLAY_ONLY position must
+                    # never directly command robot motion.
+                    #
+                    # However, DISPLAY_ONLY previously prevented the
+                    # already implemented TIP-relative fallback from
+                    # being reached at all.
+                    #
+                    # Therefore, when the measured FREE endpoint is
+                    # temporarily unavailable, promote DISPLAY_ONLY
+                    # to TIP_RELATIVE_PRED if a recent calibrated
+                    # FREE<->TIP relation is available.
+                    # ============================================
+
+                    if (
+                        free_source
+                        ==
+                        "DISPLAY_ONLY"
+                    ):
+
+                        samples = (
+                            tip_free_samples[
+                                camera
+                            ]
+                        )
+
+                        age = (
+                            now
+                            -
+                            last_measured_free_time[
+                                camera
+                            ]
+                        )
+
+                        if (
+                            tip_uv
+                            is not None
+                            and
+                            len(samples)
+                            >=
+                            3
+                            and
+                            0.0
+                            <=
+                            age
+                            <=
+                            TIP_FREE_FALLBACK_MAX_AGE_S
+                        ):
+
+                            ref = (
+                                np.median(
+                                    np.stack(
+                                        list(
+                                            samples
+                                        ),
+                                        axis=0,
+                                    ),
+                                    axis=0,
+                                )
+                            )
+
+                            predicted = (
+                                np.asarray(
+                                    tip_uv,
+                                    dtype=np.float64,
+                                )
+                                +
+                                ref
+                            )
+
+                            free_uv = (
+                                float(
+                                    predicted[0]
+                                ),
+                                float(
+                                    predicted[1]
+                                ),
+                            )
+
+                            free_source = (
+                                "TIP_RELATIVE_PRED"
+                            )
+
+
+                    # ============================================
+                    # FREE_CONTROL_HOLD_APPLY_V1
+                    #
+                    # Avoid source flapping:
+                    #
+                    # MEASURED / TIP_RELATIVE_PRED
+                    #     -> refresh last real control point
+                    #
+                    # short DISPLAY_ONLY / missing interval
+                    #     -> reuse last control FREE <= 0.25 s
+                    #
+                    # longer loss
+                    #     -> existing invalid / STOP behavior
+                    # ============================================
+
+                    if (
+                        free_uv is not None
+                        and
+                        free_source
+                        in (
+                            "MEASURED",
+                            "TIP_RELATIVE_PRED",
+                        )
+                    ):
+
+                        last_control_free_uv[
+                            camera
+                        ] = (
+                            float(
+                                free_uv[0]
+                            ),
+                            float(
+                                free_uv[1]
+                            ),
+                        )
+
+                        last_control_free_time[
+                            camera
+                        ] = now
+
+                    elif (
+                        free_source
+                        in (
+                            "DISPLAY_ONLY",
+                            None,
+                        )
+                    ):
+
+                        control_age = (
+                            now
+                            -
+                            last_control_free_time[
+                                camera
+                            ]
+                        )
+
+                        previous_control_free = (
+                            last_control_free_uv[
+                                camera
+                            ]
+                        )
+
+                        if (
+                            previous_control_free
+                            is not None
+                            and
+                            0.0
+                            <=
+                            control_age
+                            <=
+                            FREE_CONTROL_HOLD_S
+                        ):
+
+                            free_uv = (
+                                previous_control_free
+                            )
+
+                            free_source = (
+                                "MEASURED_HOLD"
+                            )
+
+
                     latest_free_guidance[
                         camera
                     ] = {
@@ -3412,6 +3968,105 @@ def main():
                     )
 
 
+                # ====================================================
+                # INSERTION_DATASET_RECORDER_INTEGRATION_V1
+                #
+                # Record existing camera frames + perception state.
+                #
+                # IMPORTANT:
+                #   - no camera is reopened here
+                #   - no robot command is published here
+                #   - writer thread only performs disk I/O
+                # ====================================================
+
+                recorder_selected_control = [
+                    camera
+                    for camera
+                    in INSERTION_CONTROL_CAMERAS
+                    if (
+                        target_selected[
+                            camera
+                        ]
+                        and
+                        target_uv[
+                            camera
+                        ]
+                        is not None
+                    )
+                ]
+
+                recorder_valid_control = [
+                    camera
+                    for camera
+                    in recorder_selected_control
+                    if target_valid[
+                        camera
+                    ]
+                ]
+
+                dataset_recorder.record(
+                    frame_counter=
+                        frame_counter,
+
+                    phase=
+                        phase,
+
+                    frames=
+                        frames,
+
+                    free_guidance=
+                        latest_free_guidance,
+
+                    target_uv=
+                        target_uv,
+
+                    target_selected=
+                        target_selected,
+
+                    target_valid=
+                        target_valid,
+
+                    external_guidance=
+                        latest_external_guidance,
+
+                    wrist_guidance=
+                        latest_wrist_guidance,
+
+                    extra={
+                        "target_confirmed":
+                            bool(
+                                target_confirmed
+                            ),
+
+                        "selected_control_cameras":
+                            list(
+                                recorder_selected_control
+                            ),
+
+                        "valid_control_cameras":
+                            list(
+                                recorder_valid_control
+                            ),
+
+                        "control_target_count":
+                            int(
+                                len(
+                                    recorder_valid_control
+                                )
+                            ),
+
+                        "degraded_single_view":
+                            bool(
+                                len(
+                                    recorder_valid_control
+                                )
+                                ==
+                                1
+                            ),
+                    },
+                )
+
+
                 # --------------------------------------------
                 # Handshake for Gate
                 # --------------------------------------------
@@ -3424,6 +4079,51 @@ def main():
                     target_valid.values()
                 )
 
+                # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+                #
+                # Keep all_selected / all_target_valid only as
+                # diagnostics.  They are no longer hard gates.
+                #
+                # Runtime insertion authority comes only from
+                # External / Right Wrist.
+
+                selected_control_cameras = [
+                    camera
+                    for camera
+                    in INSERTION_CONTROL_CAMERAS
+                    if (
+                        target_selected[
+                            camera
+                        ]
+                        and
+                        target_uv[
+                            camera
+                        ]
+                        is not None
+                    )
+                ]
+
+                valid_control_cameras = [
+                    camera
+                    for camera
+                    in selected_control_cameras
+                    if target_valid[
+                        camera
+                    ]
+                ]
+
+                control_target_count = (
+                    len(
+                        valid_control_cameras
+                    )
+                )
+
+                degraded_single_view = bool(
+                    control_target_count
+                    ==
+                    1
+                )
+
                 target_ready = bool(
                     phase
                     ==
@@ -3431,7 +4131,9 @@ def main():
                     and
                     target_confirmed
                     and
-                    all_selected
+                    control_target_count
+                    >=
+                    1
                 )
 
 
@@ -3460,6 +4162,27 @@ def main():
                         "all_target_valid":
                             bool(
                                 all_target_valid
+                            ),
+
+                        # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+                        "selected_control_cameras":
+                            list(
+                                selected_control_cameras
+                            ),
+
+                        "valid_control_cameras":
+                            list(
+                                valid_control_cameras
+                            ),
+
+                        "control_target_count":
+                            int(
+                                control_target_count
+                            ),
+
+                        "degraded_single_view":
+                            bool(
+                                degraded_single_view
                             ),
 
                         "selected": {
@@ -3928,24 +4651,28 @@ def main():
 
                 if phase == PHASE_WAIT_HOLE:
 
-                    all_selected = all(
-                        target_selected.values()
-                    )
-
-                    all_have_targets = all(
-                        target_uv[
-                            camera
-                        ]
-                        is not None
+                    # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+                    control_ready_cameras = [
+                        camera
                         for camera
-                        in CAMERA_ORDER
-                    )
+                        in INSERTION_CONTROL_CAMERAS
+                        if (
+                            target_selected[
+                                camera
+                            ]
+                            and
+                            target_uv[
+                                camera
+                            ]
+                            is not None
+                            and
+                            target_valid[
+                                camera
+                            ]
+                        )
+                    ]
 
-                    if (
-                        all_selected
-                        and
-                        all_have_targets
-                    ):
+                    if control_ready_cameras:
 
                         target_confirmed = True
 
@@ -3963,7 +4690,11 @@ def main():
                         )
 
                         print(
-                            "[PHASE] target confirmed in all 3 cameras"
+                            "[PHASE] target confirmed by control camera(s): "
+                            +
+                            ",".join(
+                                control_ready_cameras
+                            )
                         )
 
                         print(
@@ -3979,7 +4710,7 @@ def main():
 
                         print(
                             "[HOLE CONFIRM] rejected: "
-                            "select the target hole in all 3 camera views"
+                            "select a valid target in External and/or Right Wrist"
                         )
 
 

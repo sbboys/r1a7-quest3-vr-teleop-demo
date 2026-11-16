@@ -7,3 +7,9 @@ r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20
 r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/metadata/session_20261105_105208.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/qa_v3/qa_mask_stats.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 r1a7_threading_project/docs/experiments/2026-11-09_hole_unet/runs/hole_board_unet_v1/history.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Preserve source CSV bytes for the November 16 archive.
+r1a7_threading_project/docs/experiments/2026-11-16_research/old_joint/selection/sync35_manifest.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Keep this source archive byte-identical, including its original terminal blank line.
+r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/hole_unet/manual_newboard_hole_capture_v1.py whitespace=-blank-at-eof

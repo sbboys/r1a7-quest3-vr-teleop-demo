@@ -85,3 +85,7 @@
 ## 2026-11-09 研发归档补充
 
 `codex/r1a7-grasp-insertion-archive-2026-11-09`从4498710建立，按本对话已授权方式上传并快进纳入 `codex/r1a7-console-camera-suite-2026-10-11`。输出链修改以快照归档，不替换默认控制台，不改写main。
+
+## 2026-11-16 研发归档
+
+`codex/r1a7-research-archive-2026-11-16`从e5138d6建立，按本对话授权流程上传并快进纳入 `codex/r1a7-console-camera-suite-2026-10-11`。不改写main和历史归档，不替换原位控制台输出链。

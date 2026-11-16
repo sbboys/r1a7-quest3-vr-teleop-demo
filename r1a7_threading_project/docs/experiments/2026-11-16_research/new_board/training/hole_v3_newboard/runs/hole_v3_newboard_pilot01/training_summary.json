@@ -1,0 +1,19 @@
+{
+  "model": "Hole V3 NEW_BOARD_01",
+  "source_checkpoint": "/home/robot/r1a7_datasets/wire_unet/insertion_joint_001/frozen/models/hole_v2_insertion_replay_seed44_epoch52.pt",
+  "source_epoch": 52,
+  "best_epoch": 64,
+  "best_source": "new_board_training",
+  "best_validation_score": 0.7056957628728862,
+  "final_test_score": 0.3756477975843484,
+  "epochs_requested": 20,
+  "train_groups": 15,
+  "train_views": 45,
+  "validation_groups": 3,
+  "validation_views": 9,
+  "test_groups": 3,
+  "test_views": 9,
+  "old_data_replay": false,
+  "test_used_for_training": false,
+  "test_used_for_model_selection": false
+}

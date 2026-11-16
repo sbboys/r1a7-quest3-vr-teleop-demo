@@ -43,3 +43,7 @@
 ## 2026-11-09 研发归档补充
 
 [11/09完整研发归档](../../r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md)含关键源码、技术路线、具体操作、逻辑修改和回滚差异。未宣称完成实体穿孔。
+
+## 2026-11-16 研发归档
+
+[11/16研究归档](../../r1a7_threading_project/docs/r1a7_four_document_research_audit_2026-11-16_zh.md)含关键程序、技术路线、操作、哈希与未闭环项。新板模型尚不代表物理穿孔成功。

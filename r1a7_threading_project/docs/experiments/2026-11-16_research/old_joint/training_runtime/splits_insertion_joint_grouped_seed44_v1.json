@@ -1,0 +1,55 @@
+{
+  "dataset": "insertion_joint_001",
+  "split_version": "insertion_joint_grouped_seed44_v1",
+  "split_basis": "synchronized_sample_id",
+  "atomic_sample_definition": "external/right_wrist/left_wrist with the same sample_id stay in one split",
+  "same_session_warning": "All 35 groups originate from one runtime session; this evaluates held-out synchronized timepoints, not independent-scene generalization.",
+  "seed": 44,
+  "num_groups": 35,
+  "cameras": [
+    "external",
+    "right_wrist",
+    "left_wrist"
+  ],
+  "train": [
+    "000002",
+    "000003",
+    "000005",
+    "000006",
+    "000007",
+    "000009",
+    "000011",
+    "000014",
+    "000015",
+    "000016",
+    "000017",
+    "000018",
+    "000019",
+    "000020",
+    "000021",
+    "000022",
+    "000023",
+    "000024",
+    "000025",
+    "000026",
+    "000028",
+    "000029",
+    "000031",
+    "000032",
+    "000035"
+  ],
+  "val": [
+    "000001",
+    "000004",
+    "000010",
+    "000030",
+    "000033"
+  ],
+  "test": [
+    "000008",
+    "000012",
+    "000013",
+    "000027",
+    "000034"
+  ]
+}

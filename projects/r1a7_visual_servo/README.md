@@ -47,3 +47,7 @@
 ## 2026-11-09 研发归档补充
 
 [11/09技术路线与SOP](../../r1a7_threading_project/docs/r1a7_grasp_insertion_archive_2026-11-09_zh.md)新增选孔、FREE→HOLE与孔模型研究；所有运行入口需区分默认控制台和归档研究输出链。
+
+## 2026-11-16 研发归档
+
+[11/16路线与操作](../../r1a7_threading_project/docs/r1a7_four_document_research_audit_2026-11-16_zh.md)补入联合数据、增量模型、raw/EMA跟踪及optional控制相机；旧三相机选孔说明只适用旧版本。
