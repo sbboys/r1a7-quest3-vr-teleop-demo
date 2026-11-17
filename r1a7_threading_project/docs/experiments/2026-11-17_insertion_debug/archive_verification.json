@@ -1,0 +1,13 @@
+{
+  "source_files": 32,
+  "artifact_hashes": 41,
+  "compiled_source_and_backups": 30,
+  "docx_paragraphs": 407,
+  "trace_rows": 3428,
+  "trace_columns": 18,
+  "local_links": 8,
+  "console_output_chain_unchanged": true,
+  "matching_full_chain_available": false,
+  "runtime_executed": false,
+  "hardware_executed": false
+}

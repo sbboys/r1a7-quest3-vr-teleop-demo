@@ -48,18 +48,26 @@ CAMERA_ORDER = (
 
 # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
 #
-# External and Right Wrist are insertion control cameras.
-# Left Wrist is optional monitoring / dataset coverage only.
+# External and Left Wrist are insertion control cameras.
+# Right Wrist is monitoring / dataset coverage only during insertion.
 #
 # Insertion may start when AT LEAST ONE control camera has:
 #   - manual target selected
 #   - target_uv available
 #   - target currently valid
 #
-# Left Wrist alone must never start insertion.
+# Insertion requires BOTH External and Left Wrist.
+# INSERTION_LEFT_WRIST_CONTROL_V1
+#
+# GRASP:
+#   External + Right Wrist unchanged.
+#
+# INSERTION:
+#   External + Left Wrist are the ONLY control cameras.
+#   Right Wrist remains live for monitoring only.
 INSERTION_CONTROL_CAMERAS = (
     "external",
-    "right_wrist",
+    "left_wrist",
 )
 
 FIXED_WIRE_CAMERAS = {
@@ -126,7 +134,7 @@ HOLE_TRACK_MAX_JUMP_PX = 25.0
 HOLE_TRACK_MAX_JUMP_BY_CAMERA = {
     "external": 25.0,
     "right_wrist": 55.0,
-    "left_wrist": 45.0,
+    "left_wrist": 55.0,
 }
 
 # INSERTION_VISUAL_STABILITY_V1
@@ -145,10 +153,21 @@ HOLE_TRACK_EMA_ALPHA = 0.15
 HOLE_TRACK_EMA_ALPHA_BY_CAMERA = {
     "external": 0.15,
     "right_wrist": 0.45,
-    "left_wrist": 0.30,
+    "left_wrist": 0.45,
 }
+# FIXED_CAMERA_FREE_IDENTITY_V2
+#
+# External + Left Wrist are fixed cameras during insertion.
+# Use a tighter one-frame FREE identity gate for both control views.
+# Right Wrist keeps the historical threshold because it is monitoring only.
 FREE_TRACK_EMA_ALPHA = 0.20
 FREE_TRACK_MAX_JUMP_PX = 35.0
+
+FREE_TRACK_MAX_JUMP_PX_BY_CAMERA = {
+    "external": 14.0,
+    "left_wrist": 14.0,
+    "right_wrist": 35.0,
+}
 
 HOLE_TARGET_ROI_RADIUS_PX = 50
 
@@ -156,7 +175,7 @@ HOLE_TARGET_ROI_RADIUS_PX = 50
 HOLE_TRACK_ROI_RADIUS_BY_CAMERA = {
     "external": 50,
     "right_wrist": 90,
-    "left_wrist": 75,
+    "left_wrist": 90,
 }
 
 # Short detection dropouts must not immediately invalidate
@@ -185,6 +204,96 @@ FREE_CONTROL_HOLD_SPEED_SCALE = 0.20
 
 # Close signal must be fresh.
 CLOSE_SIGNAL_MAX_AGE_S = 0.50
+
+# ============================================================
+# INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+#
+# External and Left Wrist are FIXED cameras during insertion.
+#
+# Hole U-Net is therefore used ONLY before insertion to select
+# the physical hole. After confirmation, hole_uv is frozen.
+#
+# During insertion:
+#   - no Hole U-Net
+#   - no hole tracker
+#   - only FREE endpoint is refreshed
+#   - guidance is published every visual loop
+# ============================================================
+
+INSERTION_FIXED_HOLE_CAMERAS = (
+    "external",
+    "left_wrist",
+)
+
+# Fine insertion control must not inherit the 4 px GRASP
+# deadband. 0.5 px corresponds to the same rendered pixel.
+INSERTION_FINE_DEADBAND_PX = 0.50
+
+# Local axis cap before the Gate's final 1 mm/s vector cap.
+INSERTION_FINE_MAX_AXIS_MM_S = 1.0
+
+# Both fixed-camera views must show FREE and HOLE on the same
+# integer pixel for this many NEW visual cycles.
+INSERTION_ALIGN_HOLD_UPDATES = 3
+
+
+# ============================================================
+# INSERTION_DIRECT_FREE_TRACK_V1
+#
+# Insertion-only FREE endpoint tracker.
+#
+# External + Left Wrist:
+#   current raw wire path
+#       -> two physical endpoints
+#       -> keep FREE endpoint identity
+#       -> reject one-frame false jumps
+#       -> automatic 3-frame reacquisition
+#       -> median + light EMA
+#
+# GRASP path is NOT changed.
+# ============================================================
+
+INSERTION_DIRECT_FREE_NORMAL_JUMP_PX = {
+    "external": 30.0,
+    "left_wrist": 35.0,
+}
+
+INSERTION_DIRECT_FREE_EMA_ALPHA = {
+    "external": 0.30,
+    "left_wrist": 0.45,
+}
+
+INSERTION_DIRECT_FREE_IDENTITY_MARGIN_PX = 8.0
+
+INSERTION_DIRECT_FREE_REACQUIRE_CLUSTER_PX = 8.0
+INSERTION_DIRECT_FREE_REACQUIRE_UPDATES = 3
+
+INSERTION_DIRECT_FREE_MEDIAN_WINDOW = 3
+
+# Only bridge a very short real-measurement dropout.
+INSERTION_DIRECT_FREE_HOLD_S = 0.15
+
+
+
+# INSERTION_LEFT_WRIST_2X2_SHADOW_V1
+LEFT_INSERTION_K_S = 0.25
+
+LEFT_INSERTION_INV_J_YZ = np.asarray(
+    [
+        [0.176705, -0.141834],
+        [0.055377, -0.069761],
+    ],
+    dtype=np.float64,
+)
+
+# Additional local protection.
+# Gate still applies the final 1 mm/s insertion vector cap.
+LEFT_INSERTION_MAX_AXIS_MM_S = 1.0
+
+LEFT_INSERTION_MAPPING_R2_DU = 0.1365
+LEFT_INSERTION_MAPPING_R2_DV = 0.1345
+LEFT_INSERTION_MAPPING_CONDITION = 13.1764
+
 
 
 # ============================================================
@@ -1063,6 +1172,41 @@ def track_selected_hole(
 
 
 # ============================================================
+# INSERTION_MEASUREMENT_FRESHNESS_V1
+#
+# Keep publish time separate from the newest real measurements
+# used to build the velocity command.
+# ============================================================
+
+def insertion_measurement_timestamp(
+    free_measurement_time,
+    hole_measurement_time,
+):
+    """
+    INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+
+    External and Left Wrist hole_uv are intentionally frozen
+    after target confirmation.
+
+    Therefore the control freshness watchdog must follow the
+    newest REAL FREE measurement, NOT the age of the fixed hole.
+    """
+
+    try:
+        ft = float(
+            free_measurement_time
+        )
+
+        if ft <= 0.0:
+            return None
+
+        return ft
+
+    except Exception:
+        return None
+
+
+# ============================================================
 # Insertion guidance outputs
 # ============================================================
 
@@ -1172,7 +1316,10 @@ def invalid_guidance(
             out,
         )
 
-    elif camera == "right_wrist":
+    elif camera in (
+        "right_wrist",
+        "left_wrist",
+    ):
 
         atomic_json(
             grasp.WRIST_OUT,
@@ -1182,6 +1329,890 @@ def invalid_guidance(
     return out
 
 
+
+def _direct_free_distance(
+    a,
+    b,
+):
+    if (
+        a is None
+        or
+        b is None
+    ):
+        return float("inf")
+
+    return float(
+        math.hypot(
+            float(a[0]) - float(b[0]),
+            float(a[1]) - float(b[1]),
+        )
+    )
+
+
+class InsertionDirectFreeTracker:
+
+    def __init__(
+        self,
+        camera,
+    ):
+        self.camera = str(
+            camera
+        )
+
+        self.filtered_uv = None
+
+        self.history = (
+            collections.deque(
+                maxlen=
+                    INSERTION_DIRECT_FREE_MEDIAN_WINDOW
+            )
+        )
+
+        self.last_measurement_time = 0.0
+
+        self.reacquire_uv = None
+        self.reacquire_count = 0
+
+
+    def reset(
+        self,
+    ):
+        self.filtered_uv = None
+        self.history.clear()
+
+        self.last_measurement_time = 0.0
+
+        self.reacquire_uv = None
+        self.reacquire_count = 0
+
+
+    def _result(
+        self,
+        source,
+        state,
+        uv,
+        raw_uv=None,
+        jump_px=None,
+        identity_margin_px=None,
+        endpoints_uv=None,
+        measurement_timestamp=None,
+    ):
+        return {
+            "uv":
+                (
+                    tuple(
+                        float(x)
+                        for x in uv
+                    )
+                    if uv is not None
+                    else None
+                ),
+
+            "source":
+                source,
+
+            "direct_state":
+                str(state),
+
+            "direct_raw_uv":
+                (
+                    list(
+                        raw_uv
+                    )
+                    if raw_uv is not None
+                    else None
+                ),
+
+            "direct_filtered_uv":
+                (
+                    list(
+                        self.filtered_uv
+                    )
+                    if self.filtered_uv is not None
+                    else None
+                ),
+
+            "direct_jump_px":
+                (
+                    float(
+                        jump_px
+                    )
+                    if jump_px is not None
+                    and np.isfinite(
+                        jump_px
+                    )
+                    else None
+                ),
+
+            "direct_identity_margin_px":
+                (
+                    float(
+                        identity_margin_px
+                    )
+                    if identity_margin_px is not None
+                    and np.isfinite(
+                        identity_margin_px
+                    )
+                    else None
+                ),
+
+            "direct_reacquire_uv":
+                (
+                    list(
+                        self.reacquire_uv
+                    )
+                    if self.reacquire_uv is not None
+                    else None
+                ),
+
+            "direct_reacquire_count":
+                int(
+                    self.reacquire_count
+                ),
+
+            "direct_endpoints_uv":
+                (
+                    [
+                        list(
+                            p
+                        )
+                        for p in endpoints_uv
+                    ]
+                    if endpoints_uv is not None
+                    else None
+                ),
+
+            "measurement_timestamp":
+                (
+                    float(
+                        measurement_timestamp
+                    )
+                    if measurement_timestamp is not None
+                    else None
+                ),
+        }
+
+
+    def _temporary_loss(
+        self,
+        now,
+        state,
+        raw_uv=None,
+        jump_px=None,
+        identity_margin_px=None,
+        endpoints_uv=None,
+    ):
+        age = float("inf")
+
+        if self.last_measurement_time > 0.0:
+            age = (
+                float(now)
+                -
+                self.last_measurement_time
+            )
+
+        if (
+            self.filtered_uv is not None
+            and
+            0.0
+            <=
+            age
+            <=
+            INSERTION_DIRECT_FREE_HOLD_S
+        ):
+            return self._result(
+                "MEASURED_HOLD",
+                state,
+                self.filtered_uv,
+                raw_uv=raw_uv,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin_px,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+        if self.filtered_uv is not None:
+            return self._result(
+                "DISPLAY_ONLY",
+                state,
+                self.filtered_uv,
+                raw_uv=raw_uv,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin_px,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+        return self._result(
+            None,
+            state,
+            None,
+            raw_uv=raw_uv,
+            jump_px=jump_px,
+            identity_margin_px=
+                identity_margin_px,
+            endpoints_uv=endpoints_uv,
+            measurement_timestamp=None,
+        )
+
+
+    def update(
+        self,
+        path_mask,
+        reference_uv,
+        now,
+    ):
+        try:
+            path = np.asarray(
+                path_mask,
+                dtype=bool,
+            )
+
+        except Exception:
+            path = None
+
+        if (
+            path is None
+            or
+            not np.any(
+                path
+            )
+        ):
+            return self._temporary_loss(
+                now,
+                "NO_RAW_PATH",
+            )
+
+
+        try:
+            ordered = (
+                grasp.manual.
+                ordered_path_from_mask(
+                    path
+                )
+            )
+
+        except Exception:
+            ordered = None
+
+
+        if (
+            ordered is None
+            or
+            len(
+                ordered
+            )
+            < 2
+        ):
+            return self._temporary_loss(
+                now,
+                "NO_ORDERED_PATH",
+            )
+
+
+        e0_yx = ordered[0]
+        e1_yx = ordered[-1]
+
+        endpoints_uv = (
+            (
+                float(
+                    e0_yx[1]
+                ),
+                float(
+                    e0_yx[0]
+                ),
+            ),
+            (
+                float(
+                    e1_yx[1]
+                ),
+                float(
+                    e1_yx[0]
+                ),
+            ),
+        )
+
+
+        # Use our current direct track whenever available.
+        identity_reference = (
+            self.filtered_uv
+            if self.filtered_uv is not None
+            else reference_uv
+        )
+
+        if identity_reference is None:
+            return self._temporary_loss(
+                now,
+                "NEED_FREE_REFERENCE",
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        d0 = _direct_free_distance(
+            endpoints_uv[0],
+            identity_reference,
+        )
+
+        d1 = _direct_free_distance(
+            endpoints_uv[1],
+            identity_reference,
+        )
+
+        if d0 <= d1:
+            candidate = endpoints_uv[0]
+            nearest_distance = d0
+        else:
+            candidate = endpoints_uv[1]
+            nearest_distance = d1
+
+
+        identity_margin = abs(
+            d0 - d1
+        )
+
+
+        # If both ends are similarly plausible, do not allow
+        # FREE/FIXED identity to flip.
+        if (
+            identity_margin
+            <
+            INSERTION_DIRECT_FREE_IDENTITY_MARGIN_PX
+        ):
+            return self._temporary_loss(
+                now,
+                "IDENTITY_AMBIGUOUS",
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        # First trustworthy direct measurement.
+        if self.filtered_uv is None:
+
+            self.filtered_uv = (
+                float(
+                    candidate[0]
+                ),
+                float(
+                    candidate[1]
+                ),
+            )
+
+            self.history.clear()
+            self.history.append(
+                self.filtered_uv
+            )
+
+            self.last_measurement_time = (
+                float(now)
+            )
+
+            self.reacquire_uv = None
+            self.reacquire_count = 0
+
+            return self._result(
+                "MEASURED",
+                "LIVE_INIT",
+                self.filtered_uv,
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+
+        jump_px = (
+            _direct_free_distance(
+                candidate,
+                self.filtered_uv,
+            )
+        )
+
+        normal_jump = float(
+            INSERTION_DIRECT_FREE_NORMAL_JUMP_PX[
+                self.camera
+            ]
+        )
+
+
+        # ====================================================
+        # Normal continuous tracking.
+        # ====================================================
+
+        if jump_px <= normal_jump:
+
+            self.reacquire_uv = None
+            self.reacquire_count = 0
+
+            self.history.append(
+                (
+                    float(
+                        candidate[0]
+                    ),
+                    float(
+                        candidate[1]
+                    ),
+                )
+            )
+
+            arr = np.asarray(
+                list(
+                    self.history
+                ),
+                dtype=np.float64,
+            )
+
+            median_uv = np.median(
+                arr,
+                axis=0,
+            )
+
+            alpha = float(
+                INSERTION_DIRECT_FREE_EMA_ALPHA[
+                    self.camera
+                ]
+            )
+
+            self.filtered_uv = (
+                (
+                    1.0 - alpha
+                )
+                *
+                float(
+                    self.filtered_uv[0]
+                )
+                +
+                alpha
+                *
+                float(
+                    median_uv[0]
+                ),
+                (
+                    1.0 - alpha
+                )
+                *
+                float(
+                    self.filtered_uv[1]
+                )
+                +
+                alpha
+                *
+                float(
+                    median_uv[1]
+                ),
+            )
+
+            self.last_measurement_time = (
+                float(now)
+            )
+
+            return self._result(
+                "MEASURED",
+                "LIVE",
+                self.filtered_uv,
+                raw_uv=candidate,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+
+        # ====================================================
+        # Large jump:
+        # do NOT permanently reject it.
+        #
+        # Require a spatially coherent candidate for 3
+        # consecutive visual updates, then re-anchor.
+        # ====================================================
+
+        if self.reacquire_uv is None:
+
+            self.reacquire_uv = (
+                float(
+                    candidate[0]
+                ),
+                float(
+                    candidate[1]
+                ),
+            )
+
+            self.reacquire_count = 1
+
+        else:
+
+            candidate_cluster_error = (
+                _direct_free_distance(
+                    candidate,
+                    self.reacquire_uv,
+                )
+            )
+
+            if (
+                candidate_cluster_error
+                <=
+                INSERTION_DIRECT_FREE_REACQUIRE_CLUSTER_PX
+            ):
+                n = (
+                    self.reacquire_count
+                    +
+                    1
+                )
+
+                old = (
+                    self.reacquire_uv
+                )
+
+                self.reacquire_uv = (
+                    (
+                        float(
+                            old[0]
+                        )
+                        *
+                        self.reacquire_count
+                        +
+                        float(
+                            candidate[0]
+                        )
+                    )
+                    /
+                    n,
+                    (
+                        float(
+                            old[1]
+                        )
+                        *
+                        self.reacquire_count
+                        +
+                        float(
+                            candidate[1]
+                        )
+                    )
+                    /
+                    n,
+                )
+
+                self.reacquire_count = n
+
+            else:
+
+                self.reacquire_uv = (
+                    float(
+                        candidate[0]
+                    ),
+                    float(
+                        candidate[1]
+                    ),
+                )
+
+                self.reacquire_count = 1
+
+
+        if (
+            self.reacquire_count
+            >=
+            INSERTION_DIRECT_FREE_REACQUIRE_UPDATES
+        ):
+
+            self.filtered_uv = (
+                float(
+                    self.reacquire_uv[0]
+                ),
+                float(
+                    self.reacquire_uv[1]
+                ),
+            )
+
+            self.history.clear()
+            self.history.append(
+                self.filtered_uv
+            )
+
+            self.last_measurement_time = (
+                float(now)
+            )
+
+            self.reacquire_uv = None
+            self.reacquire_count = 0
+
+            return self._result(
+                "MEASURED",
+                "REACQUIRED",
+                self.filtered_uv,
+                raw_uv=candidate,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+
+        # Show the new candidate while robot motion is stopped.
+        return self._result(
+            "REACQUIRE",
+            "REACQUIRE",
+            self.reacquire_uv,
+            raw_uv=candidate,
+            jump_px=jump_px,
+            identity_margin_px=
+                identity_margin,
+            endpoints_uv=endpoints_uv,
+            measurement_timestamp=
+                self.last_measurement_time
+                if self.last_measurement_time > 0.0
+                else None,
+        )
+
+
+def draw_insertion_direct_free_status(
+    image,
+    info,
+):
+
+    if not isinstance(
+        info,
+        dict,
+    ):
+        return image
+
+    state = info.get(
+        "direct_state"
+    )
+
+    if not state:
+        return image
+
+    source = info.get(
+        "source"
+    )
+
+    if source == "MEASURED":
+        color = (0, 255, 0)
+
+    elif source == "REACQUIRE":
+        color = (0, 165, 255)
+
+    elif source == "MEASURED_HOLD":
+        color = (0, 255, 255)
+
+    else:
+        color = (0, 0, 255)
+
+
+    jump = info.get(
+        "direct_jump_px"
+    )
+
+    margin = info.get(
+        "direct_identity_margin_px"
+    )
+
+    count = int(
+        info.get(
+            "direct_reacquire_count",
+            0,
+        )
+        or 0
+    )
+
+
+    line1 = (
+        f"DIRECT FREE: {state} "
+        f"source={source}"
+    )
+
+    line2 = (
+        "jump="
+        +
+        (
+            f"{jump:.1f}px"
+            if jump is not None
+            else "NA"
+        )
+        +
+        " margin="
+        +
+        (
+            f"{margin:.1f}px"
+            if margin is not None
+            else "NA"
+        )
+        +
+        f" reacq={count}/"
+        f"{INSERTION_DIRECT_FREE_REACQUIRE_UPDATES}"
+    )
+
+
+    cv2.putText(
+        image,
+        line1,
+        (12, 226),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.42,
+        color,
+        1,
+        cv2.LINE_AA,
+    )
+
+    cv2.putText(
+        image,
+        line2,
+        (12, 246),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.40,
+        color,
+        1,
+        cv2.LINE_AA,
+    )
+
+    return image
+
+
+def insertion_axis_command(
+    error_px,
+    kp,
+    sign,
+):
+    """
+    Fine insertion-only controller.
+
+    GRASP keeps its existing 4 px deadband.
+    INSERTION uses only a 0.5 px deadband.
+    """
+
+    if (
+        error_px is None
+        or
+        not np.isfinite(
+            error_px
+        )
+    ):
+        return 0.0
+
+    error_px = float(
+        error_px
+    )
+
+    if (
+        abs(
+            error_px
+        )
+        <=
+        INSERTION_FINE_DEADBAND_PX
+    ):
+        return 0.0
+
+    value = (
+        float(sign)
+        *
+        float(kp)
+        *
+        error_px
+    )
+
+    return float(
+        np.clip(
+            value,
+            -INSERTION_FINE_MAX_AXIS_MM_S,
+            +INSERTION_FINE_MAX_AXIS_MM_S,
+        )
+    )
+
+
+def insertion_same_pixel(
+    guidance,
+):
+    """
+    Visual definition of complete cross overlap:
+    FREE center and HOLE center render on the same image pixel.
+    """
+
+    if not isinstance(
+        guidance,
+        dict,
+    ):
+        return False
+
+    if not guidance.get(
+        "guidance_valid",
+        False,
+    ):
+        return False
+
+
+    # INSERTION_DIRECT_FREE_TRACK_V1
+    #
+    # A held/predicted/reacquiring point must NEVER complete
+    # insertion alignment.
+    if (
+        guidance.get(
+            "free_source"
+        )
+        !=
+        "MEASURED"
+    ):
+        return False
+
+    free_uv = guidance.get(
+        "free_target_uv"
+    )
+
+    hole_uv = guidance.get(
+        "target_hole_uv"
+    )
+
+    if (
+        free_uv is None
+        or
+        hole_uv is None
+    ):
+        return False
+
+    try:
+        return bool(
+            round(
+                float(
+                    free_uv[0]
+                )
+            )
+            ==
+            round(
+                float(
+                    hole_uv[0]
+                )
+            )
+            and
+            round(
+                float(
+                    free_uv[1]
+                )
+            )
+            ==
+            round(
+                float(
+                    hole_uv[1]
+                )
+            )
+        )
+
+    except Exception:
+        return False
+
+
 def insertion_guidance(
     camera,
     free_uv,
@@ -1189,9 +2220,39 @@ def insertion_guidance(
     hole_uv,
     tip_uv,
     target_valid,
+    measurement_timestamp=None,
+    source_frame_seq=None,
 ):
 
     now = time.time()
+    publish_monotonic_s = time.monotonic()
+
+    try:
+        measurement_timestamp_value = (
+            float(measurement_timestamp)
+            if measurement_timestamp is not None
+            else None
+        )
+    except Exception:
+        measurement_timestamp_value = None
+
+    if (
+        measurement_timestamp_value is not None
+        and
+        measurement_timestamp_value > 0.0
+    ):
+        measurement_age_ms_at_publish = max(
+            0.0,
+            (
+                now
+                -
+                measurement_timestamp_value
+            )
+            *
+            1000.0,
+        )
+    else:
+        measurement_age_ms_at_publish = None
 
     control_free_valid = bool(
         free_source
@@ -1238,6 +2299,38 @@ def insertion_guidance(
         if (
             free_source
             ==
+            "REACQUIRE"
+        ):
+
+            color = (
+                0,
+                165,
+                255,
+            )
+
+            label = (
+                "FREE-REACQUIRE"
+            )
+
+        elif (
+            free_source
+            ==
+            "MEASURED_HOLD"
+        ):
+
+            color = (
+                0,
+                255,
+                255,
+            )
+
+            label = (
+                "FREE-BRIDGE"
+            )
+
+        elif (
+            free_source
+            ==
             "TIP_RELATIVE_PRED"
         ):
             speed_scale = (
@@ -1259,7 +2352,7 @@ def insertion_guidance(
         if camera == "external":
 
             vx = (
-                grasp.axis_command(
+                insertion_axis_command(
                     du,
                     grasp.KP_EXT_X,
                     +1.0,
@@ -1271,7 +2364,7 @@ def insertion_guidance(
             vy = 0.0
 
             vz = (
-                grasp.axis_command(
+                insertion_axis_command(
                     dv,
                     grasp.KP_EXT_Z,
                     -1.0,
@@ -1280,29 +2373,79 @@ def insertion_guidance(
                 speed_scale
             )
 
-        elif camera == "right_wrist":
+        elif camera == "left_wrist":
+
+            # INSERTION_LEFT_WRIST_2X2_SHADOW_V1
+            #
+            # Left Wrist camera has significant Y/Z image
+            # cross-coupling.  Do NOT use the old independent:
+            #
+            #   du -> Y
+            #   dv -> Z
+            #
+            # controller from Right Wrist.
+            #
+            # Instead:
+            #
+            #   [vy, vz]^T
+            #       =
+            #   -K * inv(J_yz) * [du, dv]^T
 
             vx = 0.0
 
-            vy = (
-                grasp.axis_command(
-                    du,
-                    grasp.KP_WRIST_Y,
-                    -1.0,
-                )
-                *
-                speed_scale
-            )
+            if (
+                abs(du)
+                <=
+                INSERTION_FINE_DEADBAND_PX
+                and
+                abs(dv)
+                <=
+                INSERTION_FINE_DEADBAND_PX
+            ):
 
-            vz = (
-                grasp.axis_command(
-                    dv,
-                    grasp.KP_WRIST_Z,
-                    -1.0,
+                vy = 0.0
+                vz = 0.0
+
+            else:
+
+                error_uv = np.asarray(
+                    [
+                        du,
+                        dv,
+                    ],
+                    dtype=np.float64,
                 )
-                *
-                speed_scale
-            )
+
+                yz_velocity = (
+                    -
+                    LEFT_INSERTION_K_S
+                    *
+                    (
+                        LEFT_INSERTION_INV_J_YZ
+                        @
+                        error_uv
+                    )
+                )
+
+                yz_velocity *= float(
+                    speed_scale
+                )
+
+                vy = float(
+                    np.clip(
+                        yz_velocity[0],
+                        -LEFT_INSERTION_MAX_AXIS_MM_S,
+                        +LEFT_INSERTION_MAX_AXIS_MM_S,
+                    )
+                )
+
+                vz = float(
+                    np.clip(
+                        yz_velocity[1],
+                        -LEFT_INSERTION_MAX_AXIS_MM_S,
+                        +LEFT_INSERTION_MAX_AXIS_MM_S,
+                    )
+                )
 
         else:
 
@@ -1324,6 +2467,28 @@ def insertion_guidance(
     out = {
         "timestamp":
             now,
+
+        # INSERTION_MEASUREMENT_FRESHNESS_V1
+        "guidance_publish_timestamp":
+            now,
+
+        "guidance_publish_monotonic_s":
+            float(
+                publish_monotonic_s
+            ),
+
+        "measurement_timestamp":
+            measurement_timestamp_value,
+
+        "measurement_age_ms_at_publish":
+            measurement_age_ms_at_publish,
+
+        "source_frame_seq":
+            (
+                int(source_frame_seq)
+                if source_frame_seq is not None
+                else None
+            ),
 
         "enabled":
             False,
@@ -1385,6 +2550,33 @@ def insertion_guidance(
 
         "free_source":
             free_source,
+
+        "control_camera":
+            str(
+                camera
+            ),
+
+        "left_wrist_mapping_version":
+            (
+                "LEFT_WRIST_2X2_SHADOW_V1"
+                if camera == "left_wrist"
+                else None
+            ),
+
+        "left_wrist_mapping_r2_du":
+            (
+                LEFT_INSERTION_MAPPING_R2_DU
+                if camera == "left_wrist"
+                else None
+            ),
+
+        "left_wrist_mapping_r2_dv":
+            (
+                LEFT_INSERTION_MAPPING_R2_DV
+                if camera == "left_wrist"
+                else None
+            ),
+
 
         "du_px":
             du,
@@ -1456,7 +2648,10 @@ def insertion_guidance(
             out,
         )
 
-    elif camera == "right_wrist":
+    elif camera in (
+        "right_wrist",
+        "left_wrist",
+    ):
 
         atomic_json(
             grasp.WRIST_OUT,
@@ -1808,11 +3003,11 @@ def main():
     )
 
     print(
-        "  Right Wrist FREE -> HOLE controls Y/Z"
+        "  Left Wrist FREE -> HOLE controls coupled Y/Z"
     )
 
     print(
-        "  Left Wrist is monitoring / target confirmation only"
+        "  Right Wrist is monitoring only during insertion"
     )
 
     print(
@@ -2036,6 +3231,22 @@ def main():
     }
 
 
+    # INSERTION_MEASUREMENT_FRESHNESS_V1
+    insertion_free_measurement_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+    insertion_hole_measurement_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+
     # FREE_CONTROL_HOLD_V1
     last_control_free_uv = {
         camera:
@@ -2088,6 +3299,24 @@ def main():
 
     latest_external_guidance = {}
     latest_wrist_guidance = {}
+
+
+    # INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+    insertion_aligned_streak = 0
+    insertion_aligned_latched = False
+
+
+    # INSERTION_DIRECT_FREE_TRACK_V1
+    insertion_direct_free_trackers = {
+        camera:
+            InsertionDirectFreeTracker(
+                camera
+            )
+        for camera
+        in INSERTION_CONTROL_CAMERAS
+    }
+
+
 
 
     # --------------------------------------------------------
@@ -2155,7 +3384,7 @@ def main():
             ]
 
 
-            if control_ready_cameras:
+            if len(control_ready_cameras) == len(INSERTION_CONTROL_CAMERAS):
 
                 target_confirmed = True
 
@@ -2177,7 +3406,7 @@ def main():
                 )
 
                 print(
-                    "[PHASE] External + Right Wrist FREE->HOLE guidance ENABLED"
+                    "[PHASE] External + Left Wrist FREE->HOLE guidance ENABLED"
                 )
 
                 print(
@@ -2189,7 +3418,7 @@ def main():
 
                 print(
                     "[HOLE CONFIRM] RIGHT CLICK rejected: "
-                    "select target hole in all 3 views first"
+                    "select target hole in External + Left Wrist first"
                 )
 
 
@@ -2534,6 +3763,11 @@ def main():
         ] = True
 
         target_update_time[
+            camera
+        ] = time.time()
+
+        # INSERTION_MEASUREMENT_FRESHNESS_V1
+        insertion_hole_measurement_time[
             camera
         ] = time.time()
 
@@ -3047,7 +4281,7 @@ def main():
                     )
 
                     invalid_guidance(
-                        "right_wrist",
+                        "left_wrist",
                         phase,
                         "WAITING_FOR_HOLE_SELECTION",
                     )
@@ -3089,7 +4323,7 @@ def main():
                     )
 
                     print(
-                        "[HOLE] click SAME physical hole in all 3 views"
+                        "[HOLE] click SAME physical hole in External + Left Wrist"
                     )
 
                     print(
@@ -3105,11 +4339,48 @@ def main():
 
             else:
 
+                # ====================================================
+                # INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+                #
+                # External + Left Wrist are physically fixed cameras.
+                # Once insertion begins their selected hole_uv becomes
+                # a fixed image-space control target.
+                # ====================================================
+
+                if phase == PHASE_WAIT_HOLE:
+
+                    insertion_aligned_streak = 0
+                    insertion_aligned_latched = False
+
+                elif phase == PHASE_INSERTION:
+
+                    for camera in INSERTION_FIXED_HOLE_CAMERAS:
+
+                        target_valid[
+                            camera
+                        ] = bool(
+                            target_confirmed
+                            and
+                            target_selected[
+                                camera
+                            ]
+                            and
+                            target_uv[
+                                camera
+                            ]
+                            is not None
+                        )
+
+
                 # --------------------------------------------
                 # Hole inference
                 # --------------------------------------------
 
                 if (
+                    phase
+                    ==
+                    PHASE_WAIT_HOLE
+                    and
                     hole_model
                     is not None
                     and
@@ -3120,7 +4391,7 @@ def main():
                     0
                 ):
 
-                    for camera in CAMERA_ORDER:
+                    for camera in INSERTION_CONTROL_CAMERAS:
 
                         try:
 
@@ -3313,6 +4584,11 @@ def main():
                                         camera
                                     ] = now
 
+                                    # INSERTION_MEASUREMENT_FRESHNESS_V1
+                                    insertion_hole_measurement_time[
+                                        camera
+                                    ] = time.time()
+
 
                                     # Keep ONLY the selected target.
                                     latest_holes[
@@ -3431,6 +4707,11 @@ def main():
 
                     if measured is not None:
 
+                        # INSERTION_MEASUREMENT_FRESHNESS_V1
+                        insertion_free_measurement_time[
+                            camera
+                        ] = time.time()
+
                         raw_free = (
                             float(
                                 measured[0]
@@ -3458,7 +4739,7 @@ def main():
                             if (
                                 free_jump_px
                                 >
-                                FREE_TRACK_MAX_JUMP_PX
+                                FREE_TRACK_MAX_JUMP_PX_BY_CAMERA.get(camera, FREE_TRACK_MAX_JUMP_PX)
                             ):
 
                                 # Reject one-frame geometry jump.
@@ -3852,32 +5133,165 @@ def main():
 
 
                 # --------------------------------------------
-                # Target freshness
-                # --------------------------------------------
+                # ====================================================
+                # INSERTION_DIRECT_FREE_TRACK_V1
+                #
+                # Existing ManualFreeTracker still runs for display,
+                # diagnostics, grasp compatibility, etc.
+                #
+                # During INSERTION only, External + Left Wrist robot
+                # control FREE position comes directly from CURRENT
+                # raw wire_path endpoints.
+                # ====================================================
 
-                for camera in CAMERA_ORDER:
+                if phase == PHASE_WAIT_HOLE:
 
-                    if target_valid[
-                        camera
-                    ]:
+                    for camera in INSERTION_CONTROL_CAMERAS:
 
-                        age = (
-                            now
-                            -
-                            target_update_time[
+                        insertion_direct_free_trackers[
+                            camera
+                        ].reset()
+
+
+                elif phase == PHASE_INSERTION:
+
+                    for camera in INSERTION_CONTROL_CAMERAS:
+
+                        old_info = (
+                            latest_free_guidance[
                                 camera
                             ]
                         )
 
+                        reference_uv = (
+                            measured_free_uv(
+                                geometries[
+                                    camera
+                                ]
+                            )
+                        )
+
+                        if reference_uv is None:
+
+                            reference_uv = (
+                                display_free_uv(
+                                    geometries[
+                                        camera
+                                    ]
+                                )
+                            )
+
                         if (
-                            age
-                            >
-                            HOLE_FRESH_S
+                            reference_uv is None
+                            and
+                            old_info.get(
+                                "uv"
+                            )
+                            is not None
+                        ):
+                            reference_uv = (
+                                old_info[
+                                    "uv"
+                                ]
+                            )
+
+
+                        direct_info = (
+                            insertion_direct_free_trackers[
+                                camera
+                            ].update(
+                                detections[
+                                    camera
+                                ].get(
+                                    "wire_path"
+                                ),
+                                reference_uv,
+                                time.time(),
+                            )
+                        )
+
+
+                        latest_free_guidance[
+                            camera
+                        ] = {
+                            "uv":
+                                direct_info.get(
+                                    "uv"
+                                ),
+
+                            "source":
+                                direct_info.get(
+                                    "source"
+                                ),
+
+                            "tip_uv":
+                                old_info.get(
+                                    "tip_uv"
+                                ),
+
+                            **direct_info,
+                        }
+
+
+                        if (
+                            direct_info.get(
+                                "source"
+                            )
+                            ==
+                            "MEASURED"
+                            and
+                            direct_info.get(
+                                "measurement_timestamp"
+                            )
+                            is not None
                         ):
 
-                            target_valid[
+                            insertion_free_measurement_time[
                                 camera
-                            ] = False
+                            ] = float(
+                                direct_info[
+                                    "measurement_timestamp"
+                                ]
+                            )
+
+
+                # --------------------------------------------
+                # Target freshness
+                # --------------------------------------------
+
+                # INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+                #
+                # Only target-selection mode requires a fresh
+                # Hole U-Net measurement.
+                #
+                # During insertion the selected External/Left
+                # hole_uv is intentionally static and must NOT
+                # expire merely because time passes.
+                if phase == PHASE_WAIT_HOLE:
+
+                    for camera in INSERTION_CONTROL_CAMERAS:
+
+                        if target_valid[
+                            camera
+                        ]:
+
+                            age = (
+                                now
+                                -
+                                target_update_time[
+                                    camera
+                                ]
+                            )
+
+                            if (
+                                age
+                                >
+                                HOLE_FRESH_S
+                            ):
+
+                                target_valid[
+                                    camera
+                                ] = False
 
 
                 # --------------------------------------------
@@ -3897,7 +5311,7 @@ def main():
 
                     latest_wrist_guidance = (
                         invalid_guidance(
-                            "right_wrist",
+                            "left_wrist",
                             phase,
                             "WAITING_FOR_THREE_HOLE_TARGETS_AND_ENTER",
                         )
@@ -3917,9 +5331,9 @@ def main():
                         ]
                     )
 
-                    wrist_free = (
+                    left_free = (
                         latest_free_guidance[
-                            "right_wrist"
+                            "left_wrist"
                         ]
                     )
 
@@ -3942,29 +5356,227 @@ def main():
                             target_valid[
                                 "external"
                             ],
+                            measurement_timestamp=
+                                insertion_measurement_timestamp(
+                                    insertion_free_measurement_time[
+                                        "external"
+                                    ],
+                                    insertion_hole_measurement_time[
+                                        "external"
+                                    ],
+                                ),
+                            source_frame_seq=
+                                frame_counter,
                         )
                     )
 
 
                     latest_wrist_guidance = (
                         insertion_guidance(
-                            "right_wrist",
-                            wrist_free[
+                            "left_wrist",
+                            left_free[
                                 "uv"
                             ],
-                            wrist_free[
+                            left_free[
                                 "source"
                             ],
                             target_uv[
-                                "right_wrist"
+                                "left_wrist"
                             ],
-                            wrist_free[
+                            left_free[
                                 "tip_uv"
                             ],
                             target_valid[
-                                "right_wrist"
+                                "left_wrist"
                             ],
+                            measurement_timestamp=
+                                insertion_measurement_timestamp(
+                                    insertion_free_measurement_time[
+                                        "left_wrist"
+                                    ],
+                                    insertion_hole_measurement_time[
+                                        "left_wrist"
+                                    ],
+                                ),
+                            source_frame_seq=
+                                frame_counter,
                         )
+                    )
+
+
+                    # =================================================
+                    # INSERTION_DIRECT_FREE_TRACK_V1
+                    #
+                    # Preserve direct FREE diagnostics in the two
+                    # actual control guidance JSON files.
+                    for (
+                        camera_name,
+                        guidance,
+                    ) in (
+                        (
+                            "external",
+                            latest_external_guidance,
+                        ),
+                        (
+                            "left_wrist",
+                            latest_wrist_guidance,
+                        ),
+                    ):
+
+                        direct_info = (
+                            latest_free_guidance[
+                                camera_name
+                            ]
+                        )
+
+                        for key in (
+                            "direct_state",
+                            "direct_raw_uv",
+                            "direct_filtered_uv",
+                            "direct_jump_px",
+                            "direct_identity_margin_px",
+                            "direct_reacquire_uv",
+                            "direct_reacquire_count",
+                            "direct_endpoints_uv",
+                        ):
+
+                            guidance[
+                                key
+                            ] = (
+                                direct_info.get(
+                                    key
+                                )
+                            )
+
+
+                    # INSERTION_PIXEL_OVERLAP_COMPLETE_V1
+                    #
+                    # Final visual completion condition:
+                    #
+                    #   External FREE cross == HOLE cross
+                    #                 AND
+                    #   Left Wrist FREE cross == HOLE cross
+                    #
+                    # on the same rendered pixel for 3 consecutive
+                    # NEW visual-control updates.
+                    # =================================================
+
+                    external_same_pixel = (
+                        insertion_same_pixel(
+                            latest_external_guidance
+                        )
+                    )
+
+                    left_same_pixel = (
+                        insertion_same_pixel(
+                            latest_wrist_guidance
+                        )
+                    )
+
+
+                    if (
+                        external_same_pixel
+                        and
+                        left_same_pixel
+                    ):
+
+                        insertion_aligned_streak += 1
+
+                    else:
+
+                        insertion_aligned_streak = 0
+
+
+                    if (
+                        insertion_aligned_streak
+                        >=
+                        INSERTION_ALIGN_HOLD_UPDATES
+                    ):
+
+                        insertion_aligned_latched = True
+
+
+                    for guidance in (
+                        latest_external_guidance,
+                        latest_wrist_guidance,
+                    ):
+
+                        guidance[
+                            "fixed_hole_target"
+                        ] = True
+
+                        guidance[
+                            "insertion_same_pixel"
+                        ] = bool(
+                            external_same_pixel
+                            if guidance
+                            is
+                            latest_external_guidance
+                            else
+                            left_same_pixel
+                        )
+
+                        guidance[
+                            "insertion_align_streak"
+                        ] = int(
+                            insertion_aligned_streak
+                        )
+
+                        guidance[
+                            "insertion_aligned"
+                        ] = bool(
+                            insertion_aligned_latched
+                        )
+
+
+                    if insertion_aligned_latched:
+
+                        for guidance in (
+                            latest_external_guidance,
+                            latest_wrist_guidance,
+                        ):
+
+                            guidance[
+                                "vx_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "vy_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "vz_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "proposed_vx_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "proposed_vy_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "proposed_vz_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "tip_status"
+                            ] = (
+                                "INSERTION_ALIGNED"
+                            )
+
+
+                    # Rewrite the two phase-generic control
+                    # interfaces with alignment metadata.
+                    atomic_json(
+                        grasp.EXTERNAL_OUT,
+                        latest_external_guidance,
+                    )
+
+                    atomic_json(
+                        grasp.WRIST_OUT,
+                        latest_wrist_guidance,
                     )
 
 
@@ -4085,7 +5697,7 @@ def main():
                 # diagnostics.  They are no longer hard gates.
                 #
                 # Runtime insertion authority comes only from
-                # External / Right Wrist.
+                # External / Left Wrist.
 
                 selected_control_cameras = [
                     camera
@@ -4132,8 +5744,10 @@ def main():
                     target_confirmed
                     and
                     control_target_count
-                    >=
-                    1
+                    ==
+                    len(
+                        INSERTION_CONTROL_CAMERAS
+                    )
                 )
 
 
@@ -4153,6 +5767,24 @@ def main():
                             bool(
                                 target_confirmed
                             ),
+
+                        "fixed_hole_target":
+                            bool(
+                                phase
+                                ==
+                                PHASE_INSERTION
+                            ),
+
+                        "insertion_align_streak":
+                            int(
+                                insertion_aligned_streak
+                            ),
+
+                        "insertion_aligned":
+                            bool(
+                                insertion_aligned_latched
+                            ),
+
 
                         "all_selected":
                             bool(
@@ -4456,6 +6088,26 @@ def main():
                     )
 
 
+
+
+                    if (
+                        phase
+                        ==
+                        PHASE_INSERTION
+                        and
+                        camera
+                        in
+                        INSERTION_CONTROL_CAMERAS
+                    ):
+
+                        vis = (
+                            draw_insertion_direct_free_status(
+                                vis,
+                                f,
+                            )
+                        )
+
+
                     if phase == PHASE_WAIT_HOLE:
 
                         cv2.putText(
@@ -4672,7 +6324,7 @@ def main():
                         )
                     ]
 
-                    if control_ready_cameras:
+                    if len(control_ready_cameras) == len(INSERTION_CONTROL_CAMERAS):
 
                         target_confirmed = True
 
@@ -4698,7 +6350,7 @@ def main():
                         )
 
                         print(
-                            "[PHASE] External + Right Wrist FREE->HOLE guidance ENABLED"
+                            "[PHASE] External + Left Wrist FREE->HOLE guidance ENABLED"
                         )
 
                         print(
@@ -4710,7 +6362,7 @@ def main():
 
                         print(
                             "[HOLE CONFIRM] rejected: "
-                            "select a valid target in External and/or Right Wrist"
+                            "select valid targets in BOTH External and Left Wrist"
                         )
 
 
@@ -4746,6 +6398,14 @@ def main():
                             camera
                         ] = 0.0
 
+                        insertion_hole_measurement_time[
+                            camera
+                        ] = 0.0
+
+                        insertion_free_measurement_time[
+                            camera
+                        ] = 0.0
+
 
                     invalid_guidance(
                         "external",
@@ -4754,7 +6414,7 @@ def main():
                     )
 
                     invalid_guidance(
-                        "right_wrist",
+                        "left_wrist",
                         phase,
                         "TARGET_RESELECT",
                     )
@@ -4864,7 +6524,7 @@ def main():
         )
 
         invalid_guidance(
-            "right_wrist",
+            "left_wrist",
             "EXIT",
             "VISUAL_PROGRAM_EXIT",
         )

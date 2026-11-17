@@ -125,3 +125,7 @@
 ## 2026-11-16 研发归档
 
 [11/16四文档与源码核对](../r1a7_threading_project/docs/r1a7_four_document_research_audit_2026-11-16_zh.md)：两旧原件SHA相同，两新原件及全文新增。当前研究V3路径已指Wire V5/Hole V3，raw孔搜索中心与EMA分离、optional控制相机、recorder已存在；实际加载/新模型闭环未验收。Gate输出仍要求CLI显式授权；历史False的具体cmdline缺失。本次不运行模型/硬件。
+
+## 2026-11-17 插孔研发调试归档
+
+[11/17来源、代码与数据核对](../r1a7_threading_project/docs/r1a7_insertion_debug_archive_2026-11-17_zh.md)承接8daf540：新增XY Shaper V6/V7、External＋Left固定孔/FREE门及full-chain recorder；原Gate与11/16研究字节相同。输出链仅快照，未替换控制台。3428行trace已无损归档，匹配full-chain缺失，文档联合统计待原日志复核。原抓取动作属于历史反馈；FREE身份和最终实体插孔未验收。本次无设备/硬件运行。

@@ -1,0 +1,1235 @@
+#!/usr/bin/env python3
+
+# DIRECT_GATE_INSERTION_V1
+# DIRECT_GATE_FUSION_READY_FIX_V3
+# DIRECT_GATE_GRASP_COMPAT_V2
+#
+# Visual -> Fusion RAW -> Direct Gate -> Controller
+#
+# No insertion Supervisor.
+#
+# Insertion:
+#   APPROACH_HOLE
+#       -> TOP_ALIGN
+#       -> VERTICAL_INSERT
+#       -> INSERTION_DONE
+
+import argparse
+import json
+import math
+import os
+import signal
+import tempfile
+import time
+from pathlib import Path
+
+
+RAW = Path(
+    "/tmp/r1a7_wire_grasp_fusion_raw_v1.json"
+)
+
+INSERTION = Path(
+    "/tmp/r1a7_insertion_target_state_v1.json"
+)
+
+ACTUAL = Path(
+    "/tmp/r1a7_cartesian_actual_state_v1.json"
+)
+
+OUTPUT = Path(
+    "/tmp/r1a7_dual_ibvs_velocity.json"
+)
+
+
+# ============================================================
+# Calibration
+# ============================================================
+
+# External:
+# +U -> Base +X
+EXT_X_KP = 0.08
+
+# Left fixed camera:
+# error = target - current
+#
+# Base Y estimate:
+LEFT_Y_DU = +0.009833
+LEFT_Y_DV = +0.007806
+
+# Base Z estimate from Left:
+LEFT_Z_DU = +0.055377
+LEFT_Z_DV = -0.069761
+
+
+# ============================================================
+# Control parameters
+# ============================================================
+
+APPROACH_XY_MAX = float(
+    os.getenv(
+        "R1A7_DIRECT_APPROACH_XY_MAX",
+        "0.60",
+    )
+)
+
+TOP_XY_MAX = float(
+    os.getenv(
+        "R1A7_DIRECT_TOP_XY_MAX",
+        "0.20",
+    )
+)
+
+INSERT_XY_MAX = float(
+    os.getenv(
+        "R1A7_DIRECT_INSERT_XY_MAX",
+        "0.08",
+    )
+)
+
+UP_SPEED = float(
+    os.getenv(
+        "R1A7_DIRECT_UP_SPEED",
+        "0.20",
+    )
+)
+
+DOWN_SPEED = float(
+    os.getenv(
+        "R1A7_DIRECT_DOWN_SPEED",
+        "0.10",
+    )
+)
+
+
+# Coarse XY alignment
+COARSE_EXT_X_PX = float(
+    os.getenv(
+        "R1A7_DIRECT_COARSE_EXT_X_PX",
+        "8.0",
+    )
+)
+
+COARSE_LEFT_Y_MM = float(
+    os.getenv(
+        "R1A7_DIRECT_COARSE_LEFT_Y_MM",
+        "1.0",
+    )
+)
+
+# Fine XY alignment
+FINE_EXT_X_PX = float(
+    os.getenv(
+        "R1A7_DIRECT_FINE_EXT_X_PX",
+        "3.0",
+    )
+)
+
+FINE_LEFT_Y_MM = float(
+    os.getenv(
+        "R1A7_DIRECT_FINE_LEFT_Y_MM",
+        "0.50",
+    )
+)
+
+# During descent
+RUN_EXT_X_PX = float(
+    os.getenv(
+        "R1A7_DIRECT_RUN_EXT_X_PX",
+        "4.0",
+    )
+)
+
+RUN_LEFT_Y_MM = float(
+    os.getenv(
+        "R1A7_DIRECT_RUN_LEFT_Y_MM",
+        "0.70",
+    )
+)
+
+RETURN_EXT_X_PX = float(
+    os.getenv(
+        "R1A7_DIRECT_RETURN_EXT_X_PX",
+        "8.0",
+    )
+)
+
+RETURN_LEFT_Y_MM = float(
+    os.getenv(
+        "R1A7_DIRECT_RETURN_LEFT_Y_MM",
+        "1.50",
+    )
+)
+
+# Request upward clearance if Left geometry says
+# target is sufficiently above current tip.
+UP_REQUEST_MM = float(
+    os.getenv(
+        "R1A7_DIRECT_UP_REQUEST_MM",
+        "0.30",
+    )
+)
+
+STABLE_UPDATES = int(
+    os.getenv(
+        "R1A7_DIRECT_STABLE_UPDATES",
+        "3",
+    )
+)
+
+RAW_MAX_AGE = float(
+    os.getenv(
+        "R1A7_DIRECT_RAW_MAX_AGE",
+        "0.65",
+    )
+)
+
+ACTUAL_MAX_AGE = float(
+    os.getenv(
+        "R1A7_DIRECT_ACTUAL_MAX_AGE",
+        "0.50",
+    )
+)
+
+# Maximum real downward travel after entering INSERT.
+MAX_DESCENT_MM = float(
+    os.getenv(
+        "R1A7_DIRECT_MAX_DESCENT_MM",
+        "1.0",
+    )
+)
+
+
+GRASP = "GRASP_PASS"
+APPROACH = "APPROACH_HOLE"
+TOP = "TOP_ALIGN"
+INSERT = "VERTICAL_INSERT"
+DONE = "INSERTION_DONE"
+
+
+def clip(x, limit):
+    x = float(x)
+    return max(
+        -limit,
+        min(
+            limit,
+            x,
+        ),
+    )
+
+
+def read_json(path):
+    try:
+        return json.loads(
+            path.read_text(
+                encoding="utf-8"
+            )
+        )
+    except Exception:
+        return None
+
+
+def age_s(d):
+    if not isinstance(d, dict):
+        return float("inf")
+
+    try:
+        return max(
+            0.0,
+            time.time()
+            -
+            float(
+                d.get(
+                    "timestamp",
+                    0.0,
+                )
+            ),
+        )
+    except Exception:
+        return float("inf")
+
+
+def atomic_write(path, d):
+    fd, tmp = tempfile.mkstemp(
+        prefix=path.name + ".",
+        dir=str(path.parent),
+    )
+
+    try:
+        with os.fdopen(
+            fd,
+            "w",
+            encoding="utf-8",
+        ) as f:
+            json.dump(
+                d,
+                f,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            f.flush()
+            os.fsync(f.fileno())
+
+        os.replace(
+            tmp,
+            path,
+        )
+
+    finally:
+        try:
+            os.unlink(tmp)
+        except FileNotFoundError:
+            pass
+
+
+def as_uv(v):
+    if (
+        isinstance(v, (list, tuple))
+        and
+        len(v) >= 2
+    ):
+        try:
+            return (
+                float(v[0]),
+                float(v[1]),
+            )
+        except Exception:
+            return None
+
+    return None
+
+
+def walk(obj, name=""):
+    if isinstance(obj, dict):
+        yield name, obj
+
+        for k, v in obj.items():
+            child = (
+                name + "." + str(k)
+                if name
+                else str(k)
+            )
+
+            yield from walk(
+                v,
+                child,
+            )
+
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            yield from walk(
+                v,
+                f"{name}[{i}]",
+            )
+
+
+def find_camera(raw, which):
+    candidates = []
+
+    for path, d in walk(raw):
+        free = as_uv(
+            d.get("free_uv")
+        )
+
+        hole = as_uv(
+            d.get("hole_uv")
+        )
+
+        if free is None or hole is None:
+            continue
+
+        label = " ".join(
+            [
+                path,
+                str(d.get("camera", "")),
+                str(d.get("camera_name", "")),
+                str(d.get("source_camera", "")),
+                str(d.get("wrist_control_camera", "")),
+            ]
+        ).lower()
+
+        score = 0
+
+        if which == "external":
+            if "external" in label:
+                score += 100
+            if "ext" in label:
+                score += 20
+
+        elif which == "left":
+            if "left_wrist" in label:
+                score += 120
+            elif "left" in label:
+                score += 100
+
+            if "right" in label:
+                score -= 200
+
+        candidates.append(
+            (
+                score,
+                path,
+                free,
+                hole,
+            )
+        )
+
+    if not candidates:
+        return None
+
+    candidates.sort(
+        key=lambda x: x[0],
+        reverse=True,
+    )
+
+    score, path, free, hole = candidates[0]
+
+    if score <= 0:
+        return None
+
+    return {
+        "path": path,
+        "free": free,
+        "hole": hole,
+    }
+
+
+def actual_xyz():
+    d = read_json(ACTUAL)
+
+    if (
+        not isinstance(d, dict)
+        or
+        age_s(d) > ACTUAL_MAX_AGE
+    ):
+        return None
+
+    xyz = d.get("actual_xyz_mm")
+
+    if (
+        isinstance(xyz, list)
+        and
+        len(xyz) >= 3
+    ):
+        try:
+            return [
+                float(xyz[0]),
+                float(xyz[1]),
+                float(xyz[2]),
+            ]
+        except Exception:
+            return None
+
+    return None
+
+
+def insertion_active(d):
+    if not isinstance(d, dict):
+        return False
+
+    return bool(
+        d.get("target_ready", False)
+        and
+        d.get("target_confirmed", False)
+        and
+        d.get("phase")
+        ==
+        "INSERTION_TRACKING"
+    )
+
+
+def main():
+    ap = argparse.ArgumentParser()
+
+    ap.add_argument(
+        "--enable-output",
+        action="store_true",
+    )
+
+    ap.add_argument(
+        "--period",
+        type=float,
+        default=0.05,
+    )
+
+    args = ap.parse_args()
+
+    running = True
+
+    def stop(*_):
+        nonlocal running
+        running = False
+
+    signal.signal(
+        signal.SIGINT,
+        stop,
+    )
+
+    signal.signal(
+        signal.SIGTERM,
+        stop,
+    )
+
+    state = GRASP
+
+    coarse_count = 0
+    fine_count = 0
+
+    insert_start_z = None
+
+    last_log = 0.0
+
+    print(
+        "[DIRECT GATE] DIRECT_GATE_INSERTION_V1",
+        flush=True,
+    )
+
+    print(
+        "[DIRECT GATE] enable_output =",
+        args.enable_output,
+        flush=True,
+    )
+
+    while running:
+        tick = time.monotonic()
+
+        raw = read_json(RAW)
+        ins = read_json(INSERTION)
+
+        proposed_vx = 0.0
+        proposed_vy = 0.0
+        proposed_vz = 0.0
+
+        reason = None
+        ready = False
+
+        # DIRECT_GATE_GRASP_COMPAT_V2
+        #
+        # Preserve the original Gate/Fusion validity semantics
+        # during grasp.
+        fusion_mode = (
+            str(raw.get("fusion_mode", "STOP"))
+            if isinstance(raw, dict)
+            else "STOP"
+        )
+
+        # DIRECT_GATE_FUSION_READY_FIX_V3
+        #
+        # Fusion's top-level motion authorization is
+        # ready_for_motion.  Some RAW versions do not publish
+        # guidance_valid at the top level.
+        #
+        # Keep guidance_valid only as a compatibility fallback.
+        fusion_ready = bool(
+            raw.get(
+                "ready_for_motion",
+                raw.get("guidance_valid", False),
+            )
+            if isinstance(raw, dict)
+            else False
+        )
+
+        guidance_valid = fusion_ready
+
+        external_valid = bool(
+            raw.get("external_valid", False)
+            if isinstance(raw, dict)
+            else False
+        )
+
+        wrist_valid = bool(
+            raw.get("wrist_valid", False)
+            if isinstance(raw, dict)
+            else False
+        )
+
+        perception_ok = False
+
+        ext_du = None
+        ext_dv = None
+        left_du = None
+        left_dv = None
+
+        left_y_mm = None
+        left_z_mm = None
+
+        ext_path = None
+        left_path = None
+
+        insert_mode = insertion_active(
+            ins
+        )
+
+        # DIRECT_GATE_GRASP_COMPAT_V2
+        #
+        # Grasp keeps the original tighter freshness behavior.
+        # Insertion may use the longer Direct-Gate freshness.
+        raw_max_age = (
+            RAW_MAX_AGE
+            if insert_mode
+            else 0.40
+        )
+
+        raw_ok = bool(
+            isinstance(raw, dict)
+            and
+            age_s(raw) <= raw_max_age
+        )
+
+
+        # ====================================================
+        # GRASP
+        # ====================================================
+
+        if not insert_mode:
+
+            state = GRASP
+
+            coarse_count = 0
+            fine_count = 0
+            insert_start_z = None
+
+            # =================================================
+            # DIRECT_GATE_GRASP_COMPAT_V2
+            #
+            # Restore original Gate behavior for GRASP.
+            #
+            # Do NOT authorize motion from guidance_valid alone.
+            # Fusion mode and camera-valid flags must agree.
+            # =================================================
+
+            if not raw_ok:
+
+                reason = "GRASP_RAW_STALE"
+                perception_ok = False
+
+            else:
+
+                if fusion_mode in (
+                    "DUAL",
+                    "DUAL_Z_CONFLICT",
+                ):
+
+                    perception_ok = bool(
+                        guidance_valid
+                        and
+                        external_valid
+                        and
+                        wrist_valid
+                    )
+
+                elif fusion_mode == "WRIST_ONLY":
+
+                    perception_ok = bool(
+                        guidance_valid
+                        and
+                        (not external_valid)
+                        and
+                        wrist_valid
+                    )
+
+                elif fusion_mode == "EXTERNAL_ONLY":
+
+                    perception_ok = bool(
+                        guidance_valid
+                        and
+                        external_valid
+                        and
+                        (not wrist_valid)
+                    )
+
+                elif fusion_mode == "BLIND_GRACE":
+
+                    # Fusion has already bounded/authorized
+                    # BLIND_GRACE. Preserve its guidance-valid
+                    # decision rather than inventing a new one.
+                    perception_ok = bool(
+                        guidance_valid
+                    )
+
+                else:
+
+                    perception_ok = False
+
+
+                if perception_ok:
+
+                    try:
+
+                        proposed_vx = float(
+                            raw.get(
+                                "proposed_vx_mm_s",
+                                0.0,
+                            )
+                        )
+
+                        proposed_vy = float(
+                            raw.get(
+                                "proposed_vy_mm_s",
+                                0.0,
+                            )
+                        )
+
+                        proposed_vz = float(
+                            raw.get(
+                                "proposed_vz_mm_s",
+                                0.0,
+                            )
+                        )
+
+
+                        # Reject NaN/Inf exactly at Gate boundary.
+                        if not all(
+                            math.isfinite(v)
+                            for v in (
+                                proposed_vx,
+                                proposed_vy,
+                                proposed_vz,
+                            )
+                        ):
+                            perception_ok = False
+                            reason = (
+                                "BAD_GRASP_VELOCITY"
+                            )
+
+                    except Exception:
+
+                        perception_ok = False
+                        reason = (
+                            "BAD_GRASP_VELOCITY"
+                        )
+
+
+                if not perception_ok:
+
+                    proposed_vx = 0.0
+                    proposed_vy = 0.0
+                    proposed_vz = 0.0
+
+                    if reason is None:
+
+                        reason = (
+                            "GRASP_"
+                            + fusion_mode
+                            + "_NOT_READY"
+                        )
+
+
+                ready = perception_ok
+
+        # ====================================================
+        # INSERTION
+        # ====================================================
+
+        else:
+            if state == GRASP:
+                state = APPROACH
+
+            if not raw_ok:
+                reason = "RAW_STALE"
+
+            else:
+                ext = find_camera(
+                    raw,
+                    "external",
+                )
+
+                left = find_camera(
+                    raw,
+                    "left",
+                )
+
+                if ext is None or left is None:
+                    reason = (
+                        "EXT_LEFT_FREE_HOLE_REQUIRED"
+                    )
+
+                else:
+                    ext_path = ext["path"]
+                    left_path = left["path"]
+
+                    ext_du = (
+                        ext["hole"][0]
+                        -
+                        ext["free"][0]
+                    )
+
+                    ext_dv = (
+                        ext["hole"][1]
+                        -
+                        ext["free"][1]
+                    )
+
+                    left_du = (
+                        left["hole"][0]
+                        -
+                        left["free"][0]
+                    )
+
+                    left_dv = (
+                        left["hole"][1]
+                        -
+                        left["free"][1]
+                    )
+
+                    left_y_mm = (
+                        LEFT_Y_DU * left_du
+                        +
+                        LEFT_Y_DV * left_dv
+                    )
+
+                    left_z_mm = (
+                        LEFT_Z_DU * left_du
+                        +
+                        LEFT_Z_DV * left_dv
+                    )
+
+
+                    # ========================================
+                    # APPROACH HOLE
+                    # ========================================
+
+                    if state == APPROACH:
+                        proposed_vx = clip(
+                            EXT_X_KP
+                            *
+                            ext_du,
+                            APPROACH_XY_MAX,
+                        )
+
+                        proposed_vy = clip(
+                            left_y_mm,
+                            APPROACH_XY_MAX,
+                        )
+
+                        # Only UP or zero.
+                        proposed_vz = (
+                            UP_SPEED
+                            if
+                            left_z_mm
+                            >
+                            UP_REQUEST_MM
+                            else
+                            0.0
+                        )
+
+                        coarse_ok = bool(
+                            abs(ext_du)
+                            <=
+                            COARSE_EXT_X_PX
+                            and
+                            abs(left_y_mm)
+                            <=
+                            COARSE_LEFT_Y_MM
+                        )
+
+                        if coarse_ok:
+                            coarse_count += 1
+                        else:
+                            coarse_count = 0
+
+                        if (
+                            coarse_count
+                            >=
+                            STABLE_UPDATES
+                        ):
+                            state = TOP
+
+                            coarse_count = 0
+                            fine_count = 0
+
+                        ready = True
+
+
+                    # ========================================
+                    # TOP ALIGN
+                    # ========================================
+
+                    elif state == TOP:
+                        proposed_vx = clip(
+                            EXT_X_KP
+                            *
+                            ext_du,
+                            TOP_XY_MAX,
+                        )
+
+                        proposed_vy = clip(
+                            left_y_mm,
+                            TOP_XY_MAX,
+                        )
+
+                        proposed_vz = (
+                            UP_SPEED
+                            if
+                            left_z_mm
+                            >
+                            UP_REQUEST_MM
+                            else
+                            0.0
+                        )
+
+                        fine_ok = bool(
+                            abs(ext_du)
+                            <=
+                            FINE_EXT_X_PX
+                            and
+                            abs(left_y_mm)
+                            <=
+                            FINE_LEFT_Y_MM
+                        )
+
+                        if fine_ok:
+                            fine_count += 1
+                        else:
+                            fine_count = 0
+
+                        if (
+                            fine_count
+                            >=
+                            STABLE_UPDATES
+                        ):
+                            xyz = actual_xyz()
+
+                            if xyz is not None:
+                                insert_start_z = xyz[2]
+                                state = INSERT
+                                fine_count = 0
+                            else:
+                                reason = (
+                                    "ACTUAL_REQUIRED_FOR_INSERT"
+                                )
+
+                        ready = (
+                            reason is None
+                        )
+
+
+                    # ========================================
+                    # VERTICAL INSERT
+                    # ========================================
+
+                    elif state == INSERT:
+                        proposed_vx = clip(
+                            EXT_X_KP
+                            *
+                            ext_du,
+                            INSERT_XY_MAX,
+                        )
+
+                        proposed_vy = clip(
+                            left_y_mm,
+                            INSERT_XY_MAX,
+                        )
+
+                        # Large XY deviation:
+                        # recover to TOP_ALIGN, not BLOCKED.
+                        if (
+                            abs(ext_du)
+                            >
+                            RETURN_EXT_X_PX
+                            or
+                            abs(left_y_mm)
+                            >
+                            RETURN_LEFT_Y_MM
+                        ):
+                            state = TOP
+
+                            proposed_vz = 0.0
+
+                            fine_count = 0
+                            ready = True
+
+                        else:
+                            xyz = actual_xyz()
+
+                            if (
+                                xyz is None
+                                or
+                                insert_start_z is None
+                            ):
+                                proposed_vz = 0.0
+                                reason = (
+                                    "ACTUAL_REQUIRED_DURING_INSERT"
+                                )
+                                ready = False
+
+                            else:
+                                descended = (
+                                    insert_start_z
+                                    -
+                                    xyz[2]
+                                )
+
+                                if (
+                                    descended
+                                    >=
+                                    MAX_DESCENT_MM
+                                ):
+                                    state = DONE
+
+                                    proposed_vx = 0.0
+                                    proposed_vy = 0.0
+                                    proposed_vz = 0.0
+
+                                    ready = True
+
+                                else:
+                                    xy_good = bool(
+                                        abs(ext_du)
+                                        <=
+                                        RUN_EXT_X_PX
+                                        and
+                                        abs(left_y_mm)
+                                        <=
+                                        RUN_LEFT_Y_MM
+                                    )
+
+                                    proposed_vz = (
+                                        -abs(DOWN_SPEED)
+                                        if xy_good
+                                        else 0.0
+                                    )
+
+                                    ready = True
+
+
+                    elif state == DONE:
+                        proposed_vx = 0.0
+                        proposed_vy = 0.0
+                        proposed_vz = 0.0
+
+                        ready = True
+
+
+        enabled = bool(
+            args.enable_output
+            and
+            ready
+        )
+
+        vx = (
+            proposed_vx
+            if enabled
+            else 0.0
+        )
+
+        vy = (
+            proposed_vy
+            if enabled
+            else 0.0
+        )
+
+        vz = (
+            proposed_vz
+            if enabled
+            else 0.0
+        )
+
+        out = {
+            "timestamp":
+                time.time(),
+
+            "direct_gate_version":
+                "DIRECT_GATE_INSERTION_V1",
+
+            "enabled":
+                enabled,
+
+            "output_enabled":
+                enabled,
+
+            "shadow_mode":
+                not args.enable_output,
+
+            "ready_for_motion":
+                ready,
+
+            "gate_state":
+                state,
+
+            "mode":
+                state,
+
+            "stop_reason":
+                reason,
+
+            "insertion_active":
+                insert_mode,
+
+            # DIRECT_GATE_GRASP_COMPAT_V2
+            "fusion_mode":
+                fusion_mode,
+
+            "guidance_valid":
+                guidance_valid,
+
+            "fusion_ready":
+                fusion_ready,
+
+            "raw_ready_for_motion":
+                (
+                    raw.get("ready_for_motion")
+                    if isinstance(raw, dict)
+                    else None
+                ),
+
+            "raw_guidance_valid":
+                (
+                    raw.get("guidance_valid")
+                    if isinstance(raw, dict)
+                    else None
+                ),
+
+            "external_valid":
+                external_valid,
+
+            "wrist_valid":
+                wrist_valid,
+
+            "perception_ok":
+                (
+                    perception_ok
+                    if not insert_mode
+                    else ready
+                ),
+
+            "vx_mm_s":
+                float(vx),
+
+            "vy_mm_s":
+                float(vy),
+
+            "vz_mm_s":
+                float(vz),
+
+            "proposed_vx_mm_s":
+                float(proposed_vx),
+
+            "proposed_vy_mm_s":
+                float(proposed_vy),
+
+            "proposed_vz_mm_s":
+                float(proposed_vz),
+
+            "external_camera_path":
+                ext_path,
+
+            "left_camera_path":
+                left_path,
+
+            "external_error_u_px":
+                ext_du,
+
+            "external_error_v_px":
+                ext_dv,
+
+            "left_error_u_px":
+                left_du,
+
+            "left_error_v_px":
+                left_dv,
+
+            "left_y_error_mm":
+                left_y_mm,
+
+            "left_z_request_mm":
+                left_z_mm,
+
+            "insert_start_z_mm":
+                insert_start_z,
+        }
+
+        atomic_write(
+            OUTPUT,
+            out,
+        )
+
+        now = time.monotonic()
+
+        if (
+            now
+            -
+            last_log
+            >=
+            0.5
+        ):
+            print(
+                "[DIRECT GATE] "
+                f"state={state} "
+                f"enabled={int(enabled)} "
+                f"ready={int(ready)} "
+                f"reason={reason} "
+                f"extX={ext_du} "
+                f"leftY={left_y_mm} "
+                f"leftZ={left_z_mm} "
+                f"proposed=("
+                f"{proposed_vx:+.3f},"
+                f"{proposed_vy:+.3f},"
+                f"{proposed_vz:+.3f}) "
+                f"out=("
+                f"{vx:+.3f},"
+                f"{vy:+.3f},"
+                f"{vz:+.3f})",
+                flush=True,
+            )
+
+            last_log = now
+
+        elapsed = (
+            time.monotonic()
+            -
+            tick
+        )
+
+        time.sleep(
+            max(
+                0.0,
+                args.period
+                -
+                elapsed,
+            )
+        )
+
+
+    atomic_write(
+        OUTPUT,
+        {
+            "timestamp":
+                time.time(),
+
+            "direct_gate_version":
+                "DIRECT_GATE_INSERTION_V1",
+
+            "enabled":
+                False,
+
+            "output_enabled":
+                False,
+
+            "shadow_mode":
+                True,
+
+            "ready_for_motion":
+                False,
+
+            "gate_state":
+                "STOPPED",
+
+            "vx_mm_s":
+                0.0,
+
+            "vy_mm_s":
+                0.0,
+
+            "vz_mm_s":
+                0.0,
+        },
+    )
+
+    print(
+        "[DIRECT GATE] stopped",
+        flush=True,
+    )
+
+
+if __name__ == "__main__":
+    main()

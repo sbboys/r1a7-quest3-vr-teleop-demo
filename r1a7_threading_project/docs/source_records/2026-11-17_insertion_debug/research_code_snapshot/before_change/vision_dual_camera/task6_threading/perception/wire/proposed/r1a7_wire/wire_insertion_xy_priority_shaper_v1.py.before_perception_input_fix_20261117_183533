@@ -1,0 +1,860 @@
+#!/usr/bin/env python3
+
+# XY_PRIORITY_INSERTION_SHAPER_V1
+#
+# GRASP:
+#   Fusion output is passed through unchanged.
+#
+# INSERTION:
+#   External -> Base X
+#   Left     -> Base Y
+#   XY alignment controls how much -Z descent is allowed.
+#   XY remains closed-loop during every Z movement cycle.
+
+import argparse
+import json
+import math
+import os
+import tempfile
+import time
+from pathlib import Path
+
+
+SRC = Path(
+    "/tmp/r1a7_wire_grasp_fusion_preinsert_v1.json"
+)
+
+INSERTION = Path(
+    "/tmp/r1a7_insertion_target_state_v1.json"
+)
+
+OUT_ACTIVE = Path(
+    "/tmp/r1a7_wire_grasp_fusion_shadow_v1.json"
+)
+
+OUT_PREVIEW = Path(
+    "/tmp/r1a7_wire_grasp_fusion_xy_priority_preview_v1.json"
+)
+
+ACTUAL = Path(
+    "/tmp/r1a7_cartesian_actual_state_v1.json"
+)
+
+
+# ------------------------------------------------------------
+# Calibration
+# ------------------------------------------------------------
+
+# External:
+# +image U error -> +Base X
+EXT_X_KP = 0.08
+
+# Left camera calibrated Y velocity controller:
+# vy = 0.009833 * du + 0.007806 * dv
+LEFT_VY_DU = 0.009833
+LEFT_VY_DV = 0.007806
+
+# Left camera physical displacement estimate:
+#
+# dY = 0.176705 * du - 0.141834 * dv
+#
+# IMPORTANT:
+# stage decisions use physical dY, NOT the velocity law above.
+LEFT_DY_DU = 0.176705
+LEFT_DY_DV = -0.141834
+
+
+# ------------------------------------------------------------
+# XY thresholds
+# ------------------------------------------------------------
+
+COARSE_EXT_X_PX = 8.0
+COARSE_LEFT_Y_MM = 1.50
+
+FINE_EXT_X_PX = 3.0
+FINE_LEFT_Y_MM = 0.50
+
+RETURN_EXT_X_PX = 12.0
+RETURN_LEFT_Y_MM = 2.50
+
+STABLE_CYCLES = 3
+
+
+# ------------------------------------------------------------
+# Velocity limits mm/s
+# ------------------------------------------------------------
+
+APPROACH_XY_MAX = 0.60
+MID_XY_MAX = 0.35
+FINE_XY_MAX = 0.20
+INSERT_XY_MAX = 0.08
+
+APPROACH_Z_MAX = 0.10
+FINAL_Z_MAX = 0.05
+
+MAX_FINAL_DESCENT_MM = 1.00
+
+
+# ------------------------------------------------------------
+# Freshness
+# ------------------------------------------------------------
+
+SRC_MAX_AGE_S = 0.65
+INSERTION_MAX_AGE_S = 0.65
+ACTUAL_MAX_AGE_S = 0.50
+
+
+def read_json(path):
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else None
+    except Exception:
+        return None
+
+
+def age_s(d):
+    if not isinstance(d, dict):
+        return float("inf")
+    try:
+        return max(
+            0.0,
+            time.time() - float(d.get("timestamp", 0.0)),
+        )
+    except Exception:
+        return float("inf")
+
+
+def finite(v):
+    try:
+        return math.isfinite(float(v))
+    except Exception:
+        return False
+
+
+def clip(v, lim):
+    v = float(v)
+    lim = abs(float(lim))
+    return max(-lim, min(lim, v))
+
+
+def uv(v):
+    if (
+        isinstance(v, (list, tuple))
+        and len(v) >= 2
+        and finite(v[0])
+        and finite(v[1])
+    ):
+        return float(v[0]), float(v[1])
+    return None
+
+
+def atomic_write(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    fd, tmp = tempfile.mkstemp(
+        prefix=path.name + ".",
+        suffix=".tmp",
+        dir=str(path.parent),
+    )
+
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(
+                data,
+                f,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            f.flush()
+            os.fsync(f.fileno())
+
+        os.replace(tmp, path)
+
+    finally:
+        try:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+        except Exception:
+            pass
+
+
+def insertion_active(d):
+    if not isinstance(d, dict):
+        return False
+
+    return bool(
+        d.get("target_ready", False)
+        and d.get("target_confirmed", False)
+        and str(d.get("phase", "")) == "INSERTION_TRACKING"
+    )
+
+
+PAIR_KEYS = (
+    ("free_uv", "hole_uv"),
+    ("free_tip_uv", "hole_uv"),
+    ("free_endpoint_uv", "hole_uv"),
+    ("wire_free_uv", "hole_uv"),
+    ("free_uv", "hole_target_uv"),
+    ("free_uv", "target_hole_uv"),
+)
+
+
+def candidate_pair(d):
+    if not isinstance(d, dict):
+        return None
+
+    for fk, hk in PAIR_KEYS:
+        f = uv(d.get(fk))
+        h = uv(d.get(hk))
+
+        if f is not None and h is not None:
+            return {
+                "free": f,
+                "hole": h,
+                "free_key": fk,
+                "hole_key": hk,
+            }
+
+    return None
+
+
+def walk_dicts(obj, path="root"):
+    if isinstance(obj, dict):
+        yield path, obj
+
+        for k, v in obj.items():
+            if isinstance(v, (dict, list)):
+                yield from walk_dicts(
+                    v,
+                    path + "." + str(k),
+                )
+
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            if isinstance(v, (dict, list)):
+                yield from walk_dicts(
+                    v,
+                    path + f"[{i}]",
+                )
+
+
+def label_text(path, d):
+    values = [path]
+
+    for k in (
+        "camera",
+        "camera_name",
+        "source_camera",
+        "wrist_control_camera",
+        "view",
+        "name",
+        "source",
+    ):
+        if k in d:
+            values.append(str(d.get(k)))
+
+    return " ".join(values).lower()
+
+
+def find_camera(root, which):
+    best = None
+
+    for path, d in walk_dicts(root):
+        pair = candidate_pair(d)
+
+        if pair is None:
+            continue
+
+        label = label_text(path, d)
+
+        score = 0
+
+        if which == "external":
+            if "external" in label:
+                score += 100
+            if ".ext" in label or " ext " in label:
+                score += 40
+            if "left" in label or "right" in label:
+                score -= 40
+            if "wrist" in label:
+                score -= 30
+
+        elif which == "left":
+            if "left_wrist" in label:
+                score += 120
+            if "left wrist" in label:
+                score += 120
+            if "left" in label:
+                score += 80
+            if "wrist" in label:
+                score += 30
+            if "right" in label:
+                score -= 200
+            if "external" in label:
+                score -= 100
+
+        if best is None or score > best["score"]:
+            best = {
+                "score": score,
+                "path": path,
+                "label": label,
+                **pair,
+            }
+
+    if best is None:
+        return None
+
+    # Refuse ambiguous camera binding instead of guessing.
+    if best["score"] <= 0:
+        return None
+
+    return best
+
+
+def z_scale_from_xy(score):
+    if score >= 1.0:
+        return 0.0
+
+    if score >= 0.60:
+        return 0.15
+
+    if score >= 0.30:
+        return 0.35
+
+    if score >= 0.15:
+        return 0.60
+
+    return 1.00
+
+
+def xy_cap_from_score(score):
+    if score >= 1.0:
+        return APPROACH_XY_MAX
+
+    if score >= 0.60:
+        return APPROACH_XY_MAX
+
+    if score >= 0.30:
+        return MID_XY_MAX
+
+    if score >= 0.15:
+        return FINE_XY_MAX
+
+    return INSERT_XY_MAX
+
+
+def actual_z_mm(d):
+    if not isinstance(d, dict):
+        return None
+
+    xyz = d.get("actual_xyz_mm")
+
+    if (
+        isinstance(xyz, (list, tuple))
+        and len(xyz) >= 3
+        and finite(xyz[2])
+    ):
+        return float(xyz[2])
+
+    return None
+
+
+def stop_packet(raw, reason, state):
+    d = dict(raw) if isinstance(raw, dict) else {}
+
+    d.update({
+        "timestamp": time.time(),
+        "source": "xy_priority_insertion_shaper_v1",
+        "insertion_shaper_version":
+            "XY_PRIORITY_INSERTION_SHAPER_V1",
+        "insertion_shaper_state": state,
+        "insertion_shaper_reason": reason,
+        "fusion_mode": "STOP",
+        "guidance_valid": False,
+        "external_valid": False,
+        "wrist_valid": False,
+        "proposed_vx_mm_s": 0.0,
+        "proposed_vy_mm_s": 0.0,
+        "proposed_vz_mm_s": 0.0,
+    })
+
+    return d
+
+
+def main():
+    ap = argparse.ArgumentParser()
+
+    ap.add_argument(
+        "--enable-output",
+        action="store_true",
+        help=(
+            "Write Gate-facing output. Without this option, "
+            "write preview only."
+        ),
+    )
+
+    ap.add_argument(
+        "--hz",
+        type=float,
+        default=20.0,
+    )
+
+    args = ap.parse_args()
+
+    out_path = (
+        OUT_ACTIVE
+        if args.enable_output
+        else OUT_PREVIEW
+    )
+
+    period = 1.0 / max(1.0, float(args.hz))
+
+    state = "GRASP_PASS"
+    coarse_count = 0
+    fine_count = 0
+    insert_start_z = None
+    last_print = 0.0
+
+    print(
+        "[XY SHAPER] version=XY_PRIORITY_INSERTION_SHAPER_V1 "
+        f"active={int(args.enable_output)} "
+        f"output={out_path}",
+        flush=True,
+    )
+
+    while True:
+        t0 = time.monotonic()
+
+        raw = read_json(SRC)
+        ins = read_json(INSERTION)
+
+        if raw is None:
+            time.sleep(period)
+            continue
+
+        active = insertion_active(ins)
+
+        # ----------------------------------------------------
+        # GRASP: exact passthrough.
+        #
+        # No validity reinterpretation.
+        # No velocity change.
+        # No fusion_mode change.
+        # ----------------------------------------------------
+        if not active:
+            state = "GRASP_PASS"
+            coarse_count = 0
+            fine_count = 0
+            insert_start_z = None
+
+            atomic_write(
+                out_path,
+                raw,
+            )
+
+            now = time.monotonic()
+
+            if now - last_print >= 0.50:
+                print(
+                    "[XY SHAPER] "
+                    "state=GRASP_PASS "
+                    "passthrough=1 "
+                    f"src_age={age_s(raw):.3f}",
+                    flush=True,
+                )
+                last_print = now
+
+        else:
+            # ------------------------------------------------
+            # INSERTION freshness
+            # ------------------------------------------------
+            if age_s(raw) > SRC_MAX_AGE_S:
+                out = stop_packet(
+                    raw,
+                    "FUSION_SOURCE_STALE",
+                    state,
+                )
+
+                atomic_write(out_path, out)
+
+                time.sleep(period)
+                continue
+
+            if age_s(ins) > INSERTION_MAX_AGE_S:
+                out = stop_packet(
+                    raw,
+                    "INSERTION_STATE_STALE",
+                    state,
+                )
+
+                atomic_write(out_path, out)
+
+                time.sleep(period)
+                continue
+
+            ext = find_camera(
+                ins,
+                "external",
+            )
+
+            left = find_camera(
+                ins,
+                "left",
+            )
+
+            if ext is None or left is None:
+                out = stop_packet(
+                    raw,
+                    "INSERTION_CAMERA_BINDING_INVALID",
+                    state,
+                )
+
+                out.update({
+                    "external_camera_path":
+                        None if ext is None else ext["path"],
+                    "left_camera_path":
+                        None if left is None else left["path"],
+                })
+
+                atomic_write(out_path, out)
+
+                now = time.monotonic()
+
+                if now - last_print >= 0.25:
+                    print(
+                        "[XY SHAPER] STOP "
+                        "reason=INSERTION_CAMERA_BINDING_INVALID "
+                        f"ext={None if ext is None else ext['path']} "
+                        f"left={None if left is None else left['path']}",
+                        flush=True,
+                    )
+                    last_print = now
+
+                time.sleep(period)
+                continue
+
+            ext_free_u, ext_free_v = ext["free"]
+            ext_hole_u, ext_hole_v = ext["hole"]
+
+            left_free_u, left_free_v = left["free"]
+            left_hole_u, left_hole_v = left["hole"]
+
+            # Error convention:
+            # target - current
+            ext_du = ext_hole_u - ext_free_u
+            ext_dv = ext_hole_v - ext_free_v
+
+            left_du = left_hole_u - left_free_u
+            left_dv = left_hole_v - left_free_v
+
+            # Physical Base-Y displacement estimate.
+            left_dy_mm = (
+                LEFT_DY_DU * left_du
+                + LEFT_DY_DV * left_dv
+            )
+
+            # Continuous Y velocity controller.
+            vy_raw = (
+                LEFT_VY_DU * left_du
+                + LEFT_VY_DV * left_dv
+            )
+
+            vx_raw = EXT_X_KP * ext_du
+
+            score = max(
+                abs(ext_du) / COARSE_EXT_X_PX,
+                abs(left_dy_mm) / COARSE_LEFT_Y_MM,
+            )
+
+            coarse_ok = bool(
+                abs(ext_du) <= COARSE_EXT_X_PX
+                and
+                abs(left_dy_mm) <= COARSE_LEFT_Y_MM
+            )
+
+            fine_ok = bool(
+                abs(ext_du) <= FINE_EXT_X_PX
+                and
+                abs(left_dy_mm) <= FINE_LEFT_Y_MM
+            )
+
+            z_scale = z_scale_from_xy(score)
+            xy_cap = xy_cap_from_score(score)
+
+            vx = clip(
+                vx_raw,
+                xy_cap,
+            )
+
+            vy = clip(
+                vy_raw,
+                xy_cap,
+            )
+
+            vz = 0.0
+            reason = None
+
+            # ------------------------------------------------
+            # State machine
+            # ------------------------------------------------
+            if state == "GRASP_PASS":
+                state = "APPROACH_XY"
+
+            if state == "APPROACH_XY":
+                vz = 0.0
+
+                if coarse_ok:
+                    coarse_count += 1
+                else:
+                    coarse_count = 0
+
+                if coarse_count >= STABLE_CYCLES:
+                    state = "APPROACH_3D"
+                    coarse_count = 0
+
+            elif state == "APPROACH_3D":
+                # XY is ALWAYS active.
+                #
+                # Z is allowed only as XY improves.
+                vz = (
+                    -APPROACH_Z_MAX
+                    * z_scale
+                )
+
+                # If XY becomes clearly bad again:
+                # stop descent first, return to XY approach.
+                if (
+                    abs(ext_du) > RETURN_EXT_X_PX
+                    or
+                    abs(left_dy_mm) > RETURN_LEFT_Y_MM
+                ):
+                    vz = 0.0
+                    state = "APPROACH_XY"
+                    fine_count = 0
+
+                elif fine_ok:
+                    fine_count += 1
+
+                    if fine_count >= STABLE_CYCLES:
+                        actual = read_json(ACTUAL)
+
+                        if (
+                            actual is not None
+                            and
+                            age_s(actual) <= ACTUAL_MAX_AGE_S
+                        ):
+                            z0 = actual_z_mm(actual)
+
+                            if z0 is not None:
+                                insert_start_z = z0
+                                state = "FINAL_INSERT"
+                                fine_count = 0
+                        else:
+                            reason = "WAIT_ACTUAL_STATE"
+
+                else:
+                    fine_count = 0
+
+            elif state == "FINAL_INSERT":
+                # Continue XY correction during final descent.
+                vx = clip(
+                    vx_raw,
+                    INSERT_XY_MAX,
+                )
+
+                vy = clip(
+                    vy_raw,
+                    INSERT_XY_MAX,
+                )
+
+                # Never continue descending if XY drifts.
+                if (
+                    abs(ext_du) > RETURN_EXT_X_PX
+                    or
+                    abs(left_dy_mm) > RETURN_LEFT_Y_MM
+                ):
+                    vz = 0.0
+                    state = "APPROACH_XY"
+                    insert_start_z = None
+
+                else:
+                    actual = read_json(ACTUAL)
+
+                    if (
+                        actual is None
+                        or
+                        age_s(actual) > ACTUAL_MAX_AGE_S
+                    ):
+                        vz = 0.0
+                        reason = "ACTUAL_STATE_STALE"
+
+                    else:
+                        z_now = actual_z_mm(actual)
+
+                        if (
+                            z_now is None
+                            or
+                            insert_start_z is None
+                        ):
+                            vz = 0.0
+                            reason = "ACTUAL_Z_INVALID"
+
+                        else:
+                            descent_mm = (
+                                insert_start_z
+                                - z_now
+                            )
+
+                            if descent_mm >= MAX_FINAL_DESCENT_MM:
+                                state = "INSERTION_DONE"
+                                vx = 0.0
+                                vy = 0.0
+                                vz = 0.0
+
+                            else:
+                                # Z still follows XY quality.
+                                vz = (
+                                    -FINAL_Z_MAX
+                                    * z_scale
+                                )
+
+            elif state == "INSERTION_DONE":
+                vx = 0.0
+                vy = 0.0
+                vz = 0.0
+
+            else:
+                state = "APPROACH_XY"
+                vx = 0.0
+                vy = 0.0
+                vz = 0.0
+
+            # ------------------------------------------------
+            # Gate-compatible packet
+            # ------------------------------------------------
+            out = dict(raw)
+
+            out.update({
+                "timestamp": time.time(),
+
+                "source":
+                    "xy_priority_insertion_shaper_v1",
+
+                "insertion_shaper_version":
+                    "XY_PRIORITY_INSERTION_SHAPER_V1",
+
+                "insertion_shaper_state":
+                    state,
+
+                "insertion_shaper_reason":
+                    reason,
+
+                "fusion_mode":
+                    "DUAL",
+
+                "guidance_valid":
+                    True,
+
+                "external_valid":
+                    True,
+
+                "wrist_valid":
+                    True,
+
+                "proposed_vx_mm_s":
+                    float(vx),
+
+                "proposed_vy_mm_s":
+                    float(vy),
+
+                "proposed_vz_mm_s":
+                    float(vz),
+
+                "insertion_xy_priority": {
+                    "external_camera_path":
+                        ext["path"],
+
+                    "left_camera_path":
+                        left["path"],
+
+                    "external_free_uv":
+                        [ext_free_u, ext_free_v],
+
+                    "external_hole_uv":
+                        [ext_hole_u, ext_hole_v],
+
+                    "left_free_uv":
+                        [left_free_u, left_free_v],
+
+                    "left_hole_uv":
+                        [left_hole_u, left_hole_v],
+
+                    "external_du_px":
+                        float(ext_du),
+
+                    "external_dv_px":
+                        float(ext_dv),
+
+                    "left_du_px":
+                        float(left_du),
+
+                    "left_dv_px":
+                        float(left_dv),
+
+                    "left_dy_mm":
+                        float(left_dy_mm),
+
+                    "xy_score":
+                        float(score),
+
+                    "z_scale":
+                        float(z_scale),
+
+                    "xy_cap_mm_s":
+                        float(xy_cap),
+
+                    "vx_raw_mm_s":
+                        float(vx_raw),
+
+                    "vy_raw_mm_s":
+                        float(vy_raw),
+                },
+            })
+
+            atomic_write(
+                out_path,
+                out,
+            )
+
+            now = time.monotonic()
+
+            if now - last_print >= 0.25:
+                print(
+                    "[XY SHAPER] "
+                    f"state={state} "
+                    f"extX={ext_du:+.2f}px "
+                    f"leftY={left_dy_mm:+.3f}mm "
+                    f"score={score:.3f} "
+                    f"zscale={z_scale:.2f} "
+                    f"cmd=({vx:+.3f},{vy:+.3f},{vz:+.3f}) "
+                    f"ext={ext['path']} "
+                    f"left={left['path']} "
+                    f"active={int(args.enable_output)}",
+                    flush=True,
+                )
+
+                last_print = now
+
+        dt = time.monotonic() - t0
+
+        if dt < period:
+            time.sleep(period - dt)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

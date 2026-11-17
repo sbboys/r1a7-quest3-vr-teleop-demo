@@ -1,0 +1,2346 @@
+#!/usr/bin/env python3
+
+# ============================================================
+# INSERTION_TOPDOWN_CONTROL_V1
+# INSERTION_TOPDOWN_CONTROL_V2
+# INSERTION_TOPDOWN_CONTROL_V3
+# PRE_LIFT_LAG_GATE_DISABLED_V2
+# INSERTION_TOPDOWN_CONTROL_V31
+#
+# GRASP:
+#   raw Fusion pass-through.
+#
+# INSERTION:
+#
+# SIDE_APPROACH
+#   -> LIFT_CLEARANCE
+#   -> TOP_XY_ALIGN
+#   -> VERTICAL_DESCENT
+#   -> FINAL_INSERT
+#   -> INSERTION_DONE
+#
+# IMPORTANT:
+# FREE/Hole complete overlap is NOT used to trigger lift.
+#
+# Lift starts while the endpoints are still safely near
+# the hole, before physical contact with the horizontal board.
+# ============================================================
+
+import collections
+import json
+import math
+import os
+import statistics
+import time
+from pathlib import Path
+
+
+RAW = Path(
+    "/tmp/r1a7_wire_grasp_fusion_raw_v1.json"
+)
+
+OUT = Path(
+    "/tmp/r1a7_wire_grasp_fusion_shadow_v1.json"
+)
+
+ACTUAL = Path(
+    "/tmp/r1a7_cartesian_actual_state_v1.json"
+)
+
+REANCHOR_REQ = Path(
+    "/tmp/r1a7_cartesian_reanchor_request_v1.json"
+)
+
+
+# ============================================================
+# Parameters
+# ============================================================
+
+NEAR_ENTER_PX = float(
+    os.environ.get(
+        "R1A7_INSERT_NEAR_PX",
+        "8.0",
+    )
+)
+
+NEAR_HARD_PX = float(
+    os.environ.get(
+        "R1A7_INSERT_NEAR_HARD_PX",
+        "4.0",
+    )
+)
+
+NEAR_UPDATES = int(
+    os.environ.get(
+        "R1A7_INSERT_NEAR_UPDATES",
+        "5",
+    )
+)
+
+NEAR_STD_PX = float(
+    os.environ.get(
+        "R1A7_INSERT_NEAR_STD_PX",
+        "1.5",
+    )
+)
+
+
+# ============================================================
+# INSERTION_TOPDOWN_CONTROL_V3
+#
+# Once insertion tracking begins, SIDE_APPROACH no longer has
+# motion authority.
+#
+# First settle/re-anchor the Cartesian controller, then perform
+# a pure +Z clearance lift.
+# ============================================================
+
+PRE_SETTLE_LAG_MM = float(
+    os.environ.get(
+        "R1A7_INSERT_PRE_SETTLE_LAG_MM",
+        "2.0",
+    )
+)
+
+PRE_SETTLE_WINDOW_S = float(
+    os.environ.get(
+        "R1A7_INSERT_PRE_SETTLE_WINDOW_S",
+        "0.50",
+    )
+)
+
+PRE_SETTLE_MAX_MOTION_MM = float(
+    os.environ.get(
+        "R1A7_INSERT_PRE_SETTLE_MAX_MOTION_MM",
+        "0.15",
+    )
+)
+
+PRE_SETTLE_MIN_SAMPLES = int(
+    os.environ.get(
+        "R1A7_INSERT_PRE_SETTLE_MIN_SAMPLES",
+        "8",
+    )
+)
+
+PRE_SETTLE_TIMEOUT_S = float(
+    os.environ.get(
+        "R1A7_INSERT_PRE_SETTLE_TIMEOUT_S",
+        "12.0",
+    )
+)
+
+
+LIFT_MM = float(
+    os.environ.get(
+        "R1A7_INSERT_LIFT_MM",
+        "2.0",
+    )
+)
+
+LIFT_SPEED = float(
+    os.environ.get(
+        "R1A7_INSERT_LIFT_SPEED_MM_S",
+        "0.20",
+    )
+)
+
+LIFT_CAPTURE_UPDATES = 3
+
+
+TOP_ERROR_PX = float(
+    os.environ.get(
+        "R1A7_INSERT_TOP_ERROR_PX",
+        "2.5",
+    )
+)
+
+TOP_UPDATES = int(
+    os.environ.get(
+        "R1A7_INSERT_TOP_UPDATES",
+        "5",
+    )
+)
+
+TOP_XY_MAX = float(
+    os.environ.get(
+        "R1A7_INSERT_TOP_XY_MAX_MM_S",
+        "0.20",
+    )
+)
+
+
+TOP_TIMEOUT_S = float(
+    os.environ.get(
+        "R1A7_INSERT_TOP_TIMEOUT_S",
+        "30.0",
+    )
+)
+
+
+DOWN_SPEED = float(
+    os.environ.get(
+        "R1A7_INSERT_DOWN_SPEED_MM_S",
+        "0.12",
+    )
+)
+
+DOWN_XY_MAX = float(
+    os.environ.get(
+        "R1A7_INSERT_DOWN_XY_MAX_MM_S",
+        "0.08",
+    )
+)
+
+DOWN_RUN_PX = float(
+    os.environ.get(
+        "R1A7_INSERT_DOWN_RUN_PX",
+        "3.0",
+    )
+)
+
+DOWN_STOP_PX = float(
+    os.environ.get(
+        "R1A7_INSERT_DOWN_STOP_PX",
+        "4.5",
+    )
+)
+
+
+ENTRY_ERROR_PX = float(
+    os.environ.get(
+        "R1A7_INSERT_ENTRY_ERROR_PX",
+        "2.5",
+    )
+)
+
+ENTRY_UPDATES = int(
+    os.environ.get(
+        "R1A7_INSERT_ENTRY_UPDATES",
+        "3",
+    )
+)
+
+
+FINAL_DEPTH_MM = float(
+    os.environ.get(
+        "R1A7_INSERT_FINAL_DEPTH_MM",
+        "0.50",
+    )
+)
+
+FINAL_SPEED = float(
+    os.environ.get(
+        "R1A7_INSERT_FINAL_SPEED_MM_S",
+        "0.10",
+    )
+)
+
+
+ACTUAL_MAX_AGE = 0.20
+
+BLOCK_WINDOW_S = 1.0
+BLOCK_GRACE_S = 1.5
+BLOCK_MIN_Z_MM = 0.03
+
+
+# External +U -> Base +X.
+EXT_X_KP = 0.08
+
+# Provisional Left Wrist Y-only fit.
+#
+# d[du,dv]/dY ~= [15.5967, 12.3808]
+#
+# K = 0.25.
+# INSERTION_TOPDOWN_CONTROL_V2
+# error = target-current, and measured dU/dY,dV/dY are positive.
+LEFT_Y_DU = +0.009833
+LEFT_Y_DV = +0.007806
+
+
+PRE = "PRE_LIFT_SETTLE"
+SIDE = "SIDE_APPROACH"  # legacy diagnostic name; V3 does not enter it
+LIFT = "LIFT_CLEARANCE"
+TOP = "TOP_XY_ALIGN"
+DOWN = "VERTICAL_DESCENT"
+FINAL = "FINAL_INSERT"
+DONE = "INSERTION_DONE"
+BLOCKED = "INSERTION_BLOCKED"
+
+
+# ============================================================
+# Helpers
+# ============================================================
+
+def read_json(path):
+    try:
+        return json.loads(
+            path.read_text(
+                encoding="utf-8"
+            )
+        )
+    except Exception:
+        return {}
+
+
+def atomic_json(path, data):
+
+    tmp = Path(
+        str(path) + ".tmp"
+    )
+
+    tmp.write_text(
+        json.dumps(
+            data,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    os.replace(
+        tmp,
+        path,
+    )
+
+
+def uv(value):
+
+    try:
+        if value is None:
+            return None
+
+        return (
+            float(value[0]),
+            float(value[1]),
+        )
+
+    except Exception:
+        return None
+
+
+def free_uv(g):
+
+    for key in (
+        "free_target_uv",
+        "free_uv",
+    ):
+        p = uv(
+            g.get(key)
+        )
+
+        if p is not None:
+            return p
+
+    return None
+
+
+def hole_uv(g):
+
+    for key in (
+        "target_hole_uv",
+        "hole_uv",
+    ):
+        p = uv(
+            g.get(key)
+        )
+
+        if p is not None:
+            return p
+
+    return None
+
+
+def sub(a, b):
+
+    a = uv(a)
+    b = uv(b)
+
+    if (
+        a is None
+        or
+        b is None
+    ):
+        return None
+
+    return (
+        a[0] - b[0],
+        a[1] - b[1],
+    )
+
+
+def add(a, b, scale=1.0):
+
+    a = uv(a)
+    b = uv(b)
+
+    if (
+        a is None
+        or
+        b is None
+    ):
+        return None
+
+    return (
+        a[0]
+        +
+        scale * b[0],
+
+        a[1]
+        +
+        scale * b[1],
+    )
+
+
+def error(target, current):
+
+    target = uv(target)
+    current = uv(current)
+
+    if (
+        target is None
+        or
+        current is None
+    ):
+        return None
+
+    return (
+        target[0] - current[0],
+        target[1] - current[1],
+    )
+
+
+def norm(e):
+
+    if e is None:
+        return float("inf")
+
+    return float(
+        math.hypot(
+            e[0],
+            e[1],
+        )
+    )
+
+
+def clip(x, limit):
+
+    return max(
+        -abs(limit),
+        min(
+            abs(limit),
+            float(x),
+        ),
+    )
+
+
+def vector_limit(
+    vx,
+    vy,
+    vz,
+    limit,
+):
+
+    n = math.sqrt(
+        vx*vx
+        +
+        vy*vy
+        +
+        vz*vz
+    )
+
+    if (
+        n <= limit
+        or
+        n <= 1e-9
+    ):
+        return (
+            vx,
+            vy,
+            vz,
+        )
+
+    k = limit / n
+
+    return (
+        vx*k,
+        vy*k,
+        vz*k,
+    )
+
+
+def live_measured(g):
+
+    return bool(
+        isinstance(
+            g,
+            dict,
+        )
+        and
+        g.get(
+            "guidance_valid",
+            False,
+        )
+        and
+        g.get(
+            "free_source"
+        )
+        ==
+        "MEASURED"
+        and
+        free_uv(g)
+        is not None
+        and
+        hole_uv(g)
+        is not None
+    )
+
+
+def raw_error(g):
+
+    try:
+        return (
+            float(
+                g.get("du_px")
+            ),
+            float(
+                g.get("dv_px")
+            ),
+        )
+    except Exception:
+        return None
+
+
+def token(ext, left):
+
+    return (
+        ext.get(
+            "source_frame_seq"
+        ),
+        ext.get(
+            "measurement_timestamp",
+            ext.get(
+                "timestamp"
+            ),
+        ),
+        left.get(
+            "source_frame_seq"
+        ),
+        left.get(
+            "measurement_timestamp",
+            left.get(
+                "timestamp"
+            ),
+        ),
+    )
+
+
+def median_uv(values):
+
+    if not values:
+        return None
+
+    return (
+        statistics.median(
+            p[0]
+            for p in values
+        ),
+        statistics.median(
+            p[1]
+            for p in values
+        ),
+    )
+
+
+def actual_xyz(state, now):
+
+    try:
+
+        age = (
+            now
+            -
+            float(
+                state["timestamp"]
+            )
+        )
+
+        xyz = state.get(
+            "actual_xyz_mm"
+        )
+
+        if (
+            not
+            0.0 <= age <= ACTUAL_MAX_AGE
+            or
+            xyz is None
+            or
+            len(xyz) < 3
+        ):
+            return None, age
+
+        xyz = tuple(
+            float(x)
+            for x in xyz[:3]
+        )
+
+        return xyz, age
+
+    except Exception:
+
+        return (
+            None,
+            float("inf"),
+        )
+
+
+def distance3(a, b):
+
+    if (
+        a is None
+        or
+        b is None
+    ):
+        return float("inf")
+
+    try:
+        return math.sqrt(
+            (float(a[0]) - float(b[0])) ** 2
+            +
+            (float(a[1]) - float(b[1])) ** 2
+            +
+            (float(a[2]) - float(b[2])) ** 2
+        )
+
+    except Exception:
+        return float("inf")
+
+
+def command_xyz(state):
+
+    try:
+
+        xyz = state.get(
+            "command_xyz_mm"
+        )
+
+        if (
+            xyz is None
+            or
+            len(xyz) < 3
+        ):
+            return None
+
+        xyz = tuple(
+            float(x)
+            for x in xyz[:3]
+        )
+
+        if not all(
+            math.isfinite(x)
+            for x in xyz
+        ):
+            return None
+
+        return xyz
+
+    except Exception:
+        return None
+
+
+def top_xy_velocity(
+    ext_error,
+    left_error,
+    limit,
+):
+
+    if (
+        ext_error is None
+        or
+        left_error is None
+    ):
+        return (
+            0.0,
+            0.0,
+        )
+
+    vx = (
+        EXT_X_KP
+        *
+        ext_error[0]
+    )
+
+    vy = (
+        LEFT_Y_DU
+        *
+        left_error[0]
+        +
+        LEFT_Y_DV
+        *
+        left_error[1]
+    )
+
+    return (
+        clip(vx, limit),
+        clip(vy, limit),
+    )
+
+
+def near_stable(history):
+
+    if len(history) < NEAR_UPDATES:
+        return False
+
+    rows = list(history)[
+        -NEAR_UPDATES:
+    ]
+
+    ext_n = [
+        math.hypot(
+            r[0],
+            r[1],
+        )
+        for r in rows
+    ]
+
+    left_n = [
+        math.hypot(
+            r[2],
+            r[3],
+        )
+        for r in rows
+    ]
+
+    if (
+        max(ext_n) > NEAR_ENTER_PX
+        or
+        max(left_n) > NEAR_ENTER_PX
+    ):
+        return False
+
+    for idx in range(4):
+
+        values = [
+            r[idx]
+            for r in rows
+        ]
+
+        if (
+            statistics.pstdev(
+                values
+            )
+            >
+            NEAR_STD_PX
+        ):
+            return False
+
+    return True
+
+
+# ============================================================
+# Runtime state
+# ============================================================
+
+stage = PRE
+
+was_insertion = False
+
+last_token = None
+
+# INSERTION_TOPDOWN_CONTROL_V3
+# Real Controller-state samples used to ensure that old
+# Cartesian tracking lag has settled before clearance lift.
+settle_history = collections.deque(
+    maxlen=120
+)
+
+last_actual_state_token = None
+
+# INSERTION_TOPDOWN_CONTROL_V31
+pre_reanchor_requested = False
+
+near_history = collections.deque(
+    maxlen=20
+)
+
+lift_start_z = None
+lift_start_command_z = None
+
+lift_start_ext_free = None
+lift_start_left_free = None
+
+lift_samples_ext = []
+lift_samples_left = []
+
+ext_parallax = None
+left_parallax = None
+
+ext_top_target = None
+left_top_target = None
+
+top_z = None
+
+top_count = 0
+entry_count = 0
+
+final_start_z = None
+
+down_progress = collections.deque()
+
+stage_time = time.time()
+
+
+def reset():
+
+    global stage
+    global last_token
+    global last_actual_state_token
+    global pre_reanchor_requested
+    global lift_start_z
+    global lift_start_command_z
+    global lift_start_ext_free
+    global lift_start_left_free
+    global lift_samples_ext
+    global lift_samples_left
+    global ext_parallax
+    global left_parallax
+    global ext_top_target
+    global left_top_target
+    global top_z
+    global top_count
+    global entry_count
+    global final_start_z
+    global stage_time
+
+    stage = PRE
+
+    last_token = None
+    last_actual_state_token = None
+
+    pre_reanchor_requested = False
+
+    try:
+        REANCHOR_REQ.unlink()
+    except FileNotFoundError:
+        pass
+    except OSError:
+        pass
+
+    settle_history.clear()
+    near_history.clear()
+
+    lift_start_z = None
+    lift_start_command_z = None
+
+    lift_start_ext_free = None
+    lift_start_left_free = None
+
+    lift_samples_ext = []
+    lift_samples_left = []
+
+    ext_parallax = None
+    left_parallax = None
+
+    ext_top_target = None
+    left_top_target = None
+
+    top_z = None
+
+    top_count = 0
+    entry_count = 0
+
+    final_start_z = None
+
+    down_progress.clear()
+
+    stage_time = time.time()
+
+
+def set_stage(new_stage):
+
+    global stage
+    global stage_time
+    global top_count
+    global entry_count
+
+    if stage == new_stage:
+        return
+
+    print(
+        "[TOPDOWN]",
+        stage,
+        "->",
+        new_stage,
+        flush=True,
+    )
+
+    stage = new_stage
+    stage_time = time.time()
+
+    top_count = 0
+    entry_count = 0
+
+    down_progress.clear()
+
+
+# ============================================================
+# Main
+# ============================================================
+
+while True:
+
+    now = time.time()
+
+    raw = read_json(
+        RAW
+    )
+
+    if not raw:
+
+        time.sleep(0.02)
+        continue
+
+
+    insertion = bool(
+        raw.get(
+            "insertion_tracking_active",
+            False,
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # GRASP is unchanged.
+    # --------------------------------------------------------
+
+    if not insertion:
+
+        if was_insertion:
+            reset()
+
+        was_insertion = False
+
+        atomic_json(
+            OUT,
+            raw,
+        )
+
+        time.sleep(0.02)
+        continue
+
+
+    if not was_insertion:
+
+        reset()
+
+        print(
+            "[TOPDOWN] insertion session start",
+            flush=True,
+        )
+
+
+    was_insertion = True
+
+
+    ext = dict(
+        raw.get(
+            "external",
+            {}
+        )
+    )
+
+    left = dict(
+        raw.get(
+            "wrist",
+            {}
+        )
+    )
+
+
+    ext_live = live_measured(
+        ext
+    )
+
+    left_live = live_measured(
+        left
+    )
+
+
+    ext_free = free_uv(ext)
+    left_free = free_uv(left)
+
+    ext_hole = hole_uv(ext)
+    left_hole = hole_uv(left)
+
+
+    ext_raw_error = raw_error(ext)
+    left_raw_error = raw_error(left)
+
+    ext_norm = norm(
+        ext_raw_error
+    )
+
+    left_norm = norm(
+        left_raw_error
+    )
+
+
+    wrist_control_camera = str(
+        raw.get(
+            "wrist_control_camera",
+            left.get(
+                "control_camera",
+                "",
+            ),
+        )
+    )
+
+
+    state = read_json(
+        ACTUAL
+    )
+
+    actual, actual_age = (
+        actual_xyz(
+            state,
+            now,
+        )
+    )
+
+    command = command_xyz(
+        state
+    )
+
+    # --------------------------------------------------------
+    # INSERTION_TOPDOWN_CONTROL_V3
+    # Store only NEW Controller heartbeat samples.
+    # --------------------------------------------------------
+
+    actual_state_token = state.get(
+        "timestamp"
+    )
+
+    if (
+        actual is not None
+        and
+        actual_state_token is not None
+        and
+        actual_state_token
+        !=
+        last_actual_state_token
+    ):
+
+        settle_history.append(
+            (
+                now,
+                actual,
+            )
+        )
+
+        last_actual_state_token = (
+            actual_state_token
+        )
+
+        while (
+            settle_history
+            and
+            now
+            -
+            settle_history[0][0]
+            >
+            PRE_SETTLE_WINDOW_S
+        ):
+            settle_history.popleft()
+
+
+    t = token(
+        ext,
+        left,
+    )
+
+    new_measurement = (
+        t != last_token
+    )
+
+
+    if (
+        new_measurement
+        and
+        ext_live
+        and
+        left_live
+        and
+        ext_raw_error
+        is not None
+        and
+        left_raw_error
+        is not None
+    ):
+
+        near_history.append(
+            (
+                ext_raw_error[0],
+                ext_raw_error[1],
+                left_raw_error[0],
+                left_raw_error[1],
+            )
+        )
+
+        last_token = t
+
+
+    vx = 0.0
+    vy = 0.0
+    vz = 0.0
+
+    stop_reason = None
+    ready = False
+
+    desired_ext = None
+    desired_left = None
+
+    ctrl_ext_error = None
+    ctrl_left_error = None
+
+    pre_settle_lag = float("inf")
+    pre_settle_motion = float("inf")
+    pre_settle_samples = len(settle_history)
+
+    lift_actual = 0.0
+    lift_command = 0.0
+    down_actual = 0.0
+    final_actual = 0.0
+
+
+    # --------------------------------------------------------
+    # Strict source requirements.
+    # --------------------------------------------------------
+
+    if (
+        wrist_control_camera
+        !=
+        "left_wrist"
+    ):
+
+        stop_reason = (
+            "CONTROL_CAMERA_NOT_LEFT_WRIST"
+        )
+
+
+    elif (
+        stage
+        not in (
+            FINAL,
+            DONE,
+        )
+        and
+        not (
+            ext_live
+            and
+            left_live
+        )
+    ):
+
+        stop_reason = (
+            "STRICT_DUAL_MEASURED_REQUIRED"
+        )
+
+
+    elif (
+        stage
+        in (
+            PRE,
+            LIFT,
+            TOP,
+            DOWN,
+            FINAL,
+        )
+        and
+        actual is None
+    ):
+
+        stop_reason = (
+            "ACTUAL_XYZ_STALE"
+        )
+
+
+    # ========================================================
+    # PRE-LIFT SETTLE
+    #
+    # INSERTION_TOPDOWN_CONTROL_V3
+    #
+    # Critical physical change:
+    #
+    # Once insertion tracking begins there is NO side approach
+    # toward the horizontal hole plate.
+    #
+    # Motion authority here is always XYZ = 0.
+    #
+    # We wait until:
+    #   1. Controller actual state is fresh,
+    #   2. command/actual Cartesian lag is small,
+    #   3. measured EE position is stable,
+    #   4. External + Left FREE are both freshly MEASURED.
+    #
+    # Then establish the lift reference and perform pure +Z.
+    # ========================================================
+
+    if (
+        stop_reason is None
+        and
+        stage == PRE
+    ):
+
+        vx = 0.0
+        vy = 0.0
+        vz = 0.0
+
+        ready = True
+
+
+        if command is None:
+
+            stop_reason = (
+                "PRE_NO_COMMAND_XYZ"
+            )
+
+            ready = False
+
+
+        elif actual is None:
+
+            stop_reason = (
+                "PRE_NO_ACTUAL_XYZ"
+            )
+
+            ready = False
+
+
+        else:
+
+            pre_settle_lag = (
+                distance3(
+                    command,
+                    actual,
+                )
+            )
+
+
+            if (
+                len(
+                    settle_history
+                )
+                >=
+                PRE_SETTLE_MIN_SAMPLES
+            ):
+
+                reference_xyz = (
+                    settle_history[0][1]
+                )
+
+                pre_settle_motion = max(
+                    distance3(
+                        xyz,
+                        reference_xyz,
+                    )
+                    for _, xyz
+                    in settle_history
+                )
+
+            else:
+
+                pre_settle_motion = (
+                    float("inf")
+                )
+
+
+            # ================================================
+            # INSERTION_TOPDOWN_CONTROL_V31
+            #
+            # Separate "robot physically stationary" from
+            # "retained command pose aligned with actual pose".
+            # ================================================
+
+            motion_stable = bool(
+                len(
+                    settle_history
+                )
+                >=
+                PRE_SETTLE_MIN_SAMPLES
+
+                and
+
+                pre_settle_motion
+                <=
+                PRE_SETTLE_MAX_MOTION_MM
+            )
+
+
+            # The real robot may already be physically stopped
+            # while Controller command pose still carries tens
+            # of millimetres of historical lag.
+            #
+            # Do NOT loosen PRE_SETTLE_LAG_MM.
+            # Ask Controller to re-anchor command->actual.
+            if (
+                motion_stable
+                and
+                pre_settle_lag
+                >
+                PRE_SETTLE_LAG_MM
+                and
+                False  # PRE_LIFT_LAG_GATE_DISABLED_V2
+            ):
+
+                atomic_json(
+                    REANCHOR_REQ,
+                    {
+                        "timestamp":
+                            time.time(),
+
+                        "request_reanchor":
+                            True,
+
+                        "reason":
+                            "TOPDOWN_PRE_LIFT_SETTLE",
+
+                        "pre_settle_lag_mm":
+                            float(
+                                pre_settle_lag
+                            ),
+
+                        "actual_xyz_mm":
+                            list(
+                                actual
+                            ),
+
+                        "command_xyz_mm":
+                            list(
+                                command
+                            ),
+                    },
+                )
+
+                pre_reanchor_requested = True
+
+                print(
+                    "[TOPDOWN PRE] "
+                    "stationary measured EE but retained "
+                    f"command lag={pre_settle_lag:.2f} mm; "
+                    "requested Controller re-anchor.",
+                    flush=True,
+                )
+
+
+            # =================================================
+            # PRE_LIFT_LAG_GATE_DISABLED_V2
+            #
+            # command/actual lag is diagnostic only.
+            # PRE -> LIFT depends on measured EE stability.
+            # =================================================
+            settled = bool(
+                motion_stable
+            )
+
+
+            if (
+                now
+                -
+                stage_time
+                >
+                PRE_SETTLE_TIMEOUT_S
+            ):
+
+                vx = vy = vz = 0.0
+
+                set_stage(
+                    BLOCKED
+                )
+
+                stop_reason = (
+                    "PRE_LIFT_SETTLE_TIMEOUT"
+                )
+
+                ready = False
+
+
+            elif (
+                settled
+                and
+                ext_live
+                and
+                left_live
+            ):
+
+                # Establish all lift references only AFTER the
+                # old Cartesian trajectory has settled.
+
+                lift_start_z = (
+                    actual[2]
+                )
+
+                lift_start_command_z = (
+                    command[2]
+                )
+
+                lift_start_ext_free = (
+                    ext_free
+                )
+
+                lift_start_left_free = (
+                    left_free
+                )
+
+                vx = 0.0
+                vy = 0.0
+                vz = 0.0
+
+                try:
+                    REANCHOR_REQ.unlink()
+                except FileNotFoundError:
+                    pass
+                except OSError:
+                    pass
+
+                set_stage(
+                    LIFT
+                )
+
+                ready = True
+
+
+    # Legacy SIDE state is never entered by V3. If an old state
+    # somehow survives, force zero rather than side motion.
+    elif (
+        stop_reason is None
+        and
+        stage == SIDE
+    ):
+
+        vx = 0.0
+        vy = 0.0
+        vz = 0.0
+
+        stop_reason = (
+            "LEGACY_SIDE_APPROACH_DISABLED_V3"
+        )
+
+        ready = False
+
+
+    # ========================================================
+    # CLEARANCE LIFT
+    # ========================================================
+
+    elif (
+        stop_reason is None
+        and
+        stage == LIFT
+    ):
+
+        lift_actual = (
+            actual[2]
+            -
+            lift_start_z
+        )
+
+        if (
+            command is not None
+            and
+            lift_start_command_z is not None
+        ):
+
+            lift_command = (
+                command[2]
+                -
+                lift_start_command_z
+            )
+
+        else:
+
+            lift_command = 0.0
+
+
+        # ----------------------------------------------------
+        # Phase A:
+        # deliberately move Controller command +Z by LIFT_MM.
+        # ----------------------------------------------------
+
+        if (
+            lift_command
+            <
+            LIFT_MM
+        ):
+
+            vx = 0.0
+            vy = 0.0
+            vz = abs(
+                LIFT_SPEED
+            )
+
+            ready = True
+
+
+        # ----------------------------------------------------
+        # Phase B:
+        # requested 2 mm is already in command trajectory.
+        # Stop increasing command and wait for measured EE.
+        # ----------------------------------------------------
+
+        elif (
+            lift_actual
+            <
+            (
+                LIFT_MM
+                -
+                0.15
+            )
+        ):
+
+            vx = 0.0
+            vy = 0.0
+            vz = 0.0
+
+            ready = True
+
+
+        else:
+
+            vx = vy = vz = 0.0
+
+            # Use several fresh elevated measurements.
+            if (
+                new_measurement
+                and
+                ext_live
+                and
+                left_live
+            ):
+
+                lift_samples_ext.append(
+                    ext_free
+                )
+
+                lift_samples_left.append(
+                    left_free
+                )
+
+
+            if (
+                len(
+                    lift_samples_ext
+                )
+                >=
+                LIFT_CAPTURE_UPDATES
+                and
+                len(
+                    lift_samples_left
+                )
+                >=
+                LIFT_CAPTURE_UPDATES
+            ):
+
+                ext_after = median_uv(
+                    lift_samples_ext
+                )
+
+                left_after = median_uv(
+                    lift_samples_left
+                )
+
+
+                ext_parallax = sub(
+                    ext_after,
+                    lift_start_ext_free,
+                )
+
+                left_parallax = sub(
+                    left_after,
+                    lift_start_left_free,
+                )
+
+
+                ext_top_target = add(
+                    ext_hole,
+                    ext_parallax,
+                )
+
+                left_top_target = add(
+                    left_hole,
+                    left_parallax,
+                )
+
+
+                top_z = actual[2]
+
+                set_stage(
+                    TOP
+                )
+
+
+            ready = True
+
+
+    # ========================================================
+    # TOP XY ALIGN
+    # ========================================================
+
+    elif (
+        stop_reason is None
+        and
+        stage == TOP
+    ):
+
+        desired_ext = (
+            ext_top_target
+        )
+
+        desired_left = (
+            left_top_target
+        )
+
+
+        ctrl_ext_error = error(
+            desired_ext,
+            ext_free,
+        )
+
+        ctrl_left_error = error(
+            desired_left,
+            left_free,
+        )
+
+
+        (
+            vx,
+            vy,
+        ) = top_xy_velocity(
+            ctrl_ext_error,
+            ctrl_left_error,
+            TOP_XY_MAX,
+        )
+
+        vz = 0.0
+
+
+        if new_measurement:
+
+            aligned = bool(
+                norm(
+                    ctrl_ext_error
+                )
+                <=
+                TOP_ERROR_PX
+
+                and
+
+                norm(
+                    ctrl_left_error
+                )
+                <=
+                TOP_ERROR_PX
+            )
+
+            if aligned:
+                top_count += 1
+            else:
+                top_count = 0
+
+
+        if (
+            top_count
+            >=
+            TOP_UPDATES
+        ):
+
+            top_z = actual[2]
+
+            vx = vy = vz = 0.0
+
+            set_stage(
+                DOWN
+            )
+
+            ready = True
+
+
+        elif (
+            now
+            -
+            stage_time
+            >
+            TOP_TIMEOUT_S
+        ):
+
+            vx = vy = vz = 0.0
+
+            set_stage(
+                BLOCKED
+            )
+
+            stop_reason = (
+                "TOP_ALIGN_TIMEOUT"
+            )
+
+            ready = False
+
+
+        else:
+
+            ready = True
+
+
+    # ========================================================
+    # VERTICAL DESCENT
+    # ========================================================
+
+    elif (
+        stop_reason is None
+        and
+        stage == DOWN
+    ):
+
+        down_actual = max(
+            0.0,
+            top_z
+            -
+            actual[2],
+        )
+
+
+        scale = max(
+            0.0,
+            min(
+                1.0,
+                1.0
+                -
+                down_actual
+                /
+                max(
+                    LIFT_MM,
+                    1e-6,
+                ),
+            ),
+        )
+
+
+        desired_ext = add(
+            ext_hole,
+            ext_parallax,
+            scale,
+        )
+
+        desired_left = add(
+            left_hole,
+            left_parallax,
+            scale,
+        )
+
+
+        ctrl_ext_error = error(
+            desired_ext,
+            ext_free,
+        )
+
+        ctrl_left_error = error(
+            desired_left,
+            left_free,
+        )
+
+
+        (
+            vx,
+            vy,
+        ) = top_xy_velocity(
+            ctrl_ext_error,
+            ctrl_left_error,
+            DOWN_XY_MAX,
+        )
+
+
+        lateral_error = max(
+            norm(
+                ctrl_ext_error
+            ),
+            norm(
+                ctrl_left_error
+            ),
+        )
+
+
+        if (
+            lateral_error
+            <=
+            DOWN_RUN_PX
+        ):
+
+            vz = -abs(
+                DOWN_SPEED
+            )
+
+        elif (
+            lateral_error
+            >=
+            DOWN_STOP_PX
+        ):
+
+            vz = 0.0
+
+        else:
+
+            vz = 0.0
+
+
+        if (
+            new_measurement
+            and
+            down_actual
+            >=
+            0.95
+            *
+            LIFT_MM
+        ):
+
+            entry_ok = bool(
+                ext_norm
+                <=
+                ENTRY_ERROR_PX
+
+                and
+
+                left_norm
+                <=
+                ENTRY_ERROR_PX
+            )
+
+            if entry_ok:
+                entry_count += 1
+            else:
+                entry_count = 0
+
+
+        if (
+            entry_count
+            >=
+            ENTRY_UPDATES
+        ):
+
+            final_start_z = (
+                actual[2]
+            )
+
+            vx = vy = vz = 0.0
+
+            set_stage(
+                FINAL
+            )
+
+
+        ready = True
+
+
+    # ========================================================
+    # FINAL INSERT
+    # ========================================================
+
+    elif (
+        stop_reason is None
+        and
+        stage == FINAL
+    ):
+
+        final_actual = max(
+            0.0,
+            final_start_z
+            -
+            actual[2],
+        )
+
+
+        if (
+            final_actual
+            >=
+            FINAL_DEPTH_MM
+        ):
+
+            vx = vy = vz = 0.0
+
+            set_stage(
+                DONE
+            )
+
+            ready = True
+
+
+        else:
+
+            vx = 0.0
+            vy = 0.0
+
+            vz = -abs(
+                FINAL_SPEED
+            )
+
+            ready = True
+
+
+            down_progress.append(
+                (
+                    now,
+                    actual[2],
+                )
+            )
+
+
+            while (
+                down_progress
+                and
+                now
+                -
+                down_progress[0][0]
+                >
+                BLOCK_WINDOW_S
+            ):
+                down_progress.popleft()
+
+
+            if (
+                now
+                -
+                stage_time
+                >
+                BLOCK_GRACE_S
+                and
+                len(
+                    down_progress
+                )
+                >=
+                2
+            ):
+
+                moved_down = (
+                    down_progress[0][1]
+                    -
+                    down_progress[-1][1]
+                )
+
+                if (
+                    moved_down
+                    <
+                    BLOCK_MIN_Z_MM
+                ):
+
+                    vx = vy = vz = 0.0
+
+                    set_stage(
+                        BLOCKED
+                    )
+
+                    stop_reason = (
+                        "FINAL_INSERT_NO_Z_PROGRESS"
+                    )
+
+
+    elif (
+        stop_reason is None
+        and
+        stage == DONE
+    ):
+
+        vx = vy = vz = 0.0
+        ready = True
+
+
+    elif stage == BLOCKED:
+
+        vx = vy = vz = 0.0
+
+        stop_reason = (
+            "INSERTION_BLOCKED"
+        )
+
+
+    if stop_reason is not None:
+
+        vx = vy = vz = 0.0
+        ready = False
+
+
+    # ========================================================
+    # Gate-compatible diagnostics
+    #
+    # Existing Gate still receives DUAL/STOP.
+    # For non-SIDE stages, du/dv are the CURRENT supervisor
+    # target errors rather than raw FREE->HOLE errors.
+    # ========================================================
+
+    gate_ext = dict(ext)
+    gate_left = dict(left)
+
+
+    if ready:
+
+        gate_ext[
+            "guidance_valid"
+        ] = True
+
+        gate_left[
+            "guidance_valid"
+        ] = True
+
+
+        if stage == SIDE:
+
+            pass
+
+        elif stage == LIFT:
+
+            gate_ext[
+                "du_px"
+            ] = 0.0
+
+            gate_ext[
+                "dv_px"
+            ] = 0.0
+
+            gate_left[
+                "du_px"
+            ] = 0.0
+
+            gate_left[
+                "dv_px"
+            ] = 0.0
+
+
+        elif stage in (
+            TOP,
+            DOWN,
+        ):
+
+            if ctrl_ext_error is not None:
+
+                gate_ext[
+                    "du_px"
+                ] = float(
+                    ctrl_ext_error[0]
+                )
+
+                gate_ext[
+                    "dv_px"
+                ] = float(
+                    ctrl_ext_error[1]
+                )
+
+
+            if ctrl_left_error is not None:
+
+                gate_left[
+                    "du_px"
+                ] = float(
+                    ctrl_left_error[0]
+                )
+
+                gate_left[
+                    "dv_px"
+                ] = float(
+                    ctrl_left_error[1]
+                )
+
+
+        elif stage in (
+            FINAL,
+            DONE,
+        ):
+
+            gate_ext[
+                "du_px"
+            ] = 0.0
+
+            gate_ext[
+                "dv_px"
+            ] = 0.0
+
+            gate_left[
+                "du_px"
+            ] = 0.0
+
+            gate_left[
+                "dv_px"
+            ] = 0.0
+
+
+    out = dict(raw)
+
+    out[
+        "timestamp"
+    ] = now
+
+    out[
+        "external"
+    ] = gate_ext
+
+    out[
+        "wrist"
+    ] = gate_left
+
+    out[
+        "external_valid"
+    ] = bool(ready)
+
+    out[
+        "wrist_valid"
+    ] = bool(ready)
+
+    out[
+        "fusion_mode"
+    ] = (
+        "DUAL"
+        if ready
+        else
+        "STOP"
+    )
+
+    out[
+        "ready_for_motion"
+    ] = bool(
+        ready
+    )
+
+
+    out[
+        "proposed_vx_mm_s"
+    ] = float(vx)
+
+    out[
+        "proposed_vy_mm_s"
+    ] = float(vy)
+
+    out[
+        "proposed_vz_mm_s"
+    ] = float(vz)
+
+
+    out[
+        "topdown_control_v1"
+    ] = True
+
+    out[
+        "topdown_stage"
+    ] = stage
+
+    out[
+        "topdown_stop_reason"
+    ] = stop_reason
+
+    out[
+        "wrist_control_camera"
+    ] = "left_wrist"
+
+
+    out[
+        "actual_xyz_mm"
+    ] = (
+        list(actual)
+        if actual is not None
+        else None
+    )
+
+    out[
+        "actual_state_age_s"
+    ] = (
+        actual_age
+        if math.isfinite(
+            actual_age
+        )
+        else None
+    )
+
+
+    out[
+        "near_external_error_px"
+    ] = (
+        ext_norm
+        if math.isfinite(
+            ext_norm
+        )
+        else None
+    )
+
+    out[
+        "near_left_error_px"
+    ] = (
+        left_norm
+        if math.isfinite(
+            left_norm
+        )
+        else None
+    )
+
+
+    out[
+        "pre_settle_lag_mm"
+    ] = (
+        float(pre_settle_lag)
+        if math.isfinite(
+            pre_settle_lag
+        )
+        else None
+    )
+
+    out[
+        "pre_settle_motion_mm"
+    ] = (
+        float(pre_settle_motion)
+        if math.isfinite(
+            pre_settle_motion
+        )
+        else None
+    )
+
+    out[
+        "pre_settle_samples"
+    ] = int(
+        pre_settle_samples
+    )
+
+    out[
+        "pre_reanchor_requested"
+    ] = bool(
+        pre_reanchor_requested
+    )
+
+    out[
+        "lift_actual_mm"
+    ] = float(
+        lift_actual
+    )
+
+    out[
+        "lift_command_mm"
+    ] = float(
+        lift_command
+    )
+
+    out[
+        "top_stage_age_s"
+    ] = (
+        float(
+            now
+            -
+            stage_time
+        )
+        if stage == TOP
+        else None
+    )
+
+    out[
+        "descended_actual_mm"
+    ] = float(
+        down_actual
+    )
+
+    out[
+        "final_insert_actual_mm"
+    ] = float(
+        final_actual
+    )
+
+
+    out[
+        "external_z_parallax_uv"
+    ] = (
+        list(ext_parallax)
+        if ext_parallax is not None
+        else None
+    )
+
+    out[
+        "left_z_parallax_uv"
+    ] = (
+        list(left_parallax)
+        if left_parallax is not None
+        else None
+    )
+
+
+    out[
+        "external_desired_uv"
+    ] = (
+        list(desired_ext)
+        if desired_ext is not None
+        else None
+    )
+
+    out[
+        "left_desired_uv"
+    ] = (
+        list(desired_left)
+        if desired_left is not None
+        else None
+    )
+
+
+    out[
+        "external_control_error_uv"
+    ] = (
+        list(ctrl_ext_error)
+        if ctrl_ext_error is not None
+        else None
+    )
+
+    out[
+        "left_control_error_uv"
+    ] = (
+        list(ctrl_left_error)
+        if ctrl_left_error is not None
+        else None
+    )
+
+
+    out[
+        "top_align_count"
+    ] = int(
+        top_count
+    )
+
+    out[
+        "hole_entry_count"
+    ] = int(
+        entry_count
+    )
+
+    out[
+        "final_insert_authorized"
+    ] = bool(
+        stage in (
+            FINAL,
+            DONE,
+        )
+    )
+
+
+    atomic_json(
+        OUT,
+        out,
+    )
+
+
+    print(
+        f"[TOPDOWN {stage}] "
+        f"near=({ext_norm:.1f},"
+        f"{left_norm:.1f})px "
+        f"settle_lag={pre_settle_lag:.2f} "
+        f"settle_motion={pre_settle_motion:.2f} "
+        f"lift_actual={lift_actual:.2f} "
+        f"lift_cmd={lift_command:.2f} "
+        f"down={down_actual:.2f} "
+        f"final={final_actual:.2f}mm "
+        f"v=({vx:+.3f},"
+        f"{vy:+.3f},"
+        f"{vz:+.3f}) "
+        f"stop={stop_reason}",
+        flush=True,
+    )
+
+
+    time.sleep(
+        0.02
+    )

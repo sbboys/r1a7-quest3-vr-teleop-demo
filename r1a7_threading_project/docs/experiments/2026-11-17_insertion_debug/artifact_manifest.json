@@ -1,0 +1,207 @@
+[
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/R1-A7_细线抓取与插孔研发调试全流程汇总_20261117.docx",
+    "sha256": "07e31c7bfc368739f907e595ca5df67cd8e3b217d93957f7df005205f24d2691",
+    "bytes": 182661
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/README.md",
+    "sha256": "9e42d678d4ea5ad6403827248b443c811b6673cc33090c1cdaeb027906475c88",
+    "bytes": 976
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/assets/image1.png",
+    "sha256": "58adec0544509839a37927e8b7bdff91bc5ac5d6665a07a9957645d75585fd4f",
+    "bytes": 57016
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/assets/image2.png",
+    "sha256": "c173d082708f998c6a680dc4ef2398449facfa0638bca19e34992c9877441469",
+    "bytes": 77168
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/diffs/live_grasp_to_insertion_visual_v3.py.diff.json",
+    "sha256": "a2df9a083a875b2705a214f856a55c320a10520ec09b5af0d15959eca16347d9",
+    "bytes": 60098
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/diffs/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py.diff.json",
+    "sha256": "ccce254a602abee5e3335d584bf0ec66cf05f5c7013aafc6becb784000051d67",
+    "bytes": 15473
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/diffs/wire_grasp_fusion_shadow_v1.py.diff.json",
+    "sha256": "82ef82eac603b7541d847f7798889a845f3c1831769cf9519fd25dec098756c7",
+    "bytes": 25334
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/manifest.json",
+    "sha256": "9a7d7f05145c65f8536c72e5489cb807b3a1b11d5626b68dee61e5f2ad8c5138",
+    "bytes": 23679
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py.before_actual_state_publish_20261117_140614",
+    "sha256": "963c6742d95e0aa43f2a48fd48ec17462f2ba8209ce810a29afec9f1b66b1f77",
+    "bytes": 231427
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py.before_topdown_reanchor_20261117_154631",
+    "sha256": "6d7cf777f15ae990cb6b49b37cc4898e8a70bf7cc51bc2452e15c0c7f03d3db6",
+    "bytes": 234467
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_direct_free_track_20261117_110344",
+    "sha256": "f3dfd18d925cd91602ef72d17b3211f33f2a40dd8dd4f01bf97fb186f7c8f1f7",
+    "bytes": 134785
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_fixed_free_identity_20261117_192048",
+    "sha256": "30a5934a11ff20483888f22e5f107bf5c110f1315bc34adf8891b24020729d8d",
+    "bytes": 159696
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_fixed_hole_fast_guidance_20261117_095456",
+    "sha256": "2352c9835ad420e73ec0491ed9e3aff6ee32b943743313c783824951663e3e9b",
+    "bytes": 125017
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_direct_insertion_v1.py.before_fusion_ready_fix_v3_20261117_164517",
+    "sha256": "a466313dd4c863df77083170db8ac5a49237354dca0c36e9b3384049abf42c54",
+    "bytes": 27108
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_direct_insertion_v1.py.before_grasp_compat_v2_20261117_164215",
+    "sha256": "26fc0984fda03567a1213eccf02ab1d965191a66133deef4cb813611e7812987",
+    "bytes": 23360
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_direct_insertion_v1.py.before_rollback_20261117_165302",
+    "sha256": "f950a8a9fc6af31050970375e60293345e50df3728deca368e04c49a90393fd0",
+    "bytes": 27988
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.before_topdown_raw_20261117_135406",
+    "sha256": "8d19d215efb51c3042d422f05d994f95e61f73c53c2e912b540b99b799155f9a",
+    "bytes": 33070
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.before_xy_priority_shaper_20261117_172851",
+    "sha256": "8d19d215efb51c3042d422f05d994f95e61f73c53c2e912b540b99b799155f9a",
+    "bytes": 33070
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py.current_raw_before_original_restore_20261117_165633",
+    "sha256": "5ed6d97b1515feb4a9e9cee2f5393737e985bf1159a3530a0e7c9c54c388bde5",
+    "bytes": 33102
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_topdown_supervisor_v1.py.before_disable_pre_lag_gate_20261117_155553",
+    "sha256": "b9051e0b2cced6ffb8d8e3bf58e56131a20f822887e90300a0215ef30ac0ba7e",
+    "bytes": 39842
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_topdown_supervisor_v1.py.before_disable_pre_lag_v2_20261117_155700",
+    "sha256": "b9051e0b2cced6ffb8d8e3bf58e56131a20f822887e90300a0215ef30ac0ba7e",
+    "bytes": 39842
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_topdown_supervisor_v1.py.before_topdown_v2_20261117_145222",
+    "sha256": "fb90e273de7839f8eba729ad71e22be714577809af6f9683702155b6bfe52208",
+    "bytes": 29840
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_topdown_supervisor_v1.py.before_topdown_v31_20261117_154642",
+    "sha256": "0126d2a92f6a06cdc22d9771acf2a1124455b726551073ff29bc857d1730514e",
+    "bytes": 37132
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_topdown_supervisor_v1.py.before_topdown_v3_20261117_154004",
+    "sha256": "c7f074c71f5cd9dd654016a741c0af4f04cc665677d2d863a2775c07e7c475cd",
+    "bytes": 32785
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_final_z_guard35_20261117_201806",
+    "sha256": "29124d25b9b4bf609cac109aa683da047f3436ca4119ac29a674b803240a9161",
+    "bytes": 32912
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_fixed_free_control_lock_20261117_192107",
+    "sha256": "1fd1a8cc2f0a73e821f70c4d3311579cf47aae7bec34d3ed70e5593d15d064ad",
+    "bytes": 23286
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_lateral_pixel_fix_20261117_190300",
+    "sha256": "b817b42f8ae15a009d0277049212ad828abd77fafbdf7905206c2ef819024675",
+    "bytes": 21493
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_perception_input_fix_20261117_183533",
+    "sha256": "12d5d869e2f482810af16d393ff0e69772068932c9ec8faf5e41bbfef061d2e4",
+    "bytes": 21029
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_remove_insertion_done_20261117_205002",
+    "sha256": "a73343048e29d6e6c79db904fc4e51f03458cd8c51333032eb55f46ceee3d0c0",
+    "bytes": 33110
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_visual_z_fix_20261117_193421",
+    "sha256": "c63613159e138b070392b3e9646d0ed8e5859ffdcaa4682aebd6482ac10cfed7",
+    "bytes": 31146
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/current/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+    "sha256": "0c22da1185880aa681e3147599c03bc5b9d408da42176e6418ebc0a34195fcce",
+    "bytes": 237951
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/current/transfer_control/tools/full_chain_runtime_recorder.py",
+    "sha256": "fa46290d2198be2d7c5174efa0bf8c66b3ee983b0ae26d8b00018380d6277041",
+    "bytes": 20550
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/current/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+    "sha256": "e263a6ce6e45303c981b54e5fba9328a09a71b3bb0397b41d78385855b70ba39",
+    "bytes": 160092
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+    "sha256": "b31f3056a23775ed4fb8ef0acd9b94b8ff87ad838b9982c26a78ca88cdaaae85",
+    "bytes": 14898
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+    "sha256": "dc21dd5599633b445114e58f7959c81ff3dda8c38eaca0e84f65b54e0e6446f4",
+    "bytes": 33114
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py",
+    "sha256": "dfe8f2828673923f402494bd61e20193632bf189d22138ffcd8752961e00b5a3",
+    "bytes": 33686
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/historical_candidates/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_direct_insertion_v1.py",
+    "sha256": "26fc0984fda03567a1213eccf02ab1d965191a66133deef4cb813611e7812987",
+    "bytes": 23360
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/research_code_snapshot/historical_candidates/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_topdown_supervisor_v1.py",
+    "sha256": "d74957b17ba339415b68b6ef807aba01289465ae5f74a8f3328332984c2b4e41",
+    "bytes": 40079
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-17_insertion_debug/worklog_fulltext_zh.md",
+    "sha256": "96b9d3cb3edfcc5bae29b33dc00f90febcd760678e1217254a76ae175e9d939f",
+    "bytes": 34522
+  },
+  {
+    "path": "r1a7_threading_project/docs/experiments/2026-11-17_insertion_debug/r1a7_cartesian_trace_20261117_184206.csv.gz",
+    "sha256": "2d98f7ef06536511bde1d31f4639746c75cdccb00d585c29e5c59535a17d10a9",
+    "bytes": 1036460
+  },
+  {
+    "path": "r1a7_threading_project/docs/experiments/2026-11-17_insertion_debug/trace_summary.json",
+    "sha256": "c29af1367c1af7b64c1ef1f5eb0d5c92efcf40329ef00b3326afab6f6b2c9247",
+    "bytes": 615
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "rows": 3428,
+  "columns": 18,
+  "duration_s": 114.25162647599063,
+  "source_sha256": "c8a6eb1376dfdd4d0b5084a06f88949c5f46c97fd85ec1a1a863803383ef08ea",
+  "source_bytes": 6456351,
+  "scope": "whole_trace_not_insertion_only",
+  "full_chain_matching_184206": "not found; current /tmp full_chain starts at a different monotonic interval; do not recompute documented joint statistics",
+  "actual_xyz_mm_whole_trace_delta": [
+    13.363946208665766,
+    56.79090441490278,
+    42.90904101362315
+  ],
+  "command_xyz_mm_whole_trace_delta": [
+    3.3721344828737188,
+    85.12157907910304,
+    67.61155352634117
+  ]
+}

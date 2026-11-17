@@ -89,3 +89,7 @@
 ## 2026-11-16 研发归档
 
 `codex/r1a7-research-archive-2026-11-16`从e5138d6建立，按本对话授权流程上传并快进纳入 `codex/r1a7-console-camera-suite-2026-10-11`。不改写main和历史归档，不替换原位控制台输出链。
+
+## 2026-11-17 插孔研发调试归档
+
+[11/17来源、代码与数据核对](r1a7_threading_project/docs/r1a7_insertion_debug_archive_2026-11-17_zh.md)承接8daf540：新增XY Shaper V6/V7、External＋Left固定孔/FREE门及full-chain recorder；原Gate与11/16研究字节相同。输出链仅快照，未替换控制台。3428行trace已无损归档，匹配full-chain缺失，文档联合统计待原日志复核。原抓取动作属于历史反馈；FREE身份和最终实体插孔未验收。本次无设备/硬件运行。

@@ -72,3 +72,7 @@
 ## 2026-11-16 研发归档
 
 [11/16联合插孔与新孔板归档](r1a7_threading_project/docs/r1a7_four_document_research_audit_2026-11-16_zh.md)承接11/03和11/09，补齐recorder/标注/训练、新板V5/Hole V3与当前状态差异；模型数据外置。
+
+## 2026-11-17 插孔研发调试归档
+
+[11/17来源、代码与数据核对](r1a7_threading_project/docs/r1a7_insertion_debug_archive_2026-11-17_zh.md)承接8daf540：新增XY Shaper V6/V7、External＋Left固定孔/FREE门及full-chain recorder；原Gate与11/16研究字节相同。输出链仅快照，未替换控制台。3428行trace已无损归档，匹配full-chain缺失，文档联合统计待原日志复核。原抓取动作属于历史反馈；FREE身份和最终实体插孔未验收。本次无设备/硬件运行。
