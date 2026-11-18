@@ -1330,6 +1330,47 @@ def invalid_guidance(
 
 
 
+# ============================================================
+# INSERTION_LOWER_BRANCH_IDENTITY_V1
+#
+# Physical constraint after grasp:
+#
+#   tweezer/tip
+#        |
+#        +---- upper/fixed-side branch  -> NEVER FREE
+#        |
+#        +---- lower/free-side branch  -> FREE identity
+#
+# Once the physical FREE half is initialized, an endpoint from
+# the opposite half is not allowed to enter normal tracking or
+# REACQUIRE, even if it is temporally stable.
+#
+# Coordinates are image UV.
+# ============================================================
+
+INSERTION_FREE_BRANCH_MIN_PROJECTION_PX = 6.0
+
+# Tip and FREE must be sufficiently separated before the branch
+# direction can be initialized.
+INSERTION_FREE_BRANCH_MIN_LENGTH_PX = 12.0
+
+# Slowly adapt the valid lower-branch direction after accepting
+# a trustworthy measurement.  This allows gradual wire rotation
+# while preventing a 180-degree identity flip.
+INSERTION_FREE_BRANCH_DIR_ALPHA = 0.08
+
+# Accepted direction update must remain in the same hemisphere.
+INSERTION_FREE_BRANCH_UPDATE_MIN_DOT = 0.25
+
+# ============================================================
+# FREE_CONTINUOUS_HOLE_LIVE_RELOCALIZATION_V3
+#
+# Brief tweezer-tip detector loss must not immediately freeze
+# an otherwise valid physical lower-branch FREE track.
+# ============================================================
+INSERTION_FREE_LAST_TIP_HOLD_S = 0.75
+
+
 def _direct_free_distance(
     a,
     b,
@@ -1373,6 +1414,20 @@ class InsertionDirectFreeTracker:
         self.reacquire_uv = None
         self.reacquire_count = 0
 
+        # INSERTION_LOWER_BRANCH_IDENTITY_V1
+        #
+        # Unit image vector pointing from the current tweezer tip
+        # toward the physical FREE half of the grasped wire.
+        #
+        # It is initialized only from a trustworthy FREE reference
+        # and is cleared whenever this direct insertion tracker is
+        # reset.
+        self.free_branch_dir = None
+
+        # FREE_CONTINUOUS_HOLE_LIVE_RELOCALIZATION_V3
+        self.last_valid_tip_uv = None
+        self.last_valid_tip_time = 0.0
+
 
     def reset(
         self,
@@ -1384,6 +1439,13 @@ class InsertionDirectFreeTracker:
 
         self.reacquire_uv = None
         self.reacquire_count = 0
+
+        # INSERTION_LOWER_BRANCH_IDENTITY_V1
+        self.free_branch_dir = None
+
+        # FREE_CONTINUOUS_HOLE_LIVE_RELOCALIZATION_V3
+        self.last_valid_tip_uv = None
+        self.last_valid_tip_time = 0.0
 
 
     def _result(
@@ -1490,6 +1552,27 @@ class InsertionDirectFreeTracker:
                     if measurement_timestamp is not None
                     else None
                 ),
+
+            # INSERTION_LOWER_BRANCH_IDENTITY_V1 diagnostics.
+            "free_branch_locked":
+                bool(
+                    self.free_branch_dir
+                    is not None
+                ),
+
+            "free_branch_dir_uv":
+                (
+                    [
+                        float(
+                            self.free_branch_dir[0]
+                        ),
+                        float(
+                            self.free_branch_dir[1]
+                        ),
+                    ]
+                    if self.free_branch_dir is not None
+                    else None
+                ),
         }
 
 
@@ -1565,6 +1648,7 @@ class InsertionDirectFreeTracker:
         path_mask,
         reference_uv,
         now,
+        tip_uv=None,
     ):
         try:
             path = np.asarray(
@@ -1662,6 +1746,14 @@ class InsertionDirectFreeTracker:
             identity_reference,
         )
 
+        # ----------------------------------------------------
+        # Legacy nearest-reference candidate.
+        #
+        # This is used to initialize physical branch identity,
+        # and remains the fallback only before branch identity
+        # has been established.
+        # ----------------------------------------------------
+
         if d0 <= d1:
             candidate = endpoints_uv[0]
             nearest_distance = d0
@@ -1678,6 +1770,8 @@ class InsertionDirectFreeTracker:
         # If both ends are similarly plausible, do not allow
         # FREE/FIXED identity to flip.
         if (
+            self.free_branch_dir is None
+            and
             identity_margin
             <
             INSERTION_DIRECT_FREE_IDENTITY_MARGIN_PX
@@ -1691,6 +1785,349 @@ class InsertionDirectFreeTracker:
                     identity_margin,
                 endpoints_uv=endpoints_uv,
             )
+
+
+        # ====================================================
+        # INSERTION_LOWER_BRANCH_IDENTITY_V1
+        #
+        # The physical FREE endpoint is on the same half of the
+        # grasped wire for the entire insertion operation.
+        #
+        # First trustworthy frame:
+        #
+        #   current validated FREE reference
+        #       + current tweezer tip
+        #       -> initialize tip->FREE branch direction.
+        #
+        # Following frames:
+        #
+        #   endpoint projection on that direction must be
+        #   positive.  Therefore the opposite/upper branch can
+        #   NEVER enter normal tracking or REACQUIRE.
+        # ====================================================
+
+        current_tip_uv = None
+
+        if tip_uv is not None:
+            try:
+                current_tip_uv = (
+                    float(
+                        tip_uv[0]
+                    ),
+                    float(
+                        tip_uv[1]
+                    ),
+                )
+            except Exception:
+                current_tip_uv = None
+
+
+        # ====================================================
+        # FREE_CONTINUOUS_HOLE_LIVE_RELOCALIZATION_V3
+        #
+        # Valid current tip:
+        #   refresh last trustworthy physical anchor.
+        #
+        # Short dropout <= 0.75 s:
+        #   reuse last trustworthy tip instead of FREE-HOLD.
+        #
+        # Long dropout:
+        #   existing BRANCH_TIP_LOST behavior remains active.
+        # ====================================================
+
+        if current_tip_uv is not None:
+
+            self.last_valid_tip_uv = (
+                float(current_tip_uv[0]),
+                float(current_tip_uv[1]),
+            )
+
+            self.last_valid_tip_time = float(now)
+
+        elif (
+            self.free_branch_dir is not None
+            and
+            self.last_valid_tip_uv is not None
+            and
+            self.last_valid_tip_time > 0.0
+            and
+            0.0
+            <=
+            (
+                float(now)
+                -
+                self.last_valid_tip_time
+            )
+            <=
+            INSERTION_FREE_LAST_TIP_HOLD_S
+        ):
+
+            current_tip_uv = (
+                float(self.last_valid_tip_uv[0]),
+                float(self.last_valid_tip_uv[1]),
+            )
+
+
+        # Branch identity must be initialized with a valid tip.
+        if self.free_branch_dir is None:
+
+            if current_tip_uv is None:
+                return self._temporary_loss(
+                    now,
+                    "NEED_BRANCH_TIP",
+                    raw_uv=candidate,
+                    jump_px=nearest_distance,
+                    identity_margin_px=
+                        identity_margin,
+                    endpoints_uv=endpoints_uv,
+                )
+
+            seed_vec = np.asarray(
+                (
+                    float(candidate[0])
+                    -
+                    float(current_tip_uv[0]),
+
+                    float(candidate[1])
+                    -
+                    float(current_tip_uv[1]),
+                ),
+                dtype=np.float64,
+            )
+
+            seed_norm = float(
+                np.linalg.norm(
+                    seed_vec
+                )
+            )
+
+            if (
+                not np.isfinite(
+                    seed_norm
+                )
+                or
+                seed_norm
+                <
+                INSERTION_FREE_BRANCH_MIN_LENGTH_PX
+            ):
+                return self._temporary_loss(
+                    now,
+                    "BRANCH_INIT_TOO_CLOSE",
+                    raw_uv=candidate,
+                    jump_px=nearest_distance,
+                    identity_margin_px=
+                        identity_margin,
+                    endpoints_uv=endpoints_uv,
+                )
+
+            seed_vec = (
+                seed_vec
+                /
+                seed_norm
+            )
+
+            self.free_branch_dir = (
+                float(
+                    seed_vec[0]
+                ),
+                float(
+                    seed_vec[1]
+                ),
+            )
+
+
+        # Once branch identity is locked, loss of the tweezer
+        # anchor must NOT permit a legacy identity switch.
+        if current_tip_uv is None:
+            return self._temporary_loss(
+                now,
+                "BRANCH_TIP_LOST",
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        branch_dir = np.asarray(
+            self.free_branch_dir,
+            dtype=np.float64,
+        )
+
+        branch_projections = []
+
+        for endpoint_uv in endpoints_uv:
+
+            rel = np.asarray(
+                (
+                    float(endpoint_uv[0])
+                    -
+                    float(current_tip_uv[0]),
+
+                    float(endpoint_uv[1])
+                    -
+                    float(current_tip_uv[1]),
+                ),
+                dtype=np.float64,
+            )
+
+            branch_projections.append(
+                float(
+                    np.dot(
+                        rel,
+                        branch_dir,
+                    )
+                )
+            )
+
+
+        branch_valid = [
+            projection
+            >=
+            INSERTION_FREE_BRANCH_MIN_PROJECTION_PX
+            for projection
+            in branch_projections
+        ]
+
+
+        if not any(
+            branch_valid
+        ):
+            return self._temporary_loss(
+                now,
+                "OPPOSITE_BRANCH_REJECTED",
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        # Among endpoints that remain on the physical FREE half,
+        # use the existing nearest-to-current-track identity rule.
+        branch_candidates = []
+
+        if branch_valid[0]:
+            branch_candidates.append(
+                (
+                    d0,
+                    endpoints_uv[0],
+                )
+            )
+
+        if branch_valid[1]:
+            branch_candidates.append(
+                (
+                    d1,
+                    endpoints_uv[1],
+                )
+            )
+
+        branch_candidates.sort(
+            key=lambda item:
+                item[0]
+        )
+
+        nearest_distance, candidate = (
+            branch_candidates[0]
+        )
+
+
+        # Slowly adapt lower-branch direction using only the
+        # already branch-validated candidate.
+        observed_vec = np.asarray(
+            (
+                float(candidate[0])
+                -
+                float(current_tip_uv[0]),
+
+                float(candidate[1])
+                -
+                float(current_tip_uv[1]),
+            ),
+            dtype=np.float64,
+        )
+
+        observed_norm = float(
+            np.linalg.norm(
+                observed_vec
+            )
+        )
+
+        if (
+            np.isfinite(
+                observed_norm
+            )
+            and
+            observed_norm
+            >=
+            INSERTION_FREE_BRANCH_MIN_LENGTH_PX
+        ):
+
+            observed_dir = (
+                observed_vec
+                /
+                observed_norm
+            )
+
+            same_half_dot = float(
+                np.dot(
+                    observed_dir,
+                    branch_dir,
+                )
+            )
+
+            if (
+                same_half_dot
+                >=
+                INSERTION_FREE_BRANCH_UPDATE_MIN_DOT
+            ):
+
+                a_branch = float(
+                    INSERTION_FREE_BRANCH_DIR_ALPHA
+                )
+
+                blended = (
+                    (
+                        1.0 - a_branch
+                    )
+                    *
+                    branch_dir
+                    +
+                    a_branch
+                    *
+                    observed_dir
+                )
+
+                blended_norm = float(
+                    np.linalg.norm(
+                        blended
+                    )
+                )
+
+                if (
+                    np.isfinite(
+                        blended_norm
+                    )
+                    and
+                    blended_norm > 1e-6
+                ):
+                    blended = (
+                        blended
+                        /
+                        blended_norm
+                    )
+
+                    self.free_branch_dir = (
+                        float(
+                            blended[0]
+                        ),
+                        float(
+                            blended[1]
+                        ),
+                    )
 
 
         # First trustworthy direct measurement.
@@ -4378,8 +4815,10 @@ def main():
 
                 if (
                     phase
-                    ==
-                    PHASE_WAIT_HOLE
+                    in (
+                        PHASE_WAIT_HOLE,
+                        PHASE_INSERTION,
+                    )
                     and
                     hole_model
                     is not None
@@ -4392,6 +4831,21 @@ def main():
                 ):
 
                     for camera in INSERTION_CONTROL_CAMERAS:
+
+                        # FREE_CONTINUOUS_HOLE_LIVE_RELOCALIZATION_V3
+                        # INSERTION: relocalize Left Wrist only.
+                        # External keeps confirmed fixed hole target.
+                        if (
+                            phase
+                            ==
+                            PHASE_INSERTION
+                            and
+                            camera
+                            !=
+                            "left_wrist"
+                        ):
+                            continue
+
 
                         try:
 
@@ -5207,6 +5661,10 @@ def main():
                                 ),
                                 reference_uv,
                                 time.time(),
+                                tip_uv=
+                                    old_info.get(
+                                        "tip_uv"
+                                    ),
                             )
                         )
 

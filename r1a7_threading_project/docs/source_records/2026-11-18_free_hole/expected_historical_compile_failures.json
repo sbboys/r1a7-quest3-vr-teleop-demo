@@ -1,0 +1,12 @@
+[
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.broken_gate_cap10_20261118_013920",
+    "type": "IndentationError",
+    "message": "unexpected indent (wire_grasp_control_gate_v1.py.broken_gate_cap10_20261118_013920, line 475)"
+  },
+  {
+    "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.failed_cap10_v4_20261118_014039",
+    "type": "IndentationError",
+    "message": "unexpected indent (wire_grasp_control_gate_v1.py.failed_cap10_v4_20261118_014039, line 475)"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "source_files": 34,
+  "artifact_hashes": 41,
+  "successful_source_compile": 26,
+  "expected_historical_compile_failures": 2,
+  "docx_paragraphs": 409,
+  "original_images": 2,
+  "tar_source_checksums": 6,
+  "local_links": 8,
+  "current_V3_source_present": true,
+  "console_output_chain_unchanged": true,
+  "cited_trace_available": false,
+  "runtime_executed": false,
+  "hardware_executed": false
+}

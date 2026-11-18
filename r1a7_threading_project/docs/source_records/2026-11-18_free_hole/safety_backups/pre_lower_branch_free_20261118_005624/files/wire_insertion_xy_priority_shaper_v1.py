@@ -1,0 +1,1286 @@
+#!/usr/bin/env python3
+
+# XY_PRIORITY_INSERTION_SHAPER_V1
+#
+# GRASP:
+#   Fusion output is passed through unchanged.
+#
+# INSERTION:
+#   External -> Base X
+#   Left     -> Base Y
+#   XY alignment controls how much -Z descent is allowed.
+#   XY remains closed-loop during every Z movement cycle.
+
+import argparse
+import json
+import math
+import os
+import tempfile
+import time
+from pathlib import Path
+
+
+SRC = Path(
+    "/tmp/r1a7_wire_grasp_fusion_preinsert_v1.json"
+)
+
+# INSERTION_PERCEPTION_INPUT_FIX_V2
+INSERTION = Path(
+    "/tmp/r1a7_insertion_target_state_v1.json"
+)
+
+PERCEPTION = Path(
+    "/tmp/r1a7_insertion_perception_v1.json"
+)
+
+OUT_ACTIVE = Path(
+    "/tmp/r1a7_wire_grasp_fusion_shadow_v1.json"
+)
+
+OUT_PREVIEW = Path(
+    "/tmp/r1a7_wire_grasp_fusion_xy_priority_preview_v1.json"
+)
+
+ACTUAL = Path(
+    "/tmp/r1a7_cartesian_actual_state_v1.json"
+)
+
+
+# ------------------------------------------------------------
+# Calibration
+# ------------------------------------------------------------
+
+# XY_LATERAL_PIXEL_PRIORITY_V2
+#
+# Lateral alignment:
+#   External du -> Base X
+#   Left du     -> Base Y
+#
+# Left dv is DEPTH/Z information and must NOT keep driving Y.
+#
+# This prevents the previous deadlock:
+# large vertical dv -> endless lateral Y motion -> Z never enabled.
+
+EXT_X_KP = 0.020
+
+# Observed sign from real data:
+# negative Left du + positive Base-Y motion moved du toward zero.
+LEFT_U_KP = 0.025
+
+EXT_X_DEADBAND_PX = 4.0
+LEFT_U_DEADBAND_PX = 4.0
+
+# Left camera calibrated Y velocity controller:
+# vy = 0.009833 * du + 0.007806 * dv
+LEFT_VY_DU = 0.009833
+LEFT_VY_DV = 0.007806
+
+# Left camera physical displacement estimate:
+#
+# dY = 0.176705 * du - 0.141834 * dv
+#
+# IMPORTANT:
+# stage decisions use physical dY, NOT the velocity law above.
+LEFT_DY_DU = 0.176705
+LEFT_DY_DV = -0.141834
+
+
+# ------------------------------------------------------------
+# XY thresholds
+# ------------------------------------------------------------
+
+# Coarse lateral alignment.
+#
+# The 20261117_184206 run reached:
+#   External du ~= -25 px
+#   Left du     ~= -10 px
+# while the images were already close enough that Z should begin.
+#
+# Therefore Z is allowed progressively before perfect zero-pixel alignment.
+COARSE_EXT_X_PX = 30.0
+COARSE_LEFT_U_PX = 15.0
+
+# Fine lateral alignment.
+FINE_EXT_X_PX = 10.0
+FINE_LEFT_U_PX = 6.0
+
+# Hysteresis: once descending, do not stop Z for tiny pixel jitter.
+RETURN_EXT_X_PX = 45.0
+RETURN_LEFT_U_PX = 25.0
+
+# 20 Hz -> about 0.25 s stable before transition.
+STABLE_CYCLES = 5
+
+
+# ------------------------------------------------------------
+# Velocity limits mm/s
+# ------------------------------------------------------------
+
+APPROACH_XY_MAX = 0.60
+MID_XY_MAX = 0.35
+FINE_XY_MAX = 0.20
+INSERT_XY_MAX = 0.08
+
+APPROACH_Z_MAX = 0.10
+FINAL_Z_MAX = 0.05
+
+# CONTINUOUS_VISUAL_XYZ_CONTROL_V6
+#
+# No accumulated Z-travel stop in the visual Shaper.
+#
+# X:
+#   External du
+#
+# Y:
+#   Left du
+#
+# Z:
+#   Left dv
+#
+# Constraints act on velocity commands, NOT accumulated travel.
+FINAL_Z_DEADBAND_PX = 8.0
+
+# At |left_dv| >= this value, Z is allowed to use its current
+# configured maximum speed (subject to XY alignment scale).
+FINAL_Z_FULL_SPEED_PX = 80.0
+
+# If Z passes slightly beyond the target image level, allow a
+# much slower positive-Z correction instead of stopping all axes.
+FINAL_Z_UP_MAX = 0.02
+# ------------------------------------------------------------
+# Freshness
+# ------------------------------------------------------------
+
+SRC_MAX_AGE_S = 0.65
+INSERTION_MAX_AGE_S = 0.65
+ACTUAL_MAX_AGE_S = 0.50
+
+
+# FIXED_FREE_CONTROL_LOCK_V3
+#
+# External + Left Wrist are fixed cameras.
+#
+# A FREE candidate is not allowed to change the control point
+# immediately after a large image jump.
+#
+# Initial lock / relock requires consecutive spatially-consistent
+# observations. During relock, all insertion motion is stopped.
+FIXED_FREE_JUMP_PX = 14.0
+FIXED_FREE_PENDING_CLUSTER_PX = 5.0
+FIXED_FREE_CONFIRM_FRAMES = 4
+FIXED_FREE_EMA_ALPHA = 0.25
+
+
+def read_json(path):
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else None
+    except Exception:
+        return None
+
+
+def age_s(d):
+    if not isinstance(d, dict):
+        return float("inf")
+    try:
+        return max(
+            0.0,
+            time.time() - float(d.get("timestamp", 0.0)),
+        )
+    except Exception:
+        return float("inf")
+
+
+def finite(v):
+    try:
+        return math.isfinite(float(v))
+    except Exception:
+        return False
+
+
+def clip(v, lim):
+    v = float(v)
+    lim = abs(float(lim))
+    return max(-lim, min(lim, v))
+
+
+def uv(v):
+    if (
+        isinstance(v, (list, tuple))
+        and len(v) >= 2
+        and finite(v[0])
+        and finite(v[1])
+    ):
+        return float(v[0]), float(v[1])
+    return None
+
+
+def atomic_write(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    fd, tmp = tempfile.mkstemp(
+        prefix=path.name + ".",
+        suffix=".tmp",
+        dir=str(path.parent),
+    )
+
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(
+                data,
+                f,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            f.flush()
+            os.fsync(f.fileno())
+
+        os.replace(tmp, path)
+
+    finally:
+        try:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+        except Exception:
+            pass
+
+
+def insertion_active(d):
+    if not isinstance(d, dict):
+        return False
+
+    return bool(
+        d.get("target_ready", False)
+        and d.get("target_confirmed", False)
+        and str(d.get("phase", "")) == "INSERTION_TRACKING"
+    )
+
+
+PAIR_KEYS = (
+    ("free_uv", "hole_uv"),
+    ("free_tip_uv", "hole_uv"),
+    ("free_endpoint_uv", "hole_uv"),
+    ("wire_free_uv", "hole_uv"),
+    ("free_uv", "hole_target_uv"),
+    ("free_uv", "target_hole_uv"),
+)
+
+
+def candidate_pair(d):
+    if not isinstance(d, dict):
+        return None
+
+    for fk, hk in PAIR_KEYS:
+        f = uv(d.get(fk))
+        h = uv(d.get(hk))
+
+        if f is not None and h is not None:
+            return {
+                "free": f,
+                "hole": h,
+                "free_key": fk,
+                "hole_key": hk,
+            }
+
+    return None
+
+
+def walk_dicts(obj, path="root"):
+    if isinstance(obj, dict):
+        yield path, obj
+
+        for k, v in obj.items():
+            if isinstance(v, (dict, list)):
+                yield from walk_dicts(
+                    v,
+                    path + "." + str(k),
+                )
+
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            if isinstance(v, (dict, list)):
+                yield from walk_dicts(
+                    v,
+                    path + f"[{i}]",
+                )
+
+
+def label_text(path, d):
+    values = [path]
+
+    for k in (
+        "camera",
+        "camera_name",
+        "source_camera",
+        "wrist_control_camera",
+        "view",
+        "name",
+        "source",
+    ):
+        if k in d:
+            values.append(str(d.get(k)))
+
+    return " ".join(values).lower()
+
+
+def find_camera(root, which):
+    best = None
+
+    for path, d in walk_dicts(root):
+        pair = candidate_pair(d)
+
+        if pair is None:
+            continue
+
+        label = label_text(path, d)
+
+        score = 0
+
+        if which == "external":
+            if "external" in label:
+                score += 100
+            if ".ext" in label or " ext " in label:
+                score += 40
+            if "left" in label or "right" in label:
+                score -= 40
+            if "wrist" in label:
+                score -= 30
+
+        elif which == "left":
+            if "left_wrist" in label:
+                score += 120
+            if "left wrist" in label:
+                score += 120
+            if "left" in label:
+                score += 80
+            if "wrist" in label:
+                score += 30
+            if "right" in label:
+                score -= 200
+            if "external" in label:
+                score -= 100
+
+        if best is None or score > best["score"]:
+            best = {
+                "score": score,
+                "path": path,
+                "label": label,
+                **pair,
+            }
+
+    if best is None:
+        return None
+
+    # Refuse ambiguous camera binding instead of guessing.
+    if best["score"] <= 0:
+        return None
+
+    return best
+
+
+def z_scale_from_xy(score):
+    if score >= 1.0:
+        return 0.0
+
+    if score >= 0.60:
+        return 0.15
+
+    if score >= 0.30:
+        return 0.35
+
+    if score >= 0.15:
+        return 0.60
+
+    return 1.00
+
+
+def xy_cap_from_score(score):
+    if score >= 1.0:
+        return APPROACH_XY_MAX
+
+    if score >= 0.60:
+        return APPROACH_XY_MAX
+
+    if score >= 0.30:
+        return MID_XY_MAX
+
+    if score >= 0.15:
+        return FINE_XY_MAX
+
+    return INSERT_XY_MAX
+
+
+def fixed_free_identity_update(track, uv):
+    """
+    Stable identity filter for fixed-camera FREE endpoint.
+
+    Returns:
+        control_uv, stable, jump_px, pending_count
+    """
+    u = float(uv[0])
+    v = float(uv[1])
+    cur = (u, v)
+
+    accepted = track.get("accepted")
+
+    # --------------------------------------------------------
+    # No accepted identity yet:
+    # require N consistent frames before allowing motion.
+    # --------------------------------------------------------
+    if accepted is None:
+        pending = track.get("pending")
+
+        if pending is None:
+            track["pending"] = cur
+            track["pending_count"] = 1
+
+            return (
+                cur,
+                False,
+                None,
+                1,
+            )
+
+        dp = math.hypot(
+            cur[0] - pending[0],
+            cur[1] - pending[1],
+        )
+
+        if dp <= FIXED_FREE_PENDING_CLUSTER_PX:
+            a = FIXED_FREE_EMA_ALPHA
+
+            track["pending"] = (
+                (1.0 - a) * pending[0] + a * cur[0],
+                (1.0 - a) * pending[1] + a * cur[1],
+            )
+
+            track["pending_count"] = (
+                int(track.get("pending_count", 0)) + 1
+            )
+
+        else:
+            track["pending"] = cur
+            track["pending_count"] = 1
+
+        if (
+            track["pending_count"]
+            >= FIXED_FREE_CONFIRM_FRAMES
+        ):
+            track["accepted"] = track["pending"]
+            track["pending"] = None
+            track["pending_count"] = 0
+
+            return (
+                track["accepted"],
+                True,
+                0.0,
+                FIXED_FREE_CONFIRM_FRAMES,
+            )
+
+        return (
+            track["pending"],
+            False,
+            dp,
+            track["pending_count"],
+        )
+
+    # --------------------------------------------------------
+    # Already locked.
+    # --------------------------------------------------------
+    jump = math.hypot(
+        cur[0] - accepted[0],
+        cur[1] - accepted[1],
+    )
+
+    if jump <= FIXED_FREE_JUMP_PX:
+        a = FIXED_FREE_EMA_ALPHA
+
+        accepted = (
+            (1.0 - a) * accepted[0] + a * cur[0],
+            (1.0 - a) * accepted[1] + a * cur[1],
+        )
+
+        track["accepted"] = accepted
+        track["pending"] = None
+        track["pending_count"] = 0
+
+        return (
+            accepted,
+            True,
+            jump,
+            0,
+        )
+
+    # --------------------------------------------------------
+    # Large jump:
+    # do NOT immediately switch identity.
+    # Build a new candidate cluster.
+    # --------------------------------------------------------
+    pending = track.get("pending")
+
+    if pending is None:
+        track["pending"] = cur
+        track["pending_count"] = 1
+
+    else:
+        dp = math.hypot(
+            cur[0] - pending[0],
+            cur[1] - pending[1],
+        )
+
+        if dp <= FIXED_FREE_PENDING_CLUSTER_PX:
+            a = FIXED_FREE_EMA_ALPHA
+
+            track["pending"] = (
+                (1.0 - a) * pending[0] + a * cur[0],
+                (1.0 - a) * pending[1] + a * cur[1],
+            )
+
+            track["pending_count"] = (
+                int(track.get("pending_count", 0)) + 1
+            )
+
+        else:
+            track["pending"] = cur
+            track["pending_count"] = 1
+
+    # Relock only after consecutive confirmation.
+    if (
+        track["pending_count"]
+        >= FIXED_FREE_CONFIRM_FRAMES
+    ):
+        track["accepted"] = track["pending"]
+        track["pending"] = None
+        track["pending_count"] = 0
+
+        return (
+            track["accepted"],
+            True,
+            jump,
+            FIXED_FREE_CONFIRM_FRAMES,
+        )
+
+    # Until confirmed:
+    # keep previous identity but mark unstable.
+    return (
+        accepted,
+        False,
+        jump,
+        track["pending_count"],
+    )
+
+
+def actual_z_mm(d):
+    if not isinstance(d, dict):
+        return None
+
+    xyz = d.get("actual_xyz_mm")
+
+    if (
+        isinstance(xyz, (list, tuple))
+        and len(xyz) >= 3
+        and finite(xyz[2])
+    ):
+        return float(xyz[2])
+
+    return None
+
+
+def stop_packet(raw, reason, state):
+    d = dict(raw) if isinstance(raw, dict) else {}
+
+    d.update({
+        "timestamp": time.time(),
+        "source": "xy_priority_insertion_shaper_v1",
+        "insertion_shaper_version":
+            "XY_PRIORITY_INSERTION_SHAPER_V1",
+        "insertion_shaper_state": state,
+        "insertion_shaper_reason": reason,
+        "fusion_mode": "STOP",
+        "guidance_valid": False,
+        "external_valid": False,
+        "wrist_valid": False,
+        "proposed_vx_mm_s": 0.0,
+        "proposed_vy_mm_s": 0.0,
+        "proposed_vz_mm_s": 0.0,
+    })
+
+    return d
+
+
+def main():
+    ap = argparse.ArgumentParser()
+
+    ap.add_argument(
+        "--enable-output",
+        action="store_true",
+        help=(
+            "Write Gate-facing output. Without this option, "
+            "write preview only."
+        ),
+    )
+
+    ap.add_argument(
+        "--hz",
+        type=float,
+        default=20.0,
+    )
+
+    args = ap.parse_args()
+
+    out_path = (
+        OUT_ACTIVE
+        if args.enable_output
+        else OUT_PREVIEW
+    )
+
+    period = 1.0 / max(1.0, float(args.hz))
+
+    state = "GRASP_PASS"
+    coarse_count = 0
+    fine_count = 0
+    insert_start_z = None
+    last_print = 0.0
+
+    fixed_free_identity = {
+        "external": {
+            "accepted": None,
+            "pending": None,
+            "pending_count": 0,
+        },
+        "left_wrist": {
+            "accepted": None,
+            "pending": None,
+            "pending_count": 0,
+        },
+    }
+
+    print(
+        "[XY SHAPER] version=XY_PRIORITY_INSERTION_SHAPER_V1 "
+        f"active={int(args.enable_output)} "
+        f"output={out_path}",
+        flush=True,
+    )
+
+    while True:
+        t0 = time.monotonic()
+
+        raw = read_json(SRC)
+        ins = read_json(INSERTION)
+
+        if raw is None:
+            time.sleep(period)
+            continue
+
+        active = insertion_active(ins)
+
+        # ----------------------------------------------------
+        # GRASP: exact passthrough.
+        #
+        # No validity reinterpretation.
+        # No velocity change.
+        # No fusion_mode change.
+        # ----------------------------------------------------
+        if not active:
+            state = "GRASP_PASS"
+            coarse_count = 0
+            fine_count = 0
+            insert_start_z = None
+
+            # New grasp cycle -> require fresh fixed-camera
+            # FREE identity confirmation before insertion motion.
+            for _track in fixed_free_identity.values():
+                _track["accepted"] = None
+                _track["pending"] = None
+                _track["pending_count"] = 0
+
+            atomic_write(
+                out_path,
+                raw,
+            )
+
+            now = time.monotonic()
+
+            if now - last_print >= 0.50:
+                print(
+                    "[XY SHAPER] "
+                    "state=GRASP_PASS "
+                    "passthrough=1 "
+                    f"src_age={age_s(raw):.3f}",
+                    flush=True,
+                )
+                last_print = now
+
+        else:
+            # ------------------------------------------------
+            # INSERTION freshness
+            # ------------------------------------------------
+            if age_s(raw) > SRC_MAX_AGE_S:
+                out = stop_packet(
+                    raw,
+                    "FUSION_SOURCE_STALE",
+                    state,
+                )
+
+                atomic_write(out_path, out)
+
+                time.sleep(period)
+                continue
+
+            if age_s(ins) > INSERTION_MAX_AGE_S:
+                out = stop_packet(
+                    raw,
+                    "INSERTION_STATE_STALE",
+                    state,
+                )
+
+                atomic_write(out_path, out)
+
+                time.sleep(period)
+                continue
+
+            perception = read_json(PERCEPTION)
+
+            if perception is None:
+                out = stop_packet(
+                    raw,
+                    "INSERTION_PERCEPTION_MISSING",
+                    state,
+                )
+
+                atomic_write(out_path, out)
+
+                time.sleep(period)
+                continue
+
+            ext = find_camera(
+                perception,
+                "external",
+            )
+
+            left = find_camera(
+                perception,
+                "left",
+            )
+
+            if ext is None or left is None:
+                out = stop_packet(
+                    raw,
+                    "INSERTION_CAMERA_BINDING_INVALID",
+                    state,
+                )
+
+                out.update({
+                    "external_camera_path":
+                        None if ext is None else ext["path"],
+                    "left_camera_path":
+                        None if left is None else left["path"],
+                })
+
+                atomic_write(out_path, out)
+
+                now = time.monotonic()
+
+                if now - last_print >= 0.25:
+                    print(
+                        "[XY SHAPER] STOP "
+                        "reason=INSERTION_CAMERA_BINDING_INVALID "
+                        f"ext={None if ext is None else ext['path']} "
+                        f"left={None if left is None else left['path']}",
+                        flush=True,
+                    )
+                    last_print = now
+
+                time.sleep(period)
+                continue
+
+            # ------------------------------------------------
+            # FIXED_FREE_CONTROL_LOCK_V3
+            #
+            # Both insertion control cameras are fixed.
+            # Never convert a one-frame FREE identity jump
+            # directly into Cartesian motion.
+            # ------------------------------------------------
+
+            (
+                ext_free_control,
+                ext_free_stable,
+                ext_free_jump,
+                ext_pending_count,
+            ) = fixed_free_identity_update(
+                fixed_free_identity["external"],
+                ext["free"],
+            )
+
+            (
+                left_free_control,
+                left_free_stable,
+                left_free_jump,
+                left_pending_count,
+            ) = fixed_free_identity_update(
+                fixed_free_identity["left_wrist"],
+                left["free"],
+            )
+
+            if not (
+                ext_free_stable
+                and
+                left_free_stable
+            ):
+                out = stop_packet(
+                    raw,
+                    "FIXED_FREE_RELOCK_PENDING",
+                    state,
+                )
+
+                out["insertion_free_identity"] = {
+                    "external": {
+                        "raw_uv": list(ext["free"]),
+                        "control_uv": list(ext_free_control),
+                        "stable": bool(ext_free_stable),
+                        "jump_px": ext_free_jump,
+                        "pending_count": int(ext_pending_count),
+                    },
+                    "left_wrist": {
+                        "raw_uv": list(left["free"]),
+                        "control_uv": list(left_free_control),
+                        "stable": bool(left_free_stable),
+                        "jump_px": left_free_jump,
+                        "pending_count": int(left_pending_count),
+                    },
+                }
+
+                atomic_write(
+                    out_path,
+                    out,
+                )
+
+                now = time.monotonic()
+
+                if now - last_print >= 0.20:
+                    print(
+                        "[XY SHAPER] STOP "
+                        "reason=FIXED_FREE_RELOCK_PENDING "
+                        f"EXT stable={int(ext_free_stable)} "
+                        f"jump={ext_free_jump} "
+                        f"confirm={ext_pending_count}/"
+                        f"{FIXED_FREE_CONFIRM_FRAMES} | "
+                        f"LEFT stable={int(left_free_stable)} "
+                        f"jump={left_free_jump} "
+                        f"confirm={left_pending_count}/"
+                        f"{FIXED_FREE_CONFIRM_FRAMES}",
+                        flush=True,
+                    )
+
+                    last_print = now
+
+                time.sleep(period)
+                continue
+
+            ext_free_u, ext_free_v = ext_free_control
+            ext_hole_u, ext_hole_v = ext["hole"]
+
+            left_free_u, left_free_v = left_free_control
+            left_hole_u, left_hole_v = left["hole"]
+
+            # Error convention:
+            # target - current
+            ext_du = ext_hole_u - ext_free_u
+            ext_dv = ext_hole_v - ext_free_v
+
+            left_du = left_hole_u - left_free_u
+            left_dv = left_hole_v - left_free_v
+
+            # Physical Base-Y displacement estimate.
+            left_dy_mm = (
+                LEFT_DY_DU * left_du
+                + LEFT_DY_DV * left_dv
+            )
+
+            # ------------------------------------------------
+            # XY_LATERAL_PIXEL_PRIORITY_V2
+            #
+            # IMPORTANT:
+            #
+            # External du controls lateral X.
+            # Left du controls lateral Y.
+            #
+            # Left dv is intentionally NOT used to keep pushing Y.
+            # During insertion, a large dv is expected before Z
+            # descends toward the hole.
+            # ------------------------------------------------
+
+            vx_raw = (
+                EXT_X_KP
+                * ext_du
+            )
+
+            vy_raw = (
+                -LEFT_U_KP
+                * left_du
+            )
+
+            # Pixel deadband prevents chasing sub-pixel / small
+            # endpoint jitter once lateral alignment is good.
+            if abs(ext_du) <= EXT_X_DEADBAND_PX:
+                vx_raw = 0.0
+
+            if abs(left_du) <= LEFT_U_DEADBAND_PX:
+                vy_raw = 0.0
+
+            # Lateral alignment score only.
+            #
+            # Do NOT use left_dy_mm here because its dv term
+            # previously prevented Z from ever starting.
+            score = max(
+                abs(ext_du) / COARSE_EXT_X_PX,
+                abs(left_du) / COARSE_LEFT_U_PX,
+            )
+
+            coarse_ok = bool(
+                abs(ext_du) <= COARSE_EXT_X_PX
+                and
+                abs(left_du) <= COARSE_LEFT_U_PX
+            )
+
+            fine_ok = bool(
+                abs(ext_du) <= FINE_EXT_X_PX
+                and
+                abs(left_du) <= FINE_LEFT_U_PX
+            )
+
+            z_scale = z_scale_from_xy(score)
+            xy_cap = xy_cap_from_score(score)
+
+            vx = clip(
+                vx_raw,
+                xy_cap,
+            )
+
+            vy = clip(
+                vy_raw,
+                xy_cap,
+            )
+
+            vz = 0.0
+            reason = None
+
+            # ------------------------------------------------
+            # State machine
+            # ------------------------------------------------
+
+            # NO_TERMINAL_INSERTION_DONE_V7
+            #
+            # In continuous visual XYZ insertion there is no
+            # terminal INSERTION_DONE state.
+            #
+            # Reaching the Z pixel deadband only means:
+            #     vz = 0
+            #
+            # X/Y remain visually controlled.
+            #
+            # Redirect any legacy/stale terminal state back into
+            # continuous FINAL_INSERT control.
+            if state == "INSERTION_DONE":
+                state = "FINAL_INSERT"
+                reason = "LEGACY_DONE_REDIRECT"
+
+            if state == "GRASP_PASS":
+                state = "APPROACH_XY"
+
+            if state == "APPROACH_XY":
+                vz = 0.0
+
+                if coarse_ok:
+                    coarse_count += 1
+                else:
+                    coarse_count = 0
+
+                if coarse_count >= STABLE_CYCLES:
+                    state = "APPROACH_3D"
+                    coarse_count = 0
+
+            elif state == "APPROACH_3D":
+                # XY is ALWAYS active.
+                #
+                # Z is allowed only as XY improves.
+                vz = (
+                    -APPROACH_Z_MAX
+                    * z_scale
+                )
+
+                # If XY becomes clearly bad again:
+                # stop descent first, return to XY approach.
+                if (
+                    abs(ext_du) > RETURN_EXT_X_PX
+                    or
+                    abs(left_du) > RETURN_LEFT_U_PX
+                ):
+                    vz = 0.0
+                    state = "APPROACH_XY"
+                    fine_count = 0
+
+                elif fine_ok:
+                    fine_count += 1
+
+                    if fine_count >= STABLE_CYCLES:
+                        # CONTINUOUS_VISUAL_XYZ_CONTROL_V6
+                        #
+                        # FINAL_INSERT is entered purely from visual
+                        # alignment. No actual-Z reference or accumulated
+                        # Z distance is required.
+                        state = "FINAL_INSERT"
+                        fine_count = 0
+
+                else:
+                    fine_count = 0
+
+            elif state == "FINAL_INSERT":
+                # ====================================================
+                # CONTINUOUS_VISUAL_XYZ_CONTROL_V6
+                #
+                # This state NEVER stops the whole arm merely because
+                # a Z travel distance or image threshold was reached.
+                #
+                # X/Y remain continuously closed-loop.
+                # Z is dynamically gated by current XY alignment.
+                # ====================================================
+
+                lateral_good = bool(
+                    abs(ext_du) <= RETURN_EXT_X_PX
+                    and
+                    abs(left_du) <= RETURN_LEFT_U_PX
+                )
+
+                if lateral_good:
+                    # Near the hole: small lateral correction authority.
+                    vx = clip(
+                        vx_raw,
+                        INSERT_XY_MAX,
+                    )
+
+                    vy = clip(
+                        vy_raw,
+                        INSERT_XY_MAX,
+                    )
+
+                else:
+                    # XY drifted during Z motion.
+                    #
+                    # Do NOT stop the whole robot.
+                    # Continue correcting X/Y with a little more authority,
+                    # while temporarily holding only Z.
+                    vx = clip(
+                        vx_raw,
+                        FINE_XY_MAX,
+                    )
+
+                    vy = clip(
+                        vy_raw,
+                        FINE_XY_MAX,
+                    )
+
+                # ----------------------------------------------------
+                # Z controller
+                # ----------------------------------------------------
+
+                if not lateral_good:
+                    # XY needs correction first.
+                    #
+                    # Only Z is held.
+                    vz = 0.0
+                    reason = "XY_REALIGN_Z_HOLD"
+
+                elif abs(left_dv) <= FINAL_Z_DEADBAND_PX:
+                    # Vertical image alignment reached.
+                    #
+                    # Do NOT set INSERTION_DONE here.
+                    # Do NOT stop X/Y.
+                    #
+                    # Simply hold the Z variable at zero.
+                    vz = 0.0
+                    reason = "Z_PIXEL_DEADBAND"
+
+                elif left_dv > 0.0:
+                    # Positive left_dv -> calibrated -Z direction.
+                    #
+                    # Speed decreases continuously as the pixel error
+                    # approaches zero.
+                    z_error_scale = min(
+                        1.0,
+                        abs(left_dv)
+                        /
+                        FINAL_Z_FULL_SPEED_PX,
+                    )
+
+                    vz = (
+                        -FINAL_Z_MAX
+                        *
+                        z_error_scale
+                        *
+                        z_scale
+                    )
+
+                    reason = None
+
+                else:
+                    # Small overshoot:
+                    # allow a much slower +Z correction rather than
+                    # stopping the complete Cartesian controller.
+                    z_error_scale = min(
+                        1.0,
+                        abs(left_dv)
+                        /
+                        FINAL_Z_FULL_SPEED_PX,
+                    )
+
+                    vz = (
+                        FINAL_Z_UP_MAX
+                        *
+                        z_error_scale
+                        *
+                        z_scale
+                    )
+
+                    reason = "Z_SMALL_RECOVERY"
+
+            elif state == "INSERTION_DONE":
+                vx = 0.0
+                vy = 0.0
+                vz = 0.0
+
+            else:
+                state = "APPROACH_XY"
+                vx = 0.0
+                vy = 0.0
+                vz = 0.0
+
+            # ------------------------------------------------
+            # Gate-compatible packet
+            # ------------------------------------------------
+            out = dict(raw)
+
+            out.update({
+                "timestamp": time.time(),
+
+                "source":
+                    "xy_priority_insertion_shaper_v1",
+
+                "insertion_shaper_version":
+                    "XY_PRIORITY_INSERTION_SHAPER_V1",
+
+                "insertion_shaper_state":
+                    state,
+
+                "insertion_shaper_reason":
+                    reason,
+
+                "fusion_mode":
+                    "DUAL",
+
+                "guidance_valid":
+                    True,
+
+                "external_valid":
+                    True,
+
+                "wrist_valid":
+                    True,
+
+                "proposed_vx_mm_s":
+                    float(vx),
+
+                "proposed_vy_mm_s":
+                    float(vy),
+
+                "proposed_vz_mm_s":
+                    float(vz),
+
+                "insertion_xy_priority": {
+                    "external_camera_path":
+                        ext["path"],
+
+                    "left_camera_path":
+                        left["path"],
+
+                    "external_free_uv":
+                        [ext_free_u, ext_free_v],
+
+                    "external_hole_uv":
+                        [ext_hole_u, ext_hole_v],
+
+                    "left_free_uv":
+                        [left_free_u, left_free_v],
+
+                    "left_hole_uv":
+                        [left_hole_u, left_hole_v],
+
+                    "external_du_px":
+                        float(ext_du),
+
+                    "external_dv_px":
+                        float(ext_dv),
+
+                    "left_du_px":
+                        float(left_du),
+
+                    "left_dv_px":
+                        float(left_dv),
+
+                    "left_dy_mm":
+                        float(left_dy_mm),
+
+                    "xy_score":
+                        float(score),
+
+                    "z_scale":
+                        float(z_scale),
+
+                    "xy_cap_mm_s":
+                        float(xy_cap),
+
+                    "vx_raw_mm_s":
+                        float(vx_raw),
+
+                    "vy_raw_mm_s":
+                        float(vy_raw),
+                },
+            })
+
+            atomic_write(
+                out_path,
+                out,
+            )
+
+            now = time.monotonic()
+
+            if now - last_print >= 0.25:
+                print(
+                    "[XY SHAPER] "
+                    f"state={state} "
+                    f"extX={ext_du:+.2f}px "
+                    f"leftU={left_du:+.2f}px " f"leftV={left_dv:+.2f}px " f"leftDYdiag={left_dy_mm:+.2f}mm "
+                    f"score={score:.3f} "
+                    f"zscale={z_scale:.2f} "
+                    f"cmd=({vx:+.3f},{vy:+.3f},{vz:+.3f}) "
+                    f"ext={ext['path']} "
+                    f"left={left['path']} "
+                    f"active={int(args.enable_output)}",
+                    flush=True,
+                )
+
+                last_print = now
+
+        dt = time.monotonic() - t0
+
+        if dt < period:
+            time.sleep(period - dt)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

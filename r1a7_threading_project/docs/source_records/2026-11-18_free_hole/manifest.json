@@ -1,0 +1,293 @@
+{
+  "base_commit": "7c316301769957b1adb3b4b3562b215bf03a8497",
+  "source_docx_paragraphs": 409,
+  "runtime_executed": false,
+  "hardware_executed": false,
+  "files": [
+    {
+      "source": "/home/robot/桌面/jiqiren/renwu/R1-A7_细线端点孔位识别与插孔调试技术路线汇总_20261118.docx",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/R1-A7_细线端点孔位识别与插孔调试技术路线汇总_20261118.docx",
+      "bytes": 153196,
+      "sha256": "b05b3cea07fdf72c0e42d427406985ae804c1c6d0c5a7cc3db2a710d79103a60",
+      "role": "original_docx"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/current/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "bytes": 172986,
+      "sha256": "c6f7b9e5f36e1f4e1106c58368e123386e87f393da710c0444c88d8f71afb50e",
+      "role": "current_research_source"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "bytes": 33114,
+      "sha256": "dc21dd5599633b445114e58f7959c81ff3dda8c38eaca0e84f65b54e0e6446f4",
+      "role": "current_research_source"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py",
+      "bytes": 33686,
+      "sha256": "dfe8f2828673923f402494bd61e20193632bf189d22138ffcd8752961e00b5a3",
+      "role": "current_research_source"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/current/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "bytes": 14898,
+      "sha256": "b31f3056a23775ed4fb8ef0acd9b94b8ff87ad838b9982c26a78ca88cdaaae85",
+      "role": "current_research_source"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/current/transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "bytes": 237951,
+      "sha256": "0c22da1185880aa681e3147599c03bc5b9d408da42176e6418ebc0a34195fcce",
+      "role": "current_research_source"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/transfer_control/tools/full_chain_runtime_recorder.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/current/transfer_control/tools/full_chain_runtime_recorder.py",
+      "bytes": 20550,
+      "sha256": "fa46290d2198be2d7c5174efa0bf8c66b3ee983b0ae26d8b00018380d6277041",
+      "role": "current_research_source"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "path": "r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "bytes": 172986,
+      "sha256": "c6f7b9e5f36e1f4e1106c58368e123386e87f393da710c0444c88d8f71afb50e",
+      "role": "normal_research_visual"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_free_continuous_hole_live_20261118_100112",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_free_continuous_hole_live_20261118_100112",
+      "bytes": 170452,
+      "sha256": "b9a12787fe2cc877a419647b88971fc653fc59bacba8d6ef78e52354dd5ba911",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_free_hole_live_v2_20261118_100436",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_free_hole_live_v2_20261118_100436",
+      "bytes": 170452,
+      "sha256": "b9a12787fe2cc877a419647b88971fc653fc59bacba8d6ef78e52354dd5ba911",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_lower_branch_identity_v1_20261118_010600",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py.before_lower_branch_identity_v1_20261118_010600",
+      "bytes": 160092,
+      "sha256": "e263a6ce6e45303c981b54e5fba9328a09a71b3bb0397b41d78385855b70ba39",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_cap5_20261118_014945",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_cap5_20261118_014945",
+      "bytes": 33833,
+      "sha256": "180224f06fce044861fb51ad6870381e83c31cb9f7e75a60870d8e3761285381",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_insertion_speed10_20261118_012126",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_insertion_speed10_20261118_012126",
+      "bytes": 33686,
+      "sha256": "dfe8f2828673923f402494bd61e20193632bf189d22138ffcd8752961e00b5a3",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_restore_original_speed_20261118_020458",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_restore_original_speed_20261118_020458",
+      "bytes": 33827,
+      "sha256": "698c1a601c97d2caf482ed72017735dcf3a31ebdb2bf670d137383ca142f9ddf",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_visual_cap10_20261118_013246",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py.before_visual_cap10_20261118_013246",
+      "bytes": 33686,
+      "sha256": "dfe8f2828673923f402494bd61e20193632bf189d22138ffcd8752961e00b5a3",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.before_cap5_20261118_014945",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.before_cap5_20261118_014945",
+      "bytes": 14661,
+      "sha256": "d0b212a8c6e304f0cbfe9cbbb1667282acc91ffa88de02d5f971c5d78d3a322e",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.before_restore_original_speed_20261118_020458",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.before_restore_original_speed_20261118_020458",
+      "bytes": 15063,
+      "sha256": "f4da572ea5c1dbbd465ff86f6f65cac94acefb4382a981292db87537ff04f4c9",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.before_visual_cap10_20261118_013246",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.before_visual_cap10_20261118_013246",
+      "bytes": 14898,
+      "sha256": "b31f3056a23775ed4fb8ef0acd9b94b8ff87ad838b9982c26a78ca88cdaaae85",
+      "role": "dated_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.broken_gate_cap10_20261118_013920",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.broken_gate_cap10_20261118_013920",
+      "bytes": 14735,
+      "sha256": "026e70f5651af938c57958deedaa4abafa19f5236c73598efb7ea661431aad04",
+      "role": "failed_edit_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.failed_cap10_v4_20261118_014039",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/before_change/vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py.failed_cap10_v4_20261118_014039",
+      "bytes": 14751,
+      "sha256": "491599d90ad926d66acf0865c87f7db117ae224e0730252632d365a111fdc625",
+      "role": "failed_edit_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/current_local_changes.patch",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/current_local_changes.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/files/live_grasp_to_insertion_visual_v3.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/files/live_grasp_to_insertion_visual_v3.py",
+      "bytes": 160092,
+      "sha256": "e263a6ce6e45303c981b54e5fba9328a09a71b3bb0397b41d78385855b70ba39",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/files/lower_branch_free_tracker_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/files/lower_branch_free_tracker_v1.py",
+      "bytes": 8966,
+      "sha256": "bb147ee8dd580d2b06e9f2e0e3e26517986e6d1fa0bf4b0cf8e7767b8d8a94bd",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/files/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/files/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "bytes": 237951,
+      "sha256": "0c22da1185880aa681e3147599c03bc5b9d408da42176e6418ebc0a34195fcce",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/files/wire_grasp_control_gate_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/files/wire_grasp_control_gate_v1.py",
+      "bytes": 14898,
+      "sha256": "b31f3056a23775ed4fb8ef0acd9b94b8ff87ad838b9982c26a78ca88cdaaae85",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/files/wire_grasp_fusion_shadow_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/files/wire_grasp_fusion_shadow_v1.py",
+      "bytes": 33114,
+      "sha256": "dc21dd5599633b445114e58f7959c81ff3dda8c38eaca0e84f65b54e0e6446f4",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/files/wire_insertion_xy_priority_shaper_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/files/wire_insertion_xy_priority_shaper_v1.py",
+      "bytes": 33686,
+      "sha256": "dfe8f2828673923f402494bd61e20193632bf189d22138ffcd8752961e00b5a3",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/git_status.txt",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/git_status.txt",
+      "bytes": 9105,
+      "sha256": "0ca1497bd859667a77f3d926d5e784d5b49f4e109bcd8324501aa73d04648128",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/r1a7_pre_lower_branch_free_source_snapshot.tar.gz",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/r1a7_pre_lower_branch_free_source_snapshot.tar.gz",
+      "bytes": 88143,
+      "sha256": "0679c7804dc214c963b7902a7a833088babbba84f4e8484d615e1de0e6844286",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_lower_branch_free_20261118_005624/source.sha256",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_lower_branch_free_20261118_005624/source.sha256",
+      "bytes": 1016,
+      "sha256": "9aabace0ff9fcfeb33bd6e738e938ebd53351c8dd2b240bd411724cb0c4c5d2a",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_free_hole_live_20261118_095120/live_grasp_to_insertion_visual_v3.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_free_hole_live_20261118_095120/live_grasp_to_insertion_visual_v3.py",
+      "bytes": 170452,
+      "sha256": "b9a12787fe2cc877a419647b88971fc653fc59bacba8d6ef78e52354dd5ba911",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/r1a7_backups/pre_free_hole_live_20261118_095120/visual.sha256",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/safety_backups/pre_free_hole_live_20261118_095120/visual.sha256",
+      "bytes": 162,
+      "sha256": "ac9c4bb206ad9b61d837a20306354c08c0d3d1fda751bcb80841804e0e09cc3d",
+      "role": "safety_backup"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/experimental/lower_branch_free_tracker_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/experimental_candidates/vision_dual_camera/task6_threading/dataset_tools/wire_unet/experimental/lower_branch_free_tracker_v1.py",
+      "bytes": 8966,
+      "sha256": "bb147ee8dd580d2b06e9f2e0e3e26517986e6d1fa0bf4b0cf8e7767b8d8a94bd",
+      "role": "experimental_not_default"
+    },
+    {
+      "source": "/home/robot/unitree_sim_isaaclab_threading/r1a7_threading_project/vision_dual_camera/task6_threading/dataset_tools/wire_unet/experimental/test_lower_branch_free_tracker_v1.py",
+      "path": "r1a7_threading_project/docs/source_records/2026-11-18_free_hole/research_code_snapshot/experimental_candidates/vision_dual_camera/task6_threading/dataset_tools/wire_unet/experimental/test_lower_branch_free_tracker_v1.py",
+      "bytes": 3989,
+      "sha256": "c1138f2e8e400ca5ce02de3c2476ce73b9af19e785d39da150c0c3ea2d46400e",
+      "role": "experimental_not_default"
+    }
+  ],
+  "source_changes": [
+    {
+      "path": "vision_dual_camera/task6_threading/dataset_tools/wire_unet/live_grasp_to_insertion_visual_v3.py",
+      "status": "modified",
+      "old_sha256": "e263a6ce6e45303c981b54e5fba9328a09a71b3bb0397b41d78385855b70ba39",
+      "new_sha256": "c6f7b9e5f36e1f4e1106c58368e123386e87f393da710c0444c88d8f71afb50e"
+    },
+    {
+      "path": "vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_fusion_shadow_v1.py",
+      "status": "unchanged",
+      "old_sha256": "dc21dd5599633b445114e58f7959c81ff3dda8c38eaca0e84f65b54e0e6446f4",
+      "new_sha256": "dc21dd5599633b445114e58f7959c81ff3dda8c38eaca0e84f65b54e0e6446f4"
+    },
+    {
+      "path": "vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_insertion_xy_priority_shaper_v1.py",
+      "status": "unchanged",
+      "old_sha256": "dfe8f2828673923f402494bd61e20193632bf189d22138ffcd8752961e00b5a3",
+      "new_sha256": "dfe8f2828673923f402494bd61e20193632bf189d22138ffcd8752961e00b5a3"
+    },
+    {
+      "path": "vision_dual_camera/task6_threading/perception/wire/proposed/r1a7_wire/wire_grasp_control_gate_v1.py",
+      "status": "unchanged",
+      "old_sha256": "b31f3056a23775ed4fb8ef0acd9b94b8ff87ad838b9982c26a78ca88cdaaae85",
+      "new_sha256": "b31f3056a23775ed4fb8ef0acd9b94b8ff87ad838b9982c26a78ca88cdaaae85"
+    },
+    {
+      "path": "transfer_control/experimental/r1a7_cartesian_stream_control_kd30_posvel_wu_dqik_u010_auto_grasp_direct_v1.py",
+      "status": "unchanged",
+      "old_sha256": "0c22da1185880aa681e3147599c03bc5b9d408da42176e6418ebc0a34195fcce",
+      "new_sha256": "0c22da1185880aa681e3147599c03bc5b9d408da42176e6418ebc0a34195fcce"
+    },
+    {
+      "path": "transfer_control/tools/full_chain_runtime_recorder.py",
+      "status": "unchanged",
+      "old_sha256": "fa46290d2198be2d7c5174efa0bf8c66b3ee983b0ae26d8b00018380d6277041",
+      "new_sha256": "fa46290d2198be2d7c5174efa0bf8c66b3ee983b0ae26d8b00018380d6277041"
+    }
+  ],
+  "document_visual_sha256": "b9a12787fe2cc877a419647b88971fc653fc59bacba8d6ef78e52354dd5ba911",
+  "current_visual_sha256": "c6f7b9e5f36e1f4e1106c58368e123386e87f393da710c0444c88d8f71afb50e",
+  "missing_evidence": [
+    "r1a7_cartesian_trace_20261118_013709.csv",
+    "r1a7_cartesian_trace_20261118_090237.csv",
+    "matching 090237 full-chain",
+    "original pasted text attachment"
+  ],
+  "large_asset_policy": "Models/raw videos not duplicated; source backup tar is small and included."
+}

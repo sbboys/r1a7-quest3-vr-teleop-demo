@@ -1,0 +1,6960 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import collections
+import copy
+import json
+import math
+import os
+import sys
+import time
+from pathlib import Path
+
+import cv2
+import numpy as np
+
+
+# ============================================================
+# Existing validated visual stacks
+# ============================================================
+
+THIS_DIR = Path(__file__).resolve().parent
+HOLE_DIR = THIS_DIR.parent / "hole_unet"
+
+if str(THIS_DIR) not in sys.path:
+    sys.path.insert(0, str(THIS_DIR))
+
+if str(HOLE_DIR) not in sys.path:
+    sys.path.insert(0, str(HOLE_DIR))
+
+import live_visual_guidance_shadow_v1 as grasp
+import live_hole_board_unet_three_camera_v1 as hole_live
+
+# INSERTION_DATASET_RECORDER_INTEGRATION_V1
+import insertion_dataset_recorder_v1 as insertion_recorder
+
+
+# ============================================================
+# Configuration
+# ============================================================
+
+WINDOW = "R1-A7 GRASP -> INSERTION VISUAL V1"
+
+CAMERA_ORDER = (
+    "external",
+    "right_wrist",
+    "left_wrist",
+)
+
+# OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+#
+# External and Left Wrist are insertion control cameras.
+# Right Wrist is monitoring / dataset coverage only during insertion.
+#
+# Insertion may start when AT LEAST ONE control camera has:
+#   - manual target selected
+#   - target_uv available
+#   - target currently valid
+#
+# Insertion requires BOTH External and Left Wrist.
+# INSERTION_LEFT_WRIST_CONTROL_V1
+#
+# GRASP:
+#   External + Right Wrist unchanged.
+#
+# INSERTION:
+#   External + Left Wrist are the ONLY control cameras.
+#   Right Wrist remains live for monitoring only.
+INSERTION_CONTROL_CAMERAS = (
+    "external",
+    "left_wrist",
+)
+
+FIXED_WIRE_CAMERAS = {
+    "external",
+    "left_wrist",
+}
+
+PHASE_GRASP = "GRASP"
+PHASE_WAIT_HOLE = "WAIT_HOLE_TARGET"
+PHASE_INSERTION = "INSERTION_TRACKING"
+
+
+CLOSE_SIGNAL = Path(
+    "/tmp/r1a7_auto_grasp_close_settle_v1.json"
+)
+
+TARGET_STATE_OUT = Path(
+    "/tmp/r1a7_insertion_target_state_v1.json"
+)
+
+PERCEPTION_STATE_OUT = Path(
+    "/tmp/r1a7_insertion_perception_v1.json"
+)
+
+
+# WIRE_V4_HOLE_V2_RUNTIME_INTEGRATION_V1
+# WIRE_V5_HOLE_V3_RUNTIME_INTEGRATION_V1
+# Legacy variable name retained to minimize changes downstream.
+WIRE_V4_CHECKPOINT = Path(
+    "/data/threading/new_board_dataset/frozen/models/"
+    "wire_v5_newboard_seed44_epoch123.pt"
+)
+
+HOLE_CHECKPOINT = Path(
+    "/data/threading/new_board_dataset/frozen/models/"
+    "hole_v3_newboard_seed44_epoch64.pt"
+)
+
+HOLE_TILE = 512
+HOLE_STRIDE = 384
+
+HOLE_MIN_AREA = 15
+HOLE_MAX_AREA = 5000
+
+# Run Hole U-Net every N visual loops after grasp completion.
+HOLE_EVERY = 2
+
+# Mouse click must be reasonably near an actual detected hole.
+HOLE_CLICK_MAX_PX = 55.0
+
+# INSERTION_TARGET_TRACK_V2
+#
+# Before selection:
+#   detect all candidate holes so the user can click one.
+#
+# After selection:
+#   ignore all other holes and only search inside a local ROI
+#   around the previously selected physical hole.
+HOLE_TRACK_MAX_JUMP_PX = 25.0
+
+# DYNAMIC_SELECTED_HOLE_TRACK_V1
+# Wrist cameras move with the arm, therefore their selected-hole
+# image motion can be substantially larger than the fixed external view.
+HOLE_TRACK_MAX_JUMP_BY_CAMERA = {
+    "external": 25.0,
+    "right_wrist": 55.0,
+    "left_wrist": 55.0,
+}
+
+# INSERTION_VISUAL_STABILITY_V1
+#
+# Hole:
+#   keep the existing ROI / identity association,
+#   then low-pass the accepted selected-hole center.
+#
+# FREE:
+#   reject implausible one-frame endpoint jumps,
+#   then low-pass accepted measurements.
+HOLE_TRACK_EMA_ALPHA = 0.15
+
+# External stays strongly smoothed.
+# Wrist targets need lower lag while the cameras move with the arms.
+HOLE_TRACK_EMA_ALPHA_BY_CAMERA = {
+    "external": 0.15,
+    "right_wrist": 0.45,
+    "left_wrist": 0.45,
+}
+# FIXED_CAMERA_FREE_IDENTITY_V2
+#
+# External + Left Wrist are fixed cameras during insertion.
+# Use a tighter one-frame FREE identity gate for both control views.
+# Right Wrist keeps the historical threshold because it is monitoring only.
+FREE_TRACK_EMA_ALPHA = 0.20
+FREE_TRACK_MAX_JUMP_PX = 35.0
+
+FREE_TRACK_MAX_JUMP_PX_BY_CAMERA = {
+    "external": 14.0,
+    "left_wrist": 14.0,
+    "right_wrist": 35.0,
+}
+
+HOLE_TARGET_ROI_RADIUS_PX = 50
+
+# Search region for the identity-locked physical hole.
+HOLE_TRACK_ROI_RADIUS_BY_CAMERA = {
+    "external": 50,
+    "right_wrist": 90,
+    "left_wrist": 90,
+}
+
+# Short detection dropouts must not immediately invalidate
+# a manually selected physical target.
+HOLE_TARGET_HOLD_S = 0.80
+
+HOLE_FRESH_S = 0.80
+
+
+# TIP-relative FREE fallback.
+TIP_FREE_REFERENCE_SAMPLES = 20
+TIP_FREE_FALLBACK_MAX_AGE_S = 0.50
+
+# Predicted FREE receives reduced authority.
+TIP_FREE_FALLBACK_SPEED_SCALE = 0.40
+
+
+# FREE_CONTROL_HOLD_V1
+#
+# Bridge only very short measured-FREE dropouts.
+# At the current insertion speed cap of 1 mm/s,
+# 0.25 s corresponds to at most about 0.25 mm motion.
+FREE_CONTROL_HOLD_S = 0.25
+FREE_CONTROL_HOLD_SPEED_SCALE = 0.20
+
+
+# Close signal must be fresh.
+CLOSE_SIGNAL_MAX_AGE_S = 0.50
+
+# ============================================================
+# INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+#
+# External and Left Wrist are FIXED cameras during insertion.
+#
+# Hole U-Net is therefore used ONLY before insertion to select
+# the physical hole. After confirmation, hole_uv is frozen.
+#
+# During insertion:
+#   - no Hole U-Net
+#   - no hole tracker
+#   - only FREE endpoint is refreshed
+#   - guidance is published every visual loop
+# ============================================================
+
+INSERTION_FIXED_HOLE_CAMERAS = (
+    "external",
+    "left_wrist",
+)
+
+# Fine insertion control must not inherit the 4 px GRASP
+# deadband. 0.5 px corresponds to the same rendered pixel.
+INSERTION_FINE_DEADBAND_PX = 0.50
+
+# Local axis cap before the Gate's final 1 mm/s vector cap.
+INSERTION_FINE_MAX_AXIS_MM_S = 1.0
+
+# Both fixed-camera views must show FREE and HOLE on the same
+# integer pixel for this many NEW visual cycles.
+INSERTION_ALIGN_HOLD_UPDATES = 3
+
+
+# ============================================================
+# INSERTION_DIRECT_FREE_TRACK_V1
+#
+# Insertion-only FREE endpoint tracker.
+#
+# External + Left Wrist:
+#   current raw wire path
+#       -> two physical endpoints
+#       -> keep FREE endpoint identity
+#       -> reject one-frame false jumps
+#       -> automatic 3-frame reacquisition
+#       -> median + light EMA
+#
+# GRASP path is NOT changed.
+# ============================================================
+
+INSERTION_DIRECT_FREE_NORMAL_JUMP_PX = {
+    "external": 30.0,
+    "left_wrist": 35.0,
+}
+
+INSERTION_DIRECT_FREE_EMA_ALPHA = {
+    "external": 0.30,
+    "left_wrist": 0.45,
+}
+
+INSERTION_DIRECT_FREE_IDENTITY_MARGIN_PX = 8.0
+
+INSERTION_DIRECT_FREE_REACQUIRE_CLUSTER_PX = 8.0
+INSERTION_DIRECT_FREE_REACQUIRE_UPDATES = 3
+
+INSERTION_DIRECT_FREE_MEDIAN_WINDOW = 3
+
+# Only bridge a very short real-measurement dropout.
+INSERTION_DIRECT_FREE_HOLD_S = 0.15
+
+
+
+# INSERTION_LEFT_WRIST_2X2_SHADOW_V1
+LEFT_INSERTION_K_S = 0.25
+
+LEFT_INSERTION_INV_J_YZ = np.asarray(
+    [
+        [0.176705, -0.141834],
+        [0.055377, -0.069761],
+    ],
+    dtype=np.float64,
+)
+
+# Additional local protection.
+# Gate still applies the final 1 mm/s insertion vector cap.
+LEFT_INSERTION_MAX_AXIS_MM_S = 1.0
+
+LEFT_INSERTION_MAPPING_R2_DU = 0.1365
+LEFT_INSERTION_MAPPING_R2_DV = 0.1345
+LEFT_INSERTION_MAPPING_CONDITION = 13.1764
+
+
+
+# ============================================================
+# JSON helpers
+# ============================================================
+
+def atomic_json(path: Path, data: dict):
+
+    path = Path(path)
+
+    tmp = Path(
+        str(path) + ".tmp"
+    )
+
+    tmp.write_text(
+        json.dumps(
+            data,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    os.replace(
+        tmp,
+        path,
+    )
+
+
+def read_json(path: Path):
+
+    try:
+        return json.loads(
+            Path(path).read_text(
+                encoding="utf-8"
+            )
+        )
+    except Exception:
+        return {}
+
+
+def close_completed_signal():
+
+    d = read_json(
+        CLOSE_SIGNAL
+    )
+
+    try:
+
+        ts = float(
+            d.get(
+                "timestamp",
+                0.0,
+            )
+            or 0.0
+        )
+
+        age = (
+            time.time()
+            -
+            ts
+        )
+
+        if not (
+            0.0
+            <=
+            age
+            <=
+            CLOSE_SIGNAL_MAX_AGE_S
+        ):
+            return False
+
+        reason = str(
+            d.get(
+                "reason",
+                "",
+            )
+        )
+
+        state = str(
+            d.get(
+                "state",
+                "",
+            )
+        )
+
+        active = bool(
+            d.get(
+                "active",
+                False,
+            )
+        )
+
+        return bool(
+            active
+            and
+            state == "WAIT_CONTACT"
+            and
+            reason
+            in (
+                "CLOSE_ISSUED",
+                "WAIT_CONTACT",
+            )
+        )
+
+    except Exception:
+
+        return False
+
+
+# ============================================================
+# Geometry helpers
+# ============================================================
+
+def yx_to_uv(point):
+
+    if point is None:
+        return None
+
+    try:
+
+        a = np.asarray(
+            point,
+            dtype=np.float64,
+        ).reshape(-1)
+
+        if a.size < 2:
+            return None
+
+        return (
+            float(a[1]),
+            float(a[0]),
+        )
+
+    except Exception:
+
+        return None
+
+
+def xy_to_uv(point):
+
+    if point is None:
+        return None
+
+    try:
+
+        a = np.asarray(
+            point,
+            dtype=np.float64,
+        ).reshape(-1)
+
+        if a.size < 2:
+            return None
+
+        return (
+            float(a[0]),
+            float(a[1]),
+        )
+
+    except Exception:
+
+        return None
+
+
+
+# ============================================================
+# WRIST_JAW_CORRIDOR_V1
+#
+# Right Wrist grasp-close geometry:
+#
+#   - Detect the two OPEN tweezer blade tips.
+#   - Learn their fixed image-space gap while the tweezer is open.
+#   - The wire grasp point only has to lie INSIDE that gap.
+#   - Once inside, latch it for the remainder of this grasp.
+#
+# This removes the requirement that the noisy grasp point must
+# remain exactly coincident with the tweezer midpoint.
+# ============================================================
+
+JAW_CALIB_MIN_SAMPLES = 12
+
+# Use the central 80% of the physical open gap.
+# Leave 10% margin at each blade.
+JAW_CORRIDOR_RATIO = 0.80
+
+_JAW_GAP_SAMPLES = []
+_JAW_FIXED_GAP_PX = None
+_JAW_CORRIDOR_LATCHED = False
+
+
+def augment_wrist_jaw_corridor(
+    guidance,
+    tip_result,
+    geometry,
+):
+
+    global _JAW_FIXED_GAP_PX
+    global _JAW_CORRIDOR_LATCHED
+
+    out = (
+        dict(guidance)
+        if isinstance(guidance, dict)
+        else {}
+    )
+
+    pair = (
+        tip_result.get("tip_pair_yx")
+        if isinstance(tip_result, dict)
+        else None
+    )
+
+    separation = (
+        tip_result.get(
+            "tip_pair_separation_px"
+        )
+        if isinstance(tip_result, dict)
+        else None
+    )
+
+    tip_mode = (
+        tip_result.get("tip_mode")
+        if isinstance(tip_result, dict)
+        else None
+    )
+
+    grasp_yx = (
+        geometry.get("grasp_point_yx")
+        if isinstance(geometry, dict)
+        else None
+    )
+
+
+    pair_valid = False
+    separation_value = None
+
+    try:
+
+        if (
+            pair is not None
+            and
+            len(pair) >= 2
+            and
+            separation is not None
+        ):
+
+            p1 = np.asarray(
+                pair[0],
+                dtype=np.float64,
+            ).reshape(2)
+
+            p2 = np.asarray(
+                pair[1],
+                dtype=np.float64,
+            ).reshape(2)
+
+            separation_value = float(
+                separation
+            )
+
+            pair_valid = bool(
+                np.all(np.isfinite(p1))
+                and
+                np.all(np.isfinite(p2))
+                and
+                math.isfinite(
+                    separation_value
+                )
+                and
+                separation_value >= 8.0
+            )
+
+    except Exception:
+
+        pair_valid = False
+
+
+    # --------------------------------------------------------
+    # Learn the OPEN-jaw gap once.
+    #
+    # Wrist camera and tweezer are rigidly mounted together,
+    # therefore their image-space open separation is nearly
+    # constant.
+    # --------------------------------------------------------
+
+    if (
+        _JAW_FIXED_GAP_PX is None
+        and
+        pair_valid
+    ):
+
+        _JAW_GAP_SAMPLES.append(
+            separation_value
+        )
+
+        if len(_JAW_GAP_SAMPLES) > 30:
+            del _JAW_GAP_SAMPLES[:-30]
+
+        if (
+            len(_JAW_GAP_SAMPLES)
+            >=
+            JAW_CALIB_MIN_SAMPLES
+        ):
+
+            _JAW_FIXED_GAP_PX = float(
+                np.median(
+                    np.asarray(
+                        _JAW_GAP_SAMPLES,
+                        dtype=np.float64,
+                    )
+                )
+            )
+
+            print(
+                "[WRIST JAW] "
+                f"OPEN GAP CALIBRATED "
+                f"gap={_JAW_FIXED_GAP_PX:.1f}px "
+                f"samples={len(_JAW_GAP_SAMPLES)}",
+                flush=True,
+            )
+
+
+    jaw_lateral_error_px = None
+    jaw_corridor_half_px = None
+    jaw_corridor_ok = False
+
+
+    # --------------------------------------------------------
+    # Project GRASP onto the line joining the two blade tips.
+    #
+    # Only this cross-jaw coordinate matters for Wrist close.
+    #
+    # External camera continues to determine final X/Z.
+    # --------------------------------------------------------
+
+    if (
+        _JAW_FIXED_GAP_PX is not None
+        and
+        pair_valid
+        and
+        grasp_yx is not None
+    ):
+
+        try:
+
+            target = np.asarray(
+                grasp_yx,
+                dtype=np.float64,
+            ).reshape(2)
+
+            p1 = np.asarray(
+                pair[0],
+                dtype=np.float64,
+            ).reshape(2)
+
+            p2 = np.asarray(
+                pair[1],
+                dtype=np.float64,
+            ).reshape(2)
+
+            gap_vec = (
+                p2
+                -
+                p1
+            )
+
+            gap_norm = float(
+                np.linalg.norm(
+                    gap_vec
+                )
+            )
+
+            if (
+                np.all(
+                    np.isfinite(
+                        target
+                    )
+                )
+                and
+                gap_norm > 1e-6
+            ):
+
+                gap_axis = (
+                    gap_vec
+                    /
+                    gap_norm
+                )
+
+                midpoint = (
+                    p1
+                    +
+                    p2
+                ) / 2.0
+
+                jaw_lateral_error_px = float(
+                    np.dot(
+                        target
+                        -
+                        midpoint,
+                        gap_axis,
+                    )
+                )
+
+                jaw_corridor_half_px = float(
+                    0.5
+                    *
+                    _JAW_FIXED_GAP_PX
+                    *
+                    JAW_CORRIDOR_RATIO
+                )
+
+                jaw_corridor_ok = bool(
+                    abs(
+                        jaw_lateral_error_px
+                    )
+                    <=
+                    jaw_corridor_half_px
+                )
+
+        except Exception:
+
+            jaw_corridor_ok = False
+
+
+    # --------------------------------------------------------
+    # One-way latch.
+    #
+    # Once the wire target has entered the physical jaw gap,
+    # later wire-point jitter/occlusion must NOT cancel close.
+    # --------------------------------------------------------
+
+    if (
+        jaw_corridor_ok
+        and
+        not _JAW_CORRIDOR_LATCHED
+    ):
+
+        _JAW_CORRIDOR_LATCHED = True
+
+        print(
+            "[WRIST JAW] "
+            "CORRIDOR LATCHED "
+            f"lateral={jaw_lateral_error_px:+.1f}px "
+            f"half={jaw_corridor_half_px:.1f}px",
+            flush=True,
+        )
+
+
+    out[
+        "jaw_tip_mode"
+    ] = tip_mode
+
+    out[
+        "jaw_pair_yx"
+    ] = pair
+
+    out[
+        "jaw_pair_separation_px"
+    ] = separation_value
+
+    out[
+        "jaw_calibration_samples"
+    ] = len(
+        _JAW_GAP_SAMPLES
+    )
+
+    out[
+        "jaw_calibration_ready"
+    ] = bool(
+        _JAW_FIXED_GAP_PX
+        is not None
+    )
+
+    out[
+        "jaw_fixed_gap_px"
+    ] = _JAW_FIXED_GAP_PX
+
+    out[
+        "jaw_corridor_ratio"
+    ] = float(
+        JAW_CORRIDOR_RATIO
+    )
+
+    out[
+        "jaw_corridor_half_px"
+    ] = jaw_corridor_half_px
+
+    out[
+        "jaw_lateral_error_px"
+    ] = jaw_lateral_error_px
+
+    out[
+        "jaw_corridor_ok"
+    ] = bool(
+        jaw_corridor_ok
+    )
+
+    out[
+        "jaw_corridor_latched"
+    ] = bool(
+        _JAW_CORRIDOR_LATCHED
+    )
+
+    return out
+
+
+def measured_free_uv(
+    geometry,
+):
+
+    if not geometry:
+        return None
+
+    if not bool(
+        geometry.get(
+            "measurement_valid",
+            False,
+        )
+    ):
+        return None
+
+    return yx_to_uv(
+        geometry.get(
+            "free_endpoint_yx"
+        )
+    )
+
+
+# INSERTION_CONFIRM_AND_DISPLAY_FREE_V3
+
+def display_free_uv(
+    geometry,
+):
+
+    if not geometry:
+        return None
+
+    # For visualization we may use the tracker's temporally
+    # held/display-valid FREE position.
+    #
+    # IMPORTANT:
+    # DISPLAY_ONLY is NOT accepted for robot motion.
+    display_ok = bool(
+        geometry.get(
+            "display_valid",
+            False,
+        )
+        or
+        geometry.get(
+            "measurement_valid",
+            False,
+        )
+    )
+
+    if not display_ok:
+        return None
+
+    return yx_to_uv(
+        geometry.get(
+            "free_endpoint_yx"
+        )
+    )
+
+
+def tip_uv_from_result(
+    tip_result,
+    geometry,
+):
+
+    if not tip_result:
+        return None
+
+    if not bool(
+        tip_result.get(
+            "valid",
+            False,
+        )
+    ):
+        return None
+
+    # First use the already validated grasp visual helper.
+    try:
+
+        err = grasp.calculate_error(
+            tip_result,
+            geometry,
+        )
+
+        if (
+            err is not None
+            and
+            err.get(
+                "tip_uv"
+            )
+            is not None
+        ):
+            return xy_to_uv(
+                err[
+                    "tip_uv"
+                ]
+            )
+
+    except Exception:
+        pass
+
+
+    # Compatibility with possible tracker result schemas.
+    for key in (
+        "tip_uv",
+        "tip_point_uv",
+        "midpoint_uv",
+        "center_uv",
+    ):
+
+        if (
+            key
+            in tip_result
+            and
+            tip_result[
+                key
+            ]
+            is not None
+        ):
+
+            p = xy_to_uv(
+                tip_result[
+                    key
+                ]
+            )
+
+            if p is not None:
+                return p
+
+
+    for key in (
+        "tip_yx",
+        "tip_point_yx",
+        "midpoint_yx",
+    ):
+
+        if (
+            key
+            in tip_result
+            and
+            tip_result[
+                key
+            ]
+            is not None
+        ):
+
+            p = yx_to_uv(
+                tip_result[
+                    key
+                ]
+            )
+
+            if p is not None:
+                return p
+
+
+    return None
+
+
+def point_distance(
+    a,
+    b,
+):
+
+    if (
+        a is None
+        or
+        b is None
+    ):
+        return float(
+            "inf"
+        )
+
+    return float(
+        math.hypot(
+            float(a[0])
+            -
+            float(b[0]),
+            float(a[1])
+            -
+            float(b[1]),
+        )
+    )
+
+
+# ============================================================
+# Hole selection/tracking
+# ============================================================
+
+def nearest_hole(
+    holes,
+    uv,
+):
+
+    if (
+        not holes
+        or
+        uv is None
+    ):
+        return (
+            None,
+            float("inf"),
+        )
+
+    best = None
+    best_d = float(
+        "inf"
+    )
+
+    for hole in holes:
+
+        center = hole.get(
+            "center_uv"
+        )
+
+        if center is None:
+            continue
+
+        d = point_distance(
+            center,
+            uv,
+        )
+
+        if d < best_d:
+
+            best_d = d
+            best = hole
+
+    return (
+        best,
+        best_d,
+    )
+
+
+def track_selected_hole(
+    pred,
+    previous_uv,
+    camera,
+):
+
+    if (
+        pred is None
+        or
+        previous_uv is None
+    ):
+        return None
+
+
+    h, w = pred.shape[:2]
+
+    u = float(
+        previous_uv[0]
+    )
+
+    v = float(
+        previous_uv[1]
+    )
+
+    # DYNAMIC_SELECTED_HOLE_TRACK_V1
+    r = int(
+        HOLE_TRACK_ROI_RADIUS_BY_CAMERA.get(
+            camera,
+            HOLE_TARGET_ROI_RADIUS_PX,
+        )
+    )
+
+    max_jump = float(
+        HOLE_TRACK_MAX_JUMP_BY_CAMERA.get(
+            camera,
+            HOLE_TRACK_MAX_JUMP_PX,
+        )
+    )
+
+
+    x0 = max(
+        0,
+        int(round(u)) - r,
+    )
+
+    x1 = min(
+        w,
+        int(round(u)) + r + 1,
+    )
+
+    y0 = max(
+        0,
+        int(round(v)) - r,
+    )
+
+    y1 = min(
+        h,
+        int(round(v)) + r + 1,
+    )
+
+
+    if (
+        x1 <= x0
+        or
+        y1 <= y0
+    ):
+        return None
+
+
+    # Only inspect the local neighborhood of the selected hole.
+    local_pred = pred[
+        y0:y1,
+        x0:x1,
+    ]
+
+
+    local_holes = (
+        hole_live.extract_hole_centers(
+            local_pred,
+            HOLE_MIN_AREA,
+            HOLE_MAX_AREA,
+        )
+    )
+
+
+    candidates = []
+
+    for hole in local_holes:
+
+        c = hole.get(
+            "center_uv"
+        )
+
+        if c is None:
+            continue
+
+
+        global_center = (
+            float(c[0]) + x0,
+            float(c[1]) + y0,
+        )
+
+
+        candidates.append({
+            "center_uv":
+                global_center,
+
+            "area":
+                hole.get(
+                    "area",
+                    0,
+                ),
+
+            "bbox":
+                hole.get(
+                    "bbox",
+                ),
+        })
+
+
+    best, distance = (
+        nearest_hole(
+            candidates,
+            previous_uv,
+        )
+    )
+
+
+    if (
+        best is None
+        or
+        distance
+        >
+        max_jump
+    ):
+        return None
+
+
+    return best
+
+
+# ============================================================
+# INSERTION_MEASUREMENT_FRESHNESS_V1
+#
+# Keep publish time separate from the newest real measurements
+# used to build the velocity command.
+# ============================================================
+
+def insertion_measurement_timestamp(
+    free_measurement_time,
+    hole_measurement_time,
+):
+    """
+    INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+
+    External and Left Wrist hole_uv are intentionally frozen
+    after target confirmation.
+
+    Therefore the control freshness watchdog must follow the
+    newest REAL FREE measurement, NOT the age of the fixed hole.
+    """
+
+    try:
+        ft = float(
+            free_measurement_time
+        )
+
+        if ft <= 0.0:
+            return None
+
+        return ft
+
+    except Exception:
+        return None
+
+
+# ============================================================
+# Insertion guidance outputs
+# ============================================================
+
+def invalid_guidance(
+    camera,
+    phase,
+    reason,
+):
+
+    now = time.time()
+
+    out = {
+        "timestamp":
+            now,
+
+        "enabled":
+            False,
+
+        "shadow_mode":
+            True,
+
+        "phase":
+            phase,
+
+        "source":
+            (
+                "grasp_to_insertion_v1_"
+                +
+                camera
+            ),
+
+        "guidance_valid":
+            False,
+
+        "reason":
+            str(
+                reason
+            ),
+
+        "wire_locked":
+            False,
+
+        "free_target_uv":
+            None,
+
+        "target_hole_uv":
+            None,
+
+        "tweezer_tip_uv":
+            None,
+
+        "free_source":
+            None,
+
+        "du_px":
+            None,
+
+        "dv_px":
+            None,
+
+        "error_norm_px":
+            None,
+
+        "tip_grasp_distance_px":
+            None,
+
+        "tool_pixels":
+            0,
+
+        "front_pixels":
+            0,
+
+        "axis_ratio":
+            None,
+
+        "tip_status":
+            None,
+
+        # INSERTION_DIRECT_VELOCITY_ALIAS_V4
+        #
+        # Keep both schemas:
+        #   proposed_* : current grasp/fusion stack
+        #   vx/vy/vz   : legacy/current IBVS fusion compatibility
+        "vx_mm_s":
+            0.0,
+
+        "vy_mm_s":
+            0.0,
+
+        "vz_mm_s":
+            0.0,
+
+        "proposed_vx_mm_s":
+            0.0,
+
+        "proposed_vy_mm_s":
+            0.0,
+
+        "proposed_vz_mm_s":
+            0.0,
+    }
+
+    if camera == "external":
+
+        atomic_json(
+            grasp.EXTERNAL_OUT,
+            out,
+        )
+
+    elif camera in (
+        "right_wrist",
+        "left_wrist",
+    ):
+
+        atomic_json(
+            grasp.WRIST_OUT,
+            out,
+        )
+
+    return out
+
+
+
+# ============================================================
+# INSERTION_LOWER_BRANCH_IDENTITY_V1
+#
+# Physical constraint after grasp:
+#
+#   tweezer/tip
+#        |
+#        +---- upper/fixed-side branch  -> NEVER FREE
+#        |
+#        +---- lower/free-side branch  -> FREE identity
+#
+# Once the physical FREE half is initialized, an endpoint from
+# the opposite half is not allowed to enter normal tracking or
+# REACQUIRE, even if it is temporally stable.
+#
+# Coordinates are image UV.
+# ============================================================
+
+INSERTION_FREE_BRANCH_MIN_PROJECTION_PX = 6.0
+
+# Tip and FREE must be sufficiently separated before the branch
+# direction can be initialized.
+INSERTION_FREE_BRANCH_MIN_LENGTH_PX = 12.0
+
+# Slowly adapt the valid lower-branch direction after accepting
+# a trustworthy measurement.  This allows gradual wire rotation
+# while preventing a 180-degree identity flip.
+INSERTION_FREE_BRANCH_DIR_ALPHA = 0.08
+
+# Accepted direction update must remain in the same hemisphere.
+INSERTION_FREE_BRANCH_UPDATE_MIN_DOT = 0.25
+
+
+def _direct_free_distance(
+    a,
+    b,
+):
+    if (
+        a is None
+        or
+        b is None
+    ):
+        return float("inf")
+
+    return float(
+        math.hypot(
+            float(a[0]) - float(b[0]),
+            float(a[1]) - float(b[1]),
+        )
+    )
+
+
+class InsertionDirectFreeTracker:
+
+    def __init__(
+        self,
+        camera,
+    ):
+        self.camera = str(
+            camera
+        )
+
+        self.filtered_uv = None
+
+        self.history = (
+            collections.deque(
+                maxlen=
+                    INSERTION_DIRECT_FREE_MEDIAN_WINDOW
+            )
+        )
+
+        self.last_measurement_time = 0.0
+
+        self.reacquire_uv = None
+        self.reacquire_count = 0
+
+        # INSERTION_LOWER_BRANCH_IDENTITY_V1
+        #
+        # Unit image vector pointing from the current tweezer tip
+        # toward the physical FREE half of the grasped wire.
+        #
+        # It is initialized only from a trustworthy FREE reference
+        # and is cleared whenever this direct insertion tracker is
+        # reset.
+        self.free_branch_dir = None
+
+
+    def reset(
+        self,
+    ):
+        self.filtered_uv = None
+        self.history.clear()
+
+        self.last_measurement_time = 0.0
+
+        self.reacquire_uv = None
+        self.reacquire_count = 0
+
+        # INSERTION_LOWER_BRANCH_IDENTITY_V1
+        self.free_branch_dir = None
+
+
+    def _result(
+        self,
+        source,
+        state,
+        uv,
+        raw_uv=None,
+        jump_px=None,
+        identity_margin_px=None,
+        endpoints_uv=None,
+        measurement_timestamp=None,
+    ):
+        return {
+            "uv":
+                (
+                    tuple(
+                        float(x)
+                        for x in uv
+                    )
+                    if uv is not None
+                    else None
+                ),
+
+            "source":
+                source,
+
+            "direct_state":
+                str(state),
+
+            "direct_raw_uv":
+                (
+                    list(
+                        raw_uv
+                    )
+                    if raw_uv is not None
+                    else None
+                ),
+
+            "direct_filtered_uv":
+                (
+                    list(
+                        self.filtered_uv
+                    )
+                    if self.filtered_uv is not None
+                    else None
+                ),
+
+            "direct_jump_px":
+                (
+                    float(
+                        jump_px
+                    )
+                    if jump_px is not None
+                    and np.isfinite(
+                        jump_px
+                    )
+                    else None
+                ),
+
+            "direct_identity_margin_px":
+                (
+                    float(
+                        identity_margin_px
+                    )
+                    if identity_margin_px is not None
+                    and np.isfinite(
+                        identity_margin_px
+                    )
+                    else None
+                ),
+
+            "direct_reacquire_uv":
+                (
+                    list(
+                        self.reacquire_uv
+                    )
+                    if self.reacquire_uv is not None
+                    else None
+                ),
+
+            "direct_reacquire_count":
+                int(
+                    self.reacquire_count
+                ),
+
+            "direct_endpoints_uv":
+                (
+                    [
+                        list(
+                            p
+                        )
+                        for p in endpoints_uv
+                    ]
+                    if endpoints_uv is not None
+                    else None
+                ),
+
+            "measurement_timestamp":
+                (
+                    float(
+                        measurement_timestamp
+                    )
+                    if measurement_timestamp is not None
+                    else None
+                ),
+
+            # INSERTION_LOWER_BRANCH_IDENTITY_V1 diagnostics.
+            "free_branch_locked":
+                bool(
+                    self.free_branch_dir
+                    is not None
+                ),
+
+            "free_branch_dir_uv":
+                (
+                    [
+                        float(
+                            self.free_branch_dir[0]
+                        ),
+                        float(
+                            self.free_branch_dir[1]
+                        ),
+                    ]
+                    if self.free_branch_dir is not None
+                    else None
+                ),
+        }
+
+
+    def _temporary_loss(
+        self,
+        now,
+        state,
+        raw_uv=None,
+        jump_px=None,
+        identity_margin_px=None,
+        endpoints_uv=None,
+    ):
+        age = float("inf")
+
+        if self.last_measurement_time > 0.0:
+            age = (
+                float(now)
+                -
+                self.last_measurement_time
+            )
+
+        if (
+            self.filtered_uv is not None
+            and
+            0.0
+            <=
+            age
+            <=
+            INSERTION_DIRECT_FREE_HOLD_S
+        ):
+            return self._result(
+                "MEASURED_HOLD",
+                state,
+                self.filtered_uv,
+                raw_uv=raw_uv,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin_px,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+        if self.filtered_uv is not None:
+            return self._result(
+                "DISPLAY_ONLY",
+                state,
+                self.filtered_uv,
+                raw_uv=raw_uv,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin_px,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+        return self._result(
+            None,
+            state,
+            None,
+            raw_uv=raw_uv,
+            jump_px=jump_px,
+            identity_margin_px=
+                identity_margin_px,
+            endpoints_uv=endpoints_uv,
+            measurement_timestamp=None,
+        )
+
+
+    def update(
+        self,
+        path_mask,
+        reference_uv,
+        now,
+        tip_uv=None,
+    ):
+        try:
+            path = np.asarray(
+                path_mask,
+                dtype=bool,
+            )
+
+        except Exception:
+            path = None
+
+        if (
+            path is None
+            or
+            not np.any(
+                path
+            )
+        ):
+            return self._temporary_loss(
+                now,
+                "NO_RAW_PATH",
+            )
+
+
+        try:
+            ordered = (
+                grasp.manual.
+                ordered_path_from_mask(
+                    path
+                )
+            )
+
+        except Exception:
+            ordered = None
+
+
+        if (
+            ordered is None
+            or
+            len(
+                ordered
+            )
+            < 2
+        ):
+            return self._temporary_loss(
+                now,
+                "NO_ORDERED_PATH",
+            )
+
+
+        e0_yx = ordered[0]
+        e1_yx = ordered[-1]
+
+        endpoints_uv = (
+            (
+                float(
+                    e0_yx[1]
+                ),
+                float(
+                    e0_yx[0]
+                ),
+            ),
+            (
+                float(
+                    e1_yx[1]
+                ),
+                float(
+                    e1_yx[0]
+                ),
+            ),
+        )
+
+
+        # Use our current direct track whenever available.
+        identity_reference = (
+            self.filtered_uv
+            if self.filtered_uv is not None
+            else reference_uv
+        )
+
+        if identity_reference is None:
+            return self._temporary_loss(
+                now,
+                "NEED_FREE_REFERENCE",
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        d0 = _direct_free_distance(
+            endpoints_uv[0],
+            identity_reference,
+        )
+
+        d1 = _direct_free_distance(
+            endpoints_uv[1],
+            identity_reference,
+        )
+
+        # ----------------------------------------------------
+        # Legacy nearest-reference candidate.
+        #
+        # This is used to initialize physical branch identity,
+        # and remains the fallback only before branch identity
+        # has been established.
+        # ----------------------------------------------------
+
+        if d0 <= d1:
+            candidate = endpoints_uv[0]
+            nearest_distance = d0
+        else:
+            candidate = endpoints_uv[1]
+            nearest_distance = d1
+
+
+        identity_margin = abs(
+            d0 - d1
+        )
+
+
+        # If both ends are similarly plausible, do not allow
+        # FREE/FIXED identity to flip.
+        if (
+            identity_margin
+            <
+            INSERTION_DIRECT_FREE_IDENTITY_MARGIN_PX
+        ):
+            return self._temporary_loss(
+                now,
+                "IDENTITY_AMBIGUOUS",
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        # ====================================================
+        # INSERTION_LOWER_BRANCH_IDENTITY_V1
+        #
+        # The physical FREE endpoint is on the same half of the
+        # grasped wire for the entire insertion operation.
+        #
+        # First trustworthy frame:
+        #
+        #   current validated FREE reference
+        #       + current tweezer tip
+        #       -> initialize tip->FREE branch direction.
+        #
+        # Following frames:
+        #
+        #   endpoint projection on that direction must be
+        #   positive.  Therefore the opposite/upper branch can
+        #   NEVER enter normal tracking or REACQUIRE.
+        # ====================================================
+
+        current_tip_uv = None
+
+        if tip_uv is not None:
+            try:
+                current_tip_uv = (
+                    float(
+                        tip_uv[0]
+                    ),
+                    float(
+                        tip_uv[1]
+                    ),
+                )
+            except Exception:
+                current_tip_uv = None
+
+
+        # Branch identity must be initialized with a valid tip.
+        if self.free_branch_dir is None:
+
+            if current_tip_uv is None:
+                return self._temporary_loss(
+                    now,
+                    "NEED_BRANCH_TIP",
+                    raw_uv=candidate,
+                    jump_px=nearest_distance,
+                    identity_margin_px=
+                        identity_margin,
+                    endpoints_uv=endpoints_uv,
+                )
+
+            seed_vec = np.asarray(
+                (
+                    float(candidate[0])
+                    -
+                    float(current_tip_uv[0]),
+
+                    float(candidate[1])
+                    -
+                    float(current_tip_uv[1]),
+                ),
+                dtype=np.float64,
+            )
+
+            seed_norm = float(
+                np.linalg.norm(
+                    seed_vec
+                )
+            )
+
+            if (
+                not np.isfinite(
+                    seed_norm
+                )
+                or
+                seed_norm
+                <
+                INSERTION_FREE_BRANCH_MIN_LENGTH_PX
+            ):
+                return self._temporary_loss(
+                    now,
+                    "BRANCH_INIT_TOO_CLOSE",
+                    raw_uv=candidate,
+                    jump_px=nearest_distance,
+                    identity_margin_px=
+                        identity_margin,
+                    endpoints_uv=endpoints_uv,
+                )
+
+            seed_vec = (
+                seed_vec
+                /
+                seed_norm
+            )
+
+            self.free_branch_dir = (
+                float(
+                    seed_vec[0]
+                ),
+                float(
+                    seed_vec[1]
+                ),
+            )
+
+
+        # Once branch identity is locked, loss of the tweezer
+        # anchor must NOT permit a legacy identity switch.
+        if current_tip_uv is None:
+            return self._temporary_loss(
+                now,
+                "BRANCH_TIP_LOST",
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        branch_dir = np.asarray(
+            self.free_branch_dir,
+            dtype=np.float64,
+        )
+
+        branch_projections = []
+
+        for endpoint_uv in endpoints_uv:
+
+            rel = np.asarray(
+                (
+                    float(endpoint_uv[0])
+                    -
+                    float(current_tip_uv[0]),
+
+                    float(endpoint_uv[1])
+                    -
+                    float(current_tip_uv[1]),
+                ),
+                dtype=np.float64,
+            )
+
+            branch_projections.append(
+                float(
+                    np.dot(
+                        rel,
+                        branch_dir,
+                    )
+                )
+            )
+
+
+        branch_valid = [
+            projection
+            >=
+            INSERTION_FREE_BRANCH_MIN_PROJECTION_PX
+            for projection
+            in branch_projections
+        ]
+
+
+        if not any(
+            branch_valid
+        ):
+            return self._temporary_loss(
+                now,
+                "OPPOSITE_BRANCH_REJECTED",
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+            )
+
+
+        # Among endpoints that remain on the physical FREE half,
+        # use the existing nearest-to-current-track identity rule.
+        branch_candidates = []
+
+        if branch_valid[0]:
+            branch_candidates.append(
+                (
+                    d0,
+                    endpoints_uv[0],
+                )
+            )
+
+        if branch_valid[1]:
+            branch_candidates.append(
+                (
+                    d1,
+                    endpoints_uv[1],
+                )
+            )
+
+        branch_candidates.sort(
+            key=lambda item:
+                item[0]
+        )
+
+        nearest_distance, candidate = (
+            branch_candidates[0]
+        )
+
+
+        # Slowly adapt lower-branch direction using only the
+        # already branch-validated candidate.
+        observed_vec = np.asarray(
+            (
+                float(candidate[0])
+                -
+                float(current_tip_uv[0]),
+
+                float(candidate[1])
+                -
+                float(current_tip_uv[1]),
+            ),
+            dtype=np.float64,
+        )
+
+        observed_norm = float(
+            np.linalg.norm(
+                observed_vec
+            )
+        )
+
+        if (
+            np.isfinite(
+                observed_norm
+            )
+            and
+            observed_norm
+            >=
+            INSERTION_FREE_BRANCH_MIN_LENGTH_PX
+        ):
+
+            observed_dir = (
+                observed_vec
+                /
+                observed_norm
+            )
+
+            same_half_dot = float(
+                np.dot(
+                    observed_dir,
+                    branch_dir,
+                )
+            )
+
+            if (
+                same_half_dot
+                >=
+                INSERTION_FREE_BRANCH_UPDATE_MIN_DOT
+            ):
+
+                a_branch = float(
+                    INSERTION_FREE_BRANCH_DIR_ALPHA
+                )
+
+                blended = (
+                    (
+                        1.0 - a_branch
+                    )
+                    *
+                    branch_dir
+                    +
+                    a_branch
+                    *
+                    observed_dir
+                )
+
+                blended_norm = float(
+                    np.linalg.norm(
+                        blended
+                    )
+                )
+
+                if (
+                    np.isfinite(
+                        blended_norm
+                    )
+                    and
+                    blended_norm > 1e-6
+                ):
+                    blended = (
+                        blended
+                        /
+                        blended_norm
+                    )
+
+                    self.free_branch_dir = (
+                        float(
+                            blended[0]
+                        ),
+                        float(
+                            blended[1]
+                        ),
+                    )
+
+
+        # First trustworthy direct measurement.
+        if self.filtered_uv is None:
+
+            self.filtered_uv = (
+                float(
+                    candidate[0]
+                ),
+                float(
+                    candidate[1]
+                ),
+            )
+
+            self.history.clear()
+            self.history.append(
+                self.filtered_uv
+            )
+
+            self.last_measurement_time = (
+                float(now)
+            )
+
+            self.reacquire_uv = None
+            self.reacquire_count = 0
+
+            return self._result(
+                "MEASURED",
+                "LIVE_INIT",
+                self.filtered_uv,
+                raw_uv=candidate,
+                jump_px=nearest_distance,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+
+        jump_px = (
+            _direct_free_distance(
+                candidate,
+                self.filtered_uv,
+            )
+        )
+
+        normal_jump = float(
+            INSERTION_DIRECT_FREE_NORMAL_JUMP_PX[
+                self.camera
+            ]
+        )
+
+
+        # ====================================================
+        # Normal continuous tracking.
+        # ====================================================
+
+        if jump_px <= normal_jump:
+
+            self.reacquire_uv = None
+            self.reacquire_count = 0
+
+            self.history.append(
+                (
+                    float(
+                        candidate[0]
+                    ),
+                    float(
+                        candidate[1]
+                    ),
+                )
+            )
+
+            arr = np.asarray(
+                list(
+                    self.history
+                ),
+                dtype=np.float64,
+            )
+
+            median_uv = np.median(
+                arr,
+                axis=0,
+            )
+
+            alpha = float(
+                INSERTION_DIRECT_FREE_EMA_ALPHA[
+                    self.camera
+                ]
+            )
+
+            self.filtered_uv = (
+                (
+                    1.0 - alpha
+                )
+                *
+                float(
+                    self.filtered_uv[0]
+                )
+                +
+                alpha
+                *
+                float(
+                    median_uv[0]
+                ),
+                (
+                    1.0 - alpha
+                )
+                *
+                float(
+                    self.filtered_uv[1]
+                )
+                +
+                alpha
+                *
+                float(
+                    median_uv[1]
+                ),
+            )
+
+            self.last_measurement_time = (
+                float(now)
+            )
+
+            return self._result(
+                "MEASURED",
+                "LIVE",
+                self.filtered_uv,
+                raw_uv=candidate,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+
+        # ====================================================
+        # Large jump:
+        # do NOT permanently reject it.
+        #
+        # Require a spatially coherent candidate for 3
+        # consecutive visual updates, then re-anchor.
+        # ====================================================
+
+        if self.reacquire_uv is None:
+
+            self.reacquire_uv = (
+                float(
+                    candidate[0]
+                ),
+                float(
+                    candidate[1]
+                ),
+            )
+
+            self.reacquire_count = 1
+
+        else:
+
+            candidate_cluster_error = (
+                _direct_free_distance(
+                    candidate,
+                    self.reacquire_uv,
+                )
+            )
+
+            if (
+                candidate_cluster_error
+                <=
+                INSERTION_DIRECT_FREE_REACQUIRE_CLUSTER_PX
+            ):
+                n = (
+                    self.reacquire_count
+                    +
+                    1
+                )
+
+                old = (
+                    self.reacquire_uv
+                )
+
+                self.reacquire_uv = (
+                    (
+                        float(
+                            old[0]
+                        )
+                        *
+                        self.reacquire_count
+                        +
+                        float(
+                            candidate[0]
+                        )
+                    )
+                    /
+                    n,
+                    (
+                        float(
+                            old[1]
+                        )
+                        *
+                        self.reacquire_count
+                        +
+                        float(
+                            candidate[1]
+                        )
+                    )
+                    /
+                    n,
+                )
+
+                self.reacquire_count = n
+
+            else:
+
+                self.reacquire_uv = (
+                    float(
+                        candidate[0]
+                    ),
+                    float(
+                        candidate[1]
+                    ),
+                )
+
+                self.reacquire_count = 1
+
+
+        if (
+            self.reacquire_count
+            >=
+            INSERTION_DIRECT_FREE_REACQUIRE_UPDATES
+        ):
+
+            self.filtered_uv = (
+                float(
+                    self.reacquire_uv[0]
+                ),
+                float(
+                    self.reacquire_uv[1]
+                ),
+            )
+
+            self.history.clear()
+            self.history.append(
+                self.filtered_uv
+            )
+
+            self.last_measurement_time = (
+                float(now)
+            )
+
+            self.reacquire_uv = None
+            self.reacquire_count = 0
+
+            return self._result(
+                "MEASURED",
+                "REACQUIRED",
+                self.filtered_uv,
+                raw_uv=candidate,
+                jump_px=jump_px,
+                identity_margin_px=
+                    identity_margin,
+                endpoints_uv=endpoints_uv,
+                measurement_timestamp=
+                    self.last_measurement_time,
+            )
+
+
+        # Show the new candidate while robot motion is stopped.
+        return self._result(
+            "REACQUIRE",
+            "REACQUIRE",
+            self.reacquire_uv,
+            raw_uv=candidate,
+            jump_px=jump_px,
+            identity_margin_px=
+                identity_margin,
+            endpoints_uv=endpoints_uv,
+            measurement_timestamp=
+                self.last_measurement_time
+                if self.last_measurement_time > 0.0
+                else None,
+        )
+
+
+def draw_insertion_direct_free_status(
+    image,
+    info,
+):
+
+    if not isinstance(
+        info,
+        dict,
+    ):
+        return image
+
+    state = info.get(
+        "direct_state"
+    )
+
+    if not state:
+        return image
+
+    source = info.get(
+        "source"
+    )
+
+    if source == "MEASURED":
+        color = (0, 255, 0)
+
+    elif source == "REACQUIRE":
+        color = (0, 165, 255)
+
+    elif source == "MEASURED_HOLD":
+        color = (0, 255, 255)
+
+    else:
+        color = (0, 0, 255)
+
+
+    jump = info.get(
+        "direct_jump_px"
+    )
+
+    margin = info.get(
+        "direct_identity_margin_px"
+    )
+
+    count = int(
+        info.get(
+            "direct_reacquire_count",
+            0,
+        )
+        or 0
+    )
+
+
+    line1 = (
+        f"DIRECT FREE: {state} "
+        f"source={source}"
+    )
+
+    line2 = (
+        "jump="
+        +
+        (
+            f"{jump:.1f}px"
+            if jump is not None
+            else "NA"
+        )
+        +
+        " margin="
+        +
+        (
+            f"{margin:.1f}px"
+            if margin is not None
+            else "NA"
+        )
+        +
+        f" reacq={count}/"
+        f"{INSERTION_DIRECT_FREE_REACQUIRE_UPDATES}"
+    )
+
+
+    cv2.putText(
+        image,
+        line1,
+        (12, 226),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.42,
+        color,
+        1,
+        cv2.LINE_AA,
+    )
+
+    cv2.putText(
+        image,
+        line2,
+        (12, 246),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.40,
+        color,
+        1,
+        cv2.LINE_AA,
+    )
+
+    return image
+
+
+def insertion_axis_command(
+    error_px,
+    kp,
+    sign,
+):
+    """
+    Fine insertion-only controller.
+
+    GRASP keeps its existing 4 px deadband.
+    INSERTION uses only a 0.5 px deadband.
+    """
+
+    if (
+        error_px is None
+        or
+        not np.isfinite(
+            error_px
+        )
+    ):
+        return 0.0
+
+    error_px = float(
+        error_px
+    )
+
+    if (
+        abs(
+            error_px
+        )
+        <=
+        INSERTION_FINE_DEADBAND_PX
+    ):
+        return 0.0
+
+    value = (
+        float(sign)
+        *
+        float(kp)
+        *
+        error_px
+    )
+
+    return float(
+        np.clip(
+            value,
+            -INSERTION_FINE_MAX_AXIS_MM_S,
+            +INSERTION_FINE_MAX_AXIS_MM_S,
+        )
+    )
+
+
+def insertion_same_pixel(
+    guidance,
+):
+    """
+    Visual definition of complete cross overlap:
+    FREE center and HOLE center render on the same image pixel.
+    """
+
+    if not isinstance(
+        guidance,
+        dict,
+    ):
+        return False
+
+    if not guidance.get(
+        "guidance_valid",
+        False,
+    ):
+        return False
+
+
+    # INSERTION_DIRECT_FREE_TRACK_V1
+    #
+    # A held/predicted/reacquiring point must NEVER complete
+    # insertion alignment.
+    if (
+        guidance.get(
+            "free_source"
+        )
+        !=
+        "MEASURED"
+    ):
+        return False
+
+    free_uv = guidance.get(
+        "free_target_uv"
+    )
+
+    hole_uv = guidance.get(
+        "target_hole_uv"
+    )
+
+    if (
+        free_uv is None
+        or
+        hole_uv is None
+    ):
+        return False
+
+    try:
+        return bool(
+            round(
+                float(
+                    free_uv[0]
+                )
+            )
+            ==
+            round(
+                float(
+                    hole_uv[0]
+                )
+            )
+            and
+            round(
+                float(
+                    free_uv[1]
+                )
+            )
+            ==
+            round(
+                float(
+                    hole_uv[1]
+                )
+            )
+        )
+
+    except Exception:
+        return False
+
+
+def insertion_guidance(
+    camera,
+    free_uv,
+    free_source,
+    hole_uv,
+    tip_uv,
+    target_valid,
+    measurement_timestamp=None,
+    source_frame_seq=None,
+):
+
+    now = time.time()
+    publish_monotonic_s = time.monotonic()
+
+    try:
+        measurement_timestamp_value = (
+            float(measurement_timestamp)
+            if measurement_timestamp is not None
+            else None
+        )
+    except Exception:
+        measurement_timestamp_value = None
+
+    if (
+        measurement_timestamp_value is not None
+        and
+        measurement_timestamp_value > 0.0
+    ):
+        measurement_age_ms_at_publish = max(
+            0.0,
+            (
+                now
+                -
+                measurement_timestamp_value
+            )
+            *
+            1000.0,
+        )
+    else:
+        measurement_age_ms_at_publish = None
+
+    control_free_valid = bool(
+        free_source
+        in (
+            "MEASURED",
+            "MEASURED_HOLD",
+            "TIP_RELATIVE_PRED",
+        )
+    )
+
+    valid = bool(
+        free_uv
+        is not None
+        and
+        hole_uv
+        is not None
+        and
+        target_valid
+        and
+        control_free_valid
+    )
+
+    if valid:
+
+        du = float(
+            hole_uv[0]
+            -
+            free_uv[0]
+        )
+
+        dv = float(
+            hole_uv[1]
+            -
+            free_uv[1]
+        )
+
+        norm = float(
+            math.hypot(
+                du,
+                dv,
+            )
+        )
+
+        if (
+            free_source
+            ==
+            "REACQUIRE"
+        ):
+
+            color = (
+                0,
+                165,
+                255,
+            )
+
+            label = (
+                "FREE-REACQUIRE"
+            )
+
+        elif (
+            free_source
+            ==
+            "MEASURED_HOLD"
+        ):
+
+            color = (
+                0,
+                255,
+                255,
+            )
+
+            label = (
+                "FREE-BRIDGE"
+            )
+
+        elif (
+            free_source
+            ==
+            "TIP_RELATIVE_PRED"
+        ):
+            speed_scale = (
+                TIP_FREE_FALLBACK_SPEED_SCALE
+            )
+
+        elif (
+            free_source
+            ==
+            "MEASURED_HOLD"
+        ):
+            speed_scale = (
+                FREE_CONTROL_HOLD_SPEED_SCALE
+            )
+
+        else:
+            speed_scale = 1.0
+
+        if camera == "external":
+
+            vx = (
+                insertion_axis_command(
+                    du,
+                    grasp.KP_EXT_X,
+                    +1.0,
+                )
+                *
+                speed_scale
+            )
+
+            vy = 0.0
+
+            vz = (
+                insertion_axis_command(
+                    dv,
+                    grasp.KP_EXT_Z,
+                    -1.0,
+                )
+                *
+                speed_scale
+            )
+
+        elif camera == "left_wrist":
+
+            # INSERTION_LEFT_WRIST_2X2_SHADOW_V1
+            #
+            # Left Wrist camera has significant Y/Z image
+            # cross-coupling.  Do NOT use the old independent:
+            #
+            #   du -> Y
+            #   dv -> Z
+            #
+            # controller from Right Wrist.
+            #
+            # Instead:
+            #
+            #   [vy, vz]^T
+            #       =
+            #   -K * inv(J_yz) * [du, dv]^T
+
+            vx = 0.0
+
+            if (
+                abs(du)
+                <=
+                INSERTION_FINE_DEADBAND_PX
+                and
+                abs(dv)
+                <=
+                INSERTION_FINE_DEADBAND_PX
+            ):
+
+                vy = 0.0
+                vz = 0.0
+
+            else:
+
+                error_uv = np.asarray(
+                    [
+                        du,
+                        dv,
+                    ],
+                    dtype=np.float64,
+                )
+
+                yz_velocity = (
+                    -
+                    LEFT_INSERTION_K_S
+                    *
+                    (
+                        LEFT_INSERTION_INV_J_YZ
+                        @
+                        error_uv
+                    )
+                )
+
+                yz_velocity *= float(
+                    speed_scale
+                )
+
+                vy = float(
+                    np.clip(
+                        yz_velocity[0],
+                        -LEFT_INSERTION_MAX_AXIS_MM_S,
+                        +LEFT_INSERTION_MAX_AXIS_MM_S,
+                    )
+                )
+
+                vz = float(
+                    np.clip(
+                        yz_velocity[1],
+                        -LEFT_INSERTION_MAX_AXIS_MM_S,
+                        +LEFT_INSERTION_MAX_AXIS_MM_S,
+                    )
+                )
+
+        else:
+
+            vx = 0.0
+            vy = 0.0
+            vz = 0.0
+
+    else:
+
+        du = None
+        dv = None
+        norm = None
+
+        vx = 0.0
+        vy = 0.0
+        vz = 0.0
+
+
+    out = {
+        "timestamp":
+            now,
+
+        # INSERTION_MEASUREMENT_FRESHNESS_V1
+        "guidance_publish_timestamp":
+            now,
+
+        "guidance_publish_monotonic_s":
+            float(
+                publish_monotonic_s
+            ),
+
+        "measurement_timestamp":
+            measurement_timestamp_value,
+
+        "measurement_age_ms_at_publish":
+            measurement_age_ms_at_publish,
+
+        "source_frame_seq":
+            (
+                int(source_frame_seq)
+                if source_frame_seq is not None
+                else None
+            ),
+
+        "enabled":
+            False,
+
+        "shadow_mode":
+            True,
+
+        "phase":
+            PHASE_INSERTION,
+
+        "source":
+            (
+                "grasp_to_insertion_v1_"
+                +
+                camera
+            ),
+
+        "guidance_valid":
+            valid,
+
+        "wire_locked":
+            False,
+
+        "free_target_uv":
+            (
+                list(
+                    free_uv
+                )
+                if
+                free_uv
+                is not None
+                else
+                None
+            ),
+
+        "target_hole_uv":
+            (
+                list(
+                    hole_uv
+                )
+                if
+                hole_uv
+                is not None
+                else
+                None
+            ),
+
+        "tweezer_tip_uv":
+            (
+                list(
+                    tip_uv
+                )
+                if
+                tip_uv
+                is not None
+                else
+                None
+            ),
+
+        "free_source":
+            free_source,
+
+        "control_camera":
+            str(
+                camera
+            ),
+
+        "left_wrist_mapping_version":
+            (
+                "LEFT_WRIST_2X2_SHADOW_V1"
+                if camera == "left_wrist"
+                else None
+            ),
+
+        "left_wrist_mapping_r2_du":
+            (
+                LEFT_INSERTION_MAPPING_R2_DU
+                if camera == "left_wrist"
+                else None
+            ),
+
+        "left_wrist_mapping_r2_dv":
+            (
+                LEFT_INSERTION_MAPPING_R2_DV
+                if camera == "left_wrist"
+                else None
+            ),
+
+
+        "du_px":
+            du,
+
+        "dv_px":
+            dv,
+
+        "error_norm_px":
+            norm,
+
+        # Preserve fields expected by the current auto-grasp reader.
+        "tip_grasp_distance_px":
+            None,
+
+        "tool_pixels":
+            0,
+
+        "front_pixels":
+            0,
+
+        "axis_ratio":
+            None,
+
+        "tip_status":
+            (
+                "INSERTION_FREE_TO_HOLE"
+                if valid
+                else
+                "INSERTION_INVALID"
+            ),
+
+        # Direct IBVS velocity aliases.
+        "vx_mm_s":
+            float(
+                vx
+            ),
+
+        "vy_mm_s":
+            float(
+                vy
+            ),
+
+        "vz_mm_s":
+            float(
+                vz
+            ),
+
+        "proposed_vx_mm_s":
+            float(
+                vx
+            ),
+
+        "proposed_vy_mm_s":
+            float(
+                vy
+            ),
+
+        "proposed_vz_mm_s":
+            float(
+                vz
+            ),
+    }
+
+
+    if camera == "external":
+
+        atomic_json(
+            grasp.EXTERNAL_OUT,
+            out,
+        )
+
+    elif camera in (
+        "right_wrist",
+        "left_wrist",
+    ):
+
+        atomic_json(
+            grasp.WRIST_OUT,
+            out,
+        )
+
+    return out
+
+
+# ============================================================
+# Display
+# ============================================================
+
+def draw_hole_overlay(
+    image,
+    pred,
+    holes,
+    selected,
+    selected_valid,
+):
+
+    out = image.copy()
+
+
+    # --------------------------------------------------------
+    # BEFORE target selection:
+    # show candidate holes for mouse selection.
+    # --------------------------------------------------------
+
+    if selected is None:
+
+        for hole in holes:
+
+            center = hole.get(
+                "center_uv"
+            )
+
+            if center is None:
+                continue
+
+
+            u = int(
+                round(
+                    center[0]
+                )
+            )
+
+            v = int(
+                round(
+                    center[1]
+                )
+            )
+
+
+            cv2.circle(
+                out,
+                (
+                    u,
+                    v,
+                ),
+                4,
+                (
+                    0,
+                    0,
+                    255,
+                ),
+                1,
+            )
+
+
+    # --------------------------------------------------------
+    # AFTER target selection:
+    # do NOT display any other hole.
+    #
+    # Selected hole = one small cross only.
+    # --------------------------------------------------------
+
+    else:
+
+        u = int(
+            round(
+                selected[0]
+            )
+        )
+
+        v = int(
+            round(
+                selected[1]
+            )
+        )
+
+
+        color = (
+            (
+                255,
+                0,
+                255,
+            )
+            if
+            selected_valid
+            else
+            (
+                0,
+                0,
+                255,
+            )
+        )
+
+
+        cv2.drawMarker(
+            out,
+            (
+                u,
+                v,
+            ),
+            color,
+            cv2.MARKER_CROSS,
+            11,
+            1,
+            cv2.LINE_AA,
+        )
+
+
+    return out
+
+
+def draw_insertion_free(
+    image,
+    free_uv,
+    free_source,
+    hole_uv,
+):
+
+    out = image
+
+    if free_uv is not None:
+
+        u = int(
+            round(
+                free_uv[0]
+            )
+        )
+
+        v = int(
+            round(
+                free_uv[1]
+            )
+        )
+
+        if (
+            free_source
+            ==
+            "TIP_RELATIVE_PRED"
+        ):
+
+            color = (
+                255,
+                255,
+                0,
+            )
+
+            label = (
+                "FREE-PRED"
+            )
+
+        elif (
+            free_source
+            ==
+            "DISPLAY_ONLY"
+        ):
+
+            color = (
+                0,
+                255,
+                255,
+            )
+
+            label = (
+                "FREE-HOLD"
+            )
+
+        else:
+
+            color = (
+                0,
+                255,
+                0,
+            )
+
+            label = (
+                "FREE-LIVE"
+            )
+
+        cv2.drawMarker(
+            out,
+            (
+                u,
+                v,
+            ),
+            color,
+            cv2.MARKER_CROSS,
+            24,
+            2,
+        )
+
+        cv2.putText(
+            out,
+            label,
+            (
+                u + 12,
+                v - 12,
+            ),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.44,
+            color,
+            1,
+            cv2.LINE_AA,
+        )
+
+
+        if hole_uv is not None:
+
+            hu = int(
+                round(
+                    hole_uv[0]
+                )
+            )
+
+            hv = int(
+                round(
+                    hole_uv[1]
+                )
+            )
+
+            cv2.line(
+                out,
+                (
+                    u,
+                    v,
+                ),
+                (
+                    hu,
+                    hv,
+                ),
+                (
+                    255,
+                    255,
+                    255,
+                ),
+                2,
+            )
+
+
+    return out
+
+
+def draw_phase(
+    image,
+    phase,
+):
+
+    cv2.rectangle(
+        image,
+        (
+            0,
+            0,
+        ),
+        (
+            image.shape[1],
+            35,
+        ),
+        (
+            0,
+            0,
+            0,
+        ),
+        -1,
+    )
+
+    cv2.putText(
+        image,
+        f"PHASE: {phase}",
+        (
+            12,
+            24,
+        ),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.62,
+        (
+            0,
+            255,
+            255,
+        ),
+        2,
+        cv2.LINE_AA,
+    )
+
+    return image
+
+
+# ============================================================
+# Main
+# ============================================================
+
+def main():
+
+    print(
+        "=" * 90
+    )
+
+    print(
+        "R1-A7 GRASP -> INSERTION VISUAL V1"
+    )
+
+    print(
+        "=" * 90
+    )
+
+    print(
+        "GRASP:"
+    )
+
+    print(
+        "  existing validated Wire/TIP guidance unchanged"
+    )
+
+    print(
+        "AFTER CLOSE:"
+    )
+
+    print(
+        "  arm stops; Hole U-Net starts; all wire cameras become LIVE"
+    )
+
+    print(
+        "  click SAME physical hole in External / Right Wrist / Left Wrist"
+    )
+
+    print(
+        "  after 3 targets: RIGHT CLICK to confirm (ENTER / SPACE / E also work)"
+    )
+
+    print(
+        "INSERTION:"
+    )
+
+    print(
+        "  External FREE -> HOLE controls X/Z"
+    )
+
+    print(
+        "  Left Wrist FREE -> HOLE controls coupled Y/Z"
+    )
+
+    print(
+        "  Right Wrist is monitoring only during insertion"
+    )
+
+    print(
+        "  FREE temporary loss -> TIP-relative FREE prediction at reduced speed"
+    )
+
+    print(
+        "R = reselect hole and STOP insertion"
+    )
+
+    print(
+        "P = print current insertion state"
+    )
+
+    print(
+        "Q / ESC = quit"
+    )
+
+    print(
+        "=" * 90
+    )
+
+
+    # --------------------------------------------------------
+    # Existing wire models
+    # --------------------------------------------------------
+
+    # WIRE_V4_HOLE_V2_RUNTIME_INTEGRATION_V1
+    #
+    # Reuse the existing validated device initialization, but replace
+    # the actual inference model for all three cameras with Wire V5.
+    _legacy_model, device = (
+        grasp.base.load_model()
+    )
+
+    model = (
+        grasp.load_model_from_checkpoint(
+            WIRE_V4_CHECKPOINT,
+            device,
+        )
+    )
+
+    model_right_wrist = (
+        grasp.load_model_from_checkpoint(
+            WIRE_V4_CHECKPOINT,
+            device,
+        )
+    )
+
+    del _legacy_model
+
+    print(
+        "[MODEL] Wire V5 all cameras =",
+        WIRE_V4_CHECKPOINT,
+    )
+
+    print(
+        "[MODEL] Hole V3 after CLOSE =",
+        HOLE_CHECKPOINT,
+    )
+
+
+    # Hole model is intentionally lazy-loaded only after CLOSE.
+    hole_model = None
+    hole_device = None
+
+
+    temporal_trackers = {
+        camera:
+            grasp.temporal.TemporalTracker(
+                camera
+            )
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    free_trackers = {
+        camera:
+            grasp.manual.ManualFreeTracker(
+                camera
+            )
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    tip_trackers = {}
+
+    for camera in CAMERA_ORDER:
+
+        if camera == "right_wrist":
+
+            tip_trackers[
+                camera
+            ] = (
+                grasp.wrist_tip_mid.
+                RightWristTweezerTipMidpointV1(
+                    camera
+                )
+            )
+
+        else:
+
+            tip_trackers[
+                camera
+            ] = (
+                grasp.TweezerTipTracker(
+                    camera
+                )
+            )
+
+
+    locked = {
+        "external":
+            False,
+
+        "left_wrist":
+            False,
+    }
+
+
+    locked_tracks = {
+        "external":
+            None,
+
+        "left_wrist":
+            None,
+    }
+
+
+    locked_geometry = {
+        "external":
+            None,
+
+        "left_wrist":
+            None,
+    }
+
+
+    latest_tracks = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    latest_shapes = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    latest_holes = {
+        camera:
+            []
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    latest_hole_pred = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    target_selected = {
+        camera:
+            False
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    target_uv = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    target_valid = {
+        camera:
+            False
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    target_update_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    tip_free_samples = {
+        camera:
+            collections.deque(
+                maxlen=
+                    TIP_FREE_REFERENCE_SAMPLES
+            )
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    last_measured_free_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    # INSERTION_MEASUREMENT_FRESHNESS_V1
+    insertion_free_measurement_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+    insertion_hole_measurement_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    # FREE_CONTROL_HOLD_V1
+    last_control_free_uv = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+    last_control_free_time = {
+        camera:
+            0.0
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    # INSERTION_VISUAL_STABILITY_V1
+    free_filtered_uv = {
+        camera:
+            None
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    latest_free_guidance = {
+        camera:
+            {
+                "uv":
+                    None,
+
+                "source":
+                    None,
+
+                "tip_uv":
+                    None,
+            }
+        for camera
+        in CAMERA_ORDER
+    }
+
+
+    panel_layout = {}
+
+    phase = (
+        PHASE_GRASP
+    )
+
+    target_confirmed = False
+
+    latest_external_guidance = {}
+    latest_wrist_guidance = {}
+
+
+    # INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+    insertion_aligned_streak = 0
+    insertion_aligned_latched = False
+
+
+    # INSERTION_DIRECT_FREE_TRACK_V1
+    insertion_direct_free_trackers = {
+        camera:
+            InsertionDirectFreeTracker(
+                camera
+            )
+        for camera
+        in INSERTION_CONTROL_CAMERAS
+    }
+
+
+
+
+    # --------------------------------------------------------
+    # Mouse callback
+    # --------------------------------------------------------
+
+    def on_mouse(
+        event,
+        x,
+        y,
+        flags,
+        param,
+    ):
+
+        nonlocal target_confirmed
+        nonlocal phase
+
+
+        # ====================================================
+        # RIGHT CLICK:
+        # confirm the three already-selected target holes.
+        #
+        # This avoids depending on keyboard focus.  The user
+        # can select all 3 targets and then right-click anywhere
+        # inside the OpenCV visual window.
+        # ====================================================
+
+        if (
+            event
+            ==
+            cv2.EVENT_RBUTTONDOWN
+        ):
+
+            if phase != PHASE_WAIT_HOLE:
+
+                return
+
+
+            # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+            #
+            # At least one REAL insertion-control camera must
+            # have a manually selected and currently valid hole.
+            #
+            # Left Wrist is optional and never starts insertion
+            # by itself.
+
+            control_ready_cameras = [
+                camera_name
+                for camera_name
+                in INSERTION_CONTROL_CAMERAS
+                if (
+                    target_selected[
+                        camera_name
+                    ]
+                    and
+                    target_uv[
+                        camera_name
+                    ]
+                    is not None
+                    and
+                    target_valid[
+                        camera_name
+                    ]
+                )
+            ]
+
+
+            if len(control_ready_cameras) == len(INSERTION_CONTROL_CAMERAS):
+
+                target_confirmed = True
+
+                phase = (
+                    PHASE_INSERTION
+                )
+
+                print()
+                print(
+                    "=" * 90
+                )
+
+                print(
+                    "[PHASE] WAIT_HOLE_TARGET -> INSERTION_TRACKING"
+                )
+
+                print(
+                    "[CONFIRM] insertion target confirmed by RIGHT CLICK"
+                )
+
+                print(
+                    "[PHASE] External + Left Wrist FREE->HOLE guidance ENABLED"
+                )
+
+                print(
+                    "=" * 90
+                )
+                print()
+
+            else:
+
+                print(
+                    "[HOLE CONFIRM] RIGHT CLICK rejected: "
+                    "select target hole in External + Left Wrist first"
+                )
+
+
+            return
+
+
+        if (
+            event
+            !=
+            cv2.EVENT_LBUTTONDOWN
+        ):
+            return
+
+
+        camera = None
+        local_x = None
+        local_y = None
+
+        for name in CAMERA_ORDER:
+
+            layout = (
+                panel_layout.get(
+                    name
+                )
+            )
+
+            if layout is None:
+                continue
+
+            if (
+                layout["x0"]
+                <=
+                x
+                <
+                layout["x1"]
+
+                and
+
+                0
+                <=
+                y
+                <
+                layout["h"]
+            ):
+
+                camera = name
+
+                local_x = (
+                    x
+                    -
+                    layout["x0"]
+                )
+
+                local_y = y
+
+                break
+
+
+        if camera is None:
+            return
+
+
+        shape = latest_shapes.get(
+            camera
+        )
+
+        if shape is None:
+            return
+
+
+        layout = panel_layout[
+            camera
+        ]
+
+        h = int(
+            shape[0]
+        )
+
+        w = int(
+            shape[1]
+        )
+
+        native_x = float(
+            np.clip(
+                local_x
+                *
+                w
+                /
+                layout["w"],
+                0,
+                w - 1,
+            )
+        )
+
+        native_y = float(
+            np.clip(
+                local_y
+                *
+                h
+                /
+                layout["h"],
+                0,
+                h - 1,
+            )
+        )
+
+
+        # ====================================================
+        # GRASP PHASE:
+        # Same FREE initialization/locking semantics.
+        # ====================================================
+
+        if phase == PHASE_GRASP:
+
+            track = (
+                latest_tracks.get(
+                    camera
+                )
+            )
+
+            if track is None:
+                return
+
+            if (
+                camera
+                in FIXED_WIRE_CAMERAS
+                and
+                locked[
+                    camera
+                ]
+            ):
+
+                print(
+                    f"[{camera}] already locked"
+                )
+
+                return
+
+
+            state = track.get(
+                "state"
+            )
+
+            if state not in (
+                "INIT",
+                "TRACK",
+                "RECOVER",
+            ):
+
+                print(
+                    f"[{camera}] FREE calibration rejected state={state}"
+                )
+
+                return
+
+
+            path = track.get(
+                "path"
+            )
+
+            if path is None:
+                return
+
+
+            tracker = (
+                free_trackers[
+                    camera
+                ]
+            )
+
+            tracker.current_shape = (
+                path.shape
+            )
+
+            ok = tracker.calibrate(
+                path,
+                (
+                    int(
+                        round(
+                            native_y
+                        )
+                    ),
+                    int(
+                        round(
+                            native_x
+                        )
+                    ),
+                ),
+            )
+
+            if not ok:
+
+                print(
+                    f"[{camera}] FREE calibration failed"
+                )
+
+                return
+
+
+            if (
+                camera
+                in FIXED_WIRE_CAMERAS
+            ):
+
+                lt = copy.deepcopy(
+                    track
+                )
+
+                lt[
+                    "state"
+                ] = "LOCKED"
+
+                geometry = copy.deepcopy(
+                    tracker.last_geometry
+                )
+
+                if geometry is None:
+
+                    print(
+                        f"[{camera}] no geometry after calibration"
+                    )
+
+                    return
+
+
+                geometry[
+                    "state"
+                ] = "LOCKED"
+
+                geometry[
+                    "status"
+                ] = "LOCKED_WIRE_REFERENCE"
+
+                geometry[
+                    "measurement_valid"
+                ] = False
+
+                geometry[
+                    "display_valid"
+                ] = True
+
+
+                locked[
+                    camera
+                ] = True
+
+                locked_tracks[
+                    camera
+                ] = lt
+
+                locked_geometry[
+                    camera
+                ] = geometry
+
+
+                latest_tracks[
+                    camera
+                ] = lt
+
+
+                print(
+                    f"[{camera}] WIRE/FREE/GRASP LOCKED"
+                )
+
+            else:
+
+                print(
+                    "[right_wrist] FREE identity initialized; LIVE tracking"
+                )
+
+
+            return
+
+
+        # ====================================================
+        # HOLE SELECTION PHASE
+        # ====================================================
+
+        holes = (
+            latest_holes.get(
+                camera,
+                [],
+            )
+        )
+
+        hole, distance = (
+            nearest_hole(
+                holes,
+                (
+                    native_x,
+                    native_y,
+                ),
+            )
+        )
+
+        if (
+            hole is None
+            or
+            distance
+            >
+            HOLE_CLICK_MAX_PX
+        ):
+
+            print(
+                f"[HOLE SELECT] {camera}: no hole near click "
+                f"d={distance:.1f}px"
+            )
+
+            return
+
+
+        center = hole[
+            "center_uv"
+        ]
+
+        target_selected[
+            camera
+        ] = True
+
+        target_uv[
+            camera
+        ] = (
+            float(
+                center[0]
+            ),
+            float(
+                center[1]
+            ),
+        )
+
+        # DYNAMIC_SELECTED_HOLE_TRACK_V1
+        # Preserve the raw selected-hole measurement separately from
+        # the smoothed target_uv used by insertion guidance.
+        latest_holes[
+            camera
+        ] = [
+            hole
+        ]
+
+        target_valid[
+            camera
+        ] = True
+
+        target_update_time[
+            camera
+        ] = time.time()
+
+        # INSERTION_MEASUREMENT_FRESHNESS_V1
+        insertion_hole_measurement_time[
+            camera
+        ] = time.time()
+
+        target_confirmed = False
+
+
+        print(
+            f"[HOLE SELECT] {camera}: "
+            f"target=({center[0]:.1f},{center[1]:.1f}) "
+            f"click_distance={distance:.1f}px"
+        )
+
+
+    # --------------------------------------------------------
+    # Cameras
+    # --------------------------------------------------------
+
+    external = None
+    right = None
+    left = None
+
+    frame_counter = 0
+
+    # INSERTION_DATASET_RECORDER_INTEGRATION_V1
+    #
+    # Recorder is inactive during GRASP.
+    # A session starts automatically in:
+    #   WAIT_HOLE_TARGET
+    #   INSERTION_TRACKING
+    #
+    # Normal frames: 5 Hz
+    # Event frames:  10 Hz + immediate state transitions
+    dataset_recorder = (
+        insertion_recorder.InsertionDatasetRecorder(
+            normal_hz=5.0,
+            event_hz=10.0,
+            jpeg_quality=95,
+            max_queue=128,
+        )
+    )
+
+    print(
+        "[DATA RECORDER] initialized",
+        flush=True,
+    )
+    last_print = 0.0
+
+
+    try:
+
+        external = (
+            grasp.base.open_external()
+        )
+
+        ctx = (
+            grasp.base.Context()
+        )
+
+        right = (
+            grasp.base.open_orbbec(
+                ctx,
+                grasp.base.RIGHT_SERIAL,
+            )
+        )
+
+        left = (
+            grasp.base.open_orbbec(
+                ctx,
+                grasp.base.LEFT_SERIAL,
+            )
+        )
+
+
+        time.sleep(
+            1.0
+        )
+
+
+        cv2.namedWindow(
+            WINDOW,
+            cv2.WINDOW_AUTOSIZE,
+        )
+
+        cv2.setMouseCallback(
+            WINDOW,
+            on_mouse,
+        )
+
+
+        while True:
+
+            now = time.time()
+
+            frame_counter += 1
+
+
+            ok_ext, frame_ext = (
+                external.read()
+            )
+
+            frame_right = (
+                grasp.base.read_orbbec(
+                    right
+                )
+            )
+
+            frame_left = (
+                grasp.base.read_orbbec(
+                    left
+                )
+            )
+
+
+            if (
+                not ok_ext
+                or
+                frame_right
+                is None
+                or
+                frame_left
+                is None
+            ):
+
+                continue
+
+
+            frames = {
+                "external":
+                    frame_ext,
+
+                "right_wrist":
+                    frame_right,
+
+                "left_wrist":
+                    frame_left,
+            }
+
+
+            detections = {}
+            fps_values = {}
+
+
+            # ------------------------------------------------
+            # Wire + tool segmentation always stays live.
+            # ------------------------------------------------
+
+            for camera in CAMERA_ORDER:
+
+                active_model = (
+                    model_right_wrist
+                    if
+                    camera
+                    ==
+                    "right_wrist"
+                    else
+                    model
+                )
+
+                (
+                    detections[
+                        camera
+                    ],
+                    fps_values[
+                        camera
+                    ],
+                ) = (
+                    grasp.base.run_one(
+                        active_model,
+                        device,
+                        frames[
+                            camera
+                        ],
+                    )
+                )
+
+
+            tracks = {}
+            geometries = {}
+
+
+            # =================================================
+            # GRASP:
+            # Preserve existing External/Left frozen-wire logic.
+            # =================================================
+
+            if phase == PHASE_GRASP:
+
+                for camera in (
+                    "external",
+                    "left_wrist",
+                ):
+
+                    if locked[
+                        camera
+                    ]:
+
+                        tracks[
+                            camera
+                        ] = (
+                            locked_tracks[
+                                camera
+                            ]
+                        )
+
+                        geometries[
+                            camera
+                        ] = (
+                            locked_geometry[
+                                camera
+                            ]
+                        )
+
+                    else:
+
+                        tracks[
+                            camera
+                        ] = (
+                            temporal_trackers[
+                                camera
+                            ].update(
+                                detections[
+                                    camera
+                                ]
+                            )
+                        )
+
+                        geometries[
+                            camera
+                        ] = (
+                            free_trackers[
+                                camera
+                            ].update(
+                                tracks[
+                                    camera
+                                ]
+                            )
+                        )
+
+
+                camera = (
+                    "right_wrist"
+                )
+
+                tracks[
+                    camera
+                ] = (
+                    temporal_trackers[
+                        camera
+                    ].update(
+                        detections[
+                            camera
+                        ]
+                    )
+                )
+
+                geometries[
+                    camera
+                ] = (
+                    free_trackers[
+                        camera
+                    ].update(
+                        tracks[
+                            camera
+                        ]
+                    )
+                )
+
+
+            # =================================================
+            # INSERTION:
+            # All three wire/FREE trackers become LIVE.
+            # =================================================
+
+            else:
+
+                for camera in CAMERA_ORDER:
+
+                    tracks[
+                        camera
+                    ] = (
+                        temporal_trackers[
+                            camera
+                        ].update(
+                            detections[
+                                camera
+                            ]
+                        )
+                    )
+
+                    geometries[
+                        camera
+                    ] = (
+                        free_trackers[
+                            camera
+                        ].update(
+                            tracks[
+                                camera
+                            ]
+                        )
+                    )
+
+
+            for camera in CAMERA_ORDER:
+
+                latest_tracks[
+                    camera
+                ] = tracks[
+                    camera
+                ]
+
+                latest_shapes[
+                    camera
+                ] = frames[
+                    camera
+                ].shape
+
+
+            # ------------------------------------------------
+            # TIP
+            # ------------------------------------------------
+
+            tip_results = {}
+
+            for camera in CAMERA_ORDER:
+
+                grasp_yx = (
+                    geometries[
+                        camera
+                    ].get(
+                        "grasp_point_yx"
+                    )
+                    if
+                    geometries[
+                        camera
+                    ]
+                    is not None
+                    else
+                    None
+                )
+
+                tip_results[
+                    camera
+                ] = (
+                    tip_trackers[
+                        camera
+                    ].update(
+                        detections[
+                            camera
+                        ][
+                            "tool_mask"
+                        ],
+                        grasp_yx,
+                    )
+                )
+
+
+            # =================================================
+            # GRASP GUIDANCE:
+            # Reuse exact validated functions.
+            # =================================================
+
+            if phase == PHASE_GRASP:
+
+                latest_external_guidance = (
+                    grasp.publish_external(
+                        locked[
+                            "external"
+                        ],
+                        tracks[
+                            "external"
+                        ],
+                        geometries[
+                            "external"
+                        ],
+                        tip_results[
+                            "external"
+                        ],
+                    )
+                )
+
+
+                latest_wrist_guidance = (
+                    grasp.publish_wrist(
+                        free_trackers[
+                            "right_wrist"
+                        ].calibrated,
+                        tracks[
+                            "right_wrist"
+                        ],
+                        geometries[
+                            "right_wrist"
+                        ],
+                        tip_results[
+                            "right_wrist"
+                        ],
+                    )
+                )
+
+
+                # WRIST_JAW_CORRIDOR_V1
+                #
+                # Add physical open-jaw corridor information
+                # to the existing Right Wrist guidance JSON.
+                latest_wrist_guidance = (
+                    augment_wrist_jaw_corridor(
+                        latest_wrist_guidance,
+                        tip_results[
+                            "right_wrist"
+                        ],
+                        geometries[
+                            "right_wrist"
+                        ],
+                    )
+                )
+
+                atomic_json(
+                    grasp.WRIST_OUT,
+                    latest_wrist_guidance,
+                )
+
+
+                atomic_json(
+                    TARGET_STATE_OUT,
+                    {
+                        "timestamp":
+                            now,
+
+                        "phase":
+                            PHASE_GRASP,
+
+                        "target_ready":
+                            False,
+
+                        "target_confirmed":
+                            False,
+                    },
+                )
+
+
+                # --------------------------------------------
+                # CLOSE -> WAIT_HOLE_TARGET transition
+                # --------------------------------------------
+
+                if close_completed_signal():
+
+                    print()
+                    print(
+                        "=" * 90
+                    )
+
+                    print(
+                        "[PHASE] GRASP -> WAIT_HOLE_TARGET"
+                    )
+
+                    print(
+                        "[PHASE] arm guidance disabled; gripper remains closed"
+                    )
+
+                    print(
+                        "[PHASE] External + Left wire locks RELEASED"
+                    )
+
+                    print(
+                        "[PHASE] loading Hole U-Net..."
+                    )
+
+                    print(
+                        "=" * 90
+                    )
+
+
+                    phase = (
+                        PHASE_WAIT_HOLE
+                    )
+
+                    target_confirmed = False
+
+
+                    for camera in (
+                        "external",
+                        "left_wrist",
+                    ):
+
+                        locked[
+                            camera
+                        ] = False
+
+                        locked_tracks[
+                            camera
+                        ] = None
+
+                        locked_geometry[
+                            camera
+                        ] = None
+
+                        # Reset temporal path history, but preserve
+                        # ManualFreeTracker identity/calibration.
+                        temporal_trackers[
+                            camera
+                        ] = (
+                            grasp.temporal.TemporalTracker(
+                                camera
+                            )
+                        )
+
+
+                    invalid_guidance(
+                        "external",
+                        phase,
+                        "WAITING_FOR_HOLE_SELECTION",
+                    )
+
+                    invalid_guidance(
+                        "left_wrist",
+                        phase,
+                        "WAITING_FOR_HOLE_SELECTION",
+                    )
+
+
+                    atomic_json(
+                        TARGET_STATE_OUT,
+                        {
+                            "timestamp":
+                                time.time(),
+
+                            "phase":
+                                phase,
+
+                            "target_ready":
+                                False,
+
+                            "target_confirmed":
+                                False,
+                        },
+                    )
+
+
+                    if hole_model is None:
+
+                        (
+                            hole_model,
+                            hole_device,
+                        ) = (
+                            hole_live.load_model(
+                                HOLE_CHECKPOINT
+                            )
+                        )
+
+
+                    print()
+                    print(
+                        "[HOLE] detector ready"
+                    )
+
+                    print(
+                        "[HOLE] click SAME physical hole in External + Left Wrist"
+                    )
+
+                    print(
+                        "[HOLE] then press ENTER"
+                    )
+
+                    print()
+
+
+            # =================================================
+            # WAIT_HOLE / INSERTION
+            # =================================================
+
+            else:
+
+                # ====================================================
+                # INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+                #
+                # External + Left Wrist are physically fixed cameras.
+                # Once insertion begins their selected hole_uv becomes
+                # a fixed image-space control target.
+                # ====================================================
+
+                if phase == PHASE_WAIT_HOLE:
+
+                    insertion_aligned_streak = 0
+                    insertion_aligned_latched = False
+
+                elif phase == PHASE_INSERTION:
+
+                    for camera in INSERTION_FIXED_HOLE_CAMERAS:
+
+                        target_valid[
+                            camera
+                        ] = bool(
+                            target_confirmed
+                            and
+                            target_selected[
+                                camera
+                            ]
+                            and
+                            target_uv[
+                                camera
+                            ]
+                            is not None
+                        )
+
+
+                # --------------------------------------------
+                # Hole inference
+                # --------------------------------------------
+
+                if (
+                    phase
+                    ==
+                    PHASE_WAIT_HOLE
+                    and
+                    hole_model
+                    is not None
+                    and
+                    frame_counter
+                    %
+                    HOLE_EVERY
+                    ==
+                    0
+                ):
+
+                    for camera in INSERTION_CONTROL_CAMERAS:
+
+                        try:
+
+                            pred = (
+                                hole_live.predict_sliding(
+                                    hole_model,
+                                    frames[
+                                        camera
+                                    ],
+                                    hole_device,
+                                    tile=
+                                        HOLE_TILE,
+                                    stride=
+                                        HOLE_STRIDE,
+                                )
+                            )
+
+                            latest_hole_pred[
+                                camera
+                            ] = pred
+
+
+                            # ====================================
+                            # BEFORE SELECTION:
+                            # detect all hole candidates.
+                            # ====================================
+
+                            if not target_selected[
+                                camera
+                            ]:
+
+                                holes = (
+                                    hole_live.extract_hole_centers(
+                                        pred,
+                                        HOLE_MIN_AREA,
+                                        HOLE_MAX_AREA,
+                                    )
+                                )
+
+                                latest_holes[
+                                    camera
+                                ] = holes
+
+
+                            # ====================================
+                            # AFTER SELECTION:
+                            # do NOT associate with all holes.
+                            #
+                            # Search only in a local ROI around
+                            # the previously selected target.
+                            # ====================================
+
+                            else:
+
+                                # ====================================
+                                # DYNAMIC_SELECTED_HOLE_TRACK_V1
+                                #
+                                # Tracking search center:
+                                #   last RAW measured hole center
+                                #
+                                # Control target:
+                                #   EMA-smoothed target_uv
+                                #
+                                # Do not use the smoothed control target as
+                                # the next-frame search center.  On a moving
+                                # wrist camera that creates large tracking lag.
+                                # ====================================
+
+                                tracking_previous_uv = (
+                                    target_uv[
+                                        camera
+                                    ]
+                                )
+
+                                previous_selected_holes = (
+                                    latest_holes.get(
+                                        camera,
+                                        [],
+                                    )
+                                )
+
+                                if previous_selected_holes:
+
+                                    previous_raw_center = (
+                                        previous_selected_holes[
+                                            0
+                                        ].get(
+                                            "center_uv"
+                                        )
+                                    )
+
+                                    if previous_raw_center is not None:
+
+                                        tracking_previous_uv = (
+                                            float(
+                                                previous_raw_center[0]
+                                            ),
+                                            float(
+                                                previous_raw_center[1]
+                                            ),
+                                        )
+
+                                tracked = (
+                                    track_selected_hole(
+                                        pred,
+                                        tracking_previous_uv,
+                                        camera,
+                                    )
+                                )
+
+
+                                if tracked is not None:
+
+                                    c = tracked[
+                                        "center_uv"
+                                    ]
+
+                                    # ====================================
+                                    # INSERTION_VISUAL_STABILITY_V1
+                                    # Smooth the center of the already
+                                    # identity-locked physical hole.
+                                    # ====================================
+
+                                    raw_hole_uv = (
+                                        float(
+                                            c[0]
+                                        ),
+                                        float(
+                                            c[1]
+                                        ),
+                                    )
+
+                                    previous_hole_uv = (
+                                        target_uv[
+                                            camera
+                                        ]
+                                    )
+
+                                    if previous_hole_uv is None:
+
+                                        filtered_hole_uv = (
+                                            raw_hole_uv
+                                        )
+
+                                    else:
+
+                                        a = float(
+                                            HOLE_TRACK_EMA_ALPHA_BY_CAMERA.get(
+                                                camera,
+                                                HOLE_TRACK_EMA_ALPHA,
+                                            )
+                                        )
+
+                                        filtered_hole_uv = (
+                                            (
+                                                1.0 - a
+                                            )
+                                            *
+                                            float(
+                                                previous_hole_uv[0]
+                                            )
+                                            +
+                                            a
+                                            *
+                                            raw_hole_uv[0],
+                                            (
+                                                1.0 - a
+                                            )
+                                            *
+                                            float(
+                                                previous_hole_uv[1]
+                                            )
+                                            +
+                                            a
+                                            *
+                                            raw_hole_uv[1],
+                                        )
+
+                                    target_uv[
+                                        camera
+                                    ] = (
+                                        filtered_hole_uv
+                                    )
+
+                                    target_valid[
+                                        camera
+                                    ] = True
+
+                                    target_update_time[
+                                        camera
+                                    ] = now
+
+                                    # INSERTION_MEASUREMENT_FRESHNESS_V1
+                                    insertion_hole_measurement_time[
+                                        camera
+                                    ] = time.time()
+
+
+                                    # Keep ONLY the selected target.
+                                    latest_holes[
+                                        camera
+                                    ] = [
+                                        tracked
+                                    ]
+
+
+                                else:
+
+                                    # Short segmentation dropout:
+                                    # keep the manually selected
+                                    # target instead of immediately
+                                    # declaring TARGET LOST.
+                                    age = (
+                                        now
+                                        -
+                                        target_update_time[
+                                            camera
+                                        ]
+                                    )
+
+
+                                    if (
+                                        0.0
+                                        <=
+                                        age
+                                        <=
+                                        HOLE_TARGET_HOLD_S
+                                    ):
+
+                                        target_valid[
+                                            camera
+                                        ] = True
+
+                                    else:
+
+                                        target_valid[
+                                            camera
+                                        ] = False
+
+
+                                    # Other holes are intentionally
+                                    # discarded after selection.
+                                    latest_holes[
+                                        camera
+                                    ] = []
+
+
+                        except Exception as exc:
+
+                            print(
+                                f"[HOLE ERROR] {camera}: {exc}",
+                                flush=True,
+                            )
+
+
+                            if not target_selected[
+                                camera
+                            ]:
+
+                                latest_holes[
+                                    camera
+                                ] = []
+
+
+                            else:
+
+                                age = (
+                                    now
+                                    -
+                                    target_update_time[
+                                        camera
+                                    ]
+                                )
+
+                                target_valid[
+                                    camera
+                                ] = bool(
+                                    0.0
+                                    <=
+                                    age
+                                    <=
+                                    HOLE_TARGET_HOLD_S
+                                )
+
+                                latest_holes[
+                                    camera
+                                ] = []
+
+
+                # --------------------------------------------
+                # FREE / TIP relationship
+                # --------------------------------------------
+
+                for camera in CAMERA_ORDER:
+
+                    measured = (
+                        measured_free_uv(
+                            geometries[
+                                camera
+                            ]
+                        )
+                    )
+
+
+                    # ============================================
+                    # INSERTION_VISUAL_STABILITY_V1
+                    # FREE endpoint:
+                    #   raw measurement
+                    #      -> jump rejection
+                    #      -> EMA
+                    #      -> control / TIP-relative history
+                    # ============================================
+
+                    if measured is not None:
+
+                        # INSERTION_MEASUREMENT_FRESHNESS_V1
+                        insertion_free_measurement_time[
+                            camera
+                        ] = time.time()
+
+                        raw_free = (
+                            float(
+                                measured[0]
+                            ),
+                            float(
+                                measured[1]
+                            ),
+                        )
+
+                        previous_free = (
+                            free_filtered_uv[
+                                camera
+                            ]
+                        )
+
+                        if previous_free is not None:
+
+                            free_jump_px = (
+                                point_distance(
+                                    raw_free,
+                                    previous_free,
+                                )
+                            )
+
+                            if (
+                                free_jump_px
+                                >
+                                FREE_TRACK_MAX_JUMP_PX_BY_CAMERA.get(camera, FREE_TRACK_MAX_JUMP_PX)
+                            ):
+
+                                # Reject one-frame geometry jump.
+                                # Existing DISPLAY_ONLY /
+                                # TIP_RELATIVE_PRED fallback below
+                                # handles this frame.
+                                measured = None
+
+                            else:
+
+                                a = (
+                                    FREE_TRACK_EMA_ALPHA
+                                )
+
+                                filtered_free = (
+                                    (
+                                        1.0 - a
+                                    )
+                                    *
+                                    float(
+                                        previous_free[0]
+                                    )
+                                    +
+                                    a
+                                    *
+                                    raw_free[0],
+                                    (
+                                        1.0 - a
+                                    )
+                                    *
+                                    float(
+                                        previous_free[1]
+                                    )
+                                    +
+                                    a
+                                    *
+                                    raw_free[1],
+                                )
+
+                                free_filtered_uv[
+                                    camera
+                                ] = (
+                                    filtered_free
+                                )
+
+                                measured = (
+                                    filtered_free
+                                )
+
+                        else:
+
+                            free_filtered_uv[
+                                camera
+                            ] = raw_free
+
+                            measured = raw_free
+
+                    display_free = (
+                        display_free_uv(
+                            geometries[
+                                camera
+                            ]
+                        )
+                    )
+
+                    tip_uv = (
+                        tip_uv_from_result(
+                            tip_results[
+                                camera
+                            ],
+                            geometries[
+                                camera
+                            ],
+                        )
+                    )
+
+
+                    if (
+                        measured
+                        is not None
+                        and
+                        tip_uv
+                        is not None
+                    ):
+
+                        rel = (
+                            np.asarray(
+                                measured,
+                                dtype=np.float64,
+                            )
+                            -
+                            np.asarray(
+                                tip_uv,
+                                dtype=np.float64,
+                            )
+                        )
+
+                        tip_free_samples[
+                            camera
+                        ].append(
+                            rel
+                        )
+
+                        last_measured_free_time[
+                            camera
+                        ] = now
+
+
+                    if measured is not None:
+
+                        free_uv = (
+                            measured
+                        )
+
+                        free_source = (
+                            "MEASURED"
+                        )
+
+                    elif display_free is not None:
+
+                        # Display/temporal-hold FREE is useful
+                        # for visualization and debugging,
+                        # but insertion_guidance() explicitly
+                        # refuses to use it for robot motion.
+                        free_uv = (
+                            display_free
+                        )
+
+                        free_source = (
+                            "DISPLAY_ONLY"
+                        )
+
+                    else:
+
+                        free_uv = None
+
+                        free_source = None
+
+
+                        samples = (
+                            tip_free_samples[
+                                camera
+                            ]
+                        )
+
+                        age = (
+                            now
+                            -
+                            last_measured_free_time[
+                                camera
+                            ]
+                        )
+
+
+                        if (
+                            tip_uv
+                            is not None
+                            and
+                            len(
+                                samples
+                            )
+                            >=
+                            3
+                            and
+                            0.0
+                            <=
+                            age
+                            <=
+                            TIP_FREE_FALLBACK_MAX_AGE_S
+                        ):
+
+                            ref = (
+                                np.median(
+                                    np.stack(
+                                        list(
+                                            samples
+                                        ),
+                                        axis=0,
+                                    ),
+                                    axis=0,
+                                )
+                            )
+
+                            predicted = (
+                                np.asarray(
+                                    tip_uv,
+                                    dtype=np.float64,
+                                )
+                                +
+                                ref
+                            )
+
+                            free_uv = (
+                                float(
+                                    predicted[
+                                        0
+                                    ]
+                                ),
+                                float(
+                                    predicted[
+                                        1
+                                    ]
+                                ),
+                            )
+
+                            free_source = (
+                                "TIP_RELATIVE_PRED"
+                            )
+
+
+                    # ============================================
+                    # DISPLAY_ONLY_TO_TIP_PRED_V1
+                    #
+                    # A temporally-held DISPLAY_ONLY position must
+                    # never directly command robot motion.
+                    #
+                    # However, DISPLAY_ONLY previously prevented the
+                    # already implemented TIP-relative fallback from
+                    # being reached at all.
+                    #
+                    # Therefore, when the measured FREE endpoint is
+                    # temporarily unavailable, promote DISPLAY_ONLY
+                    # to TIP_RELATIVE_PRED if a recent calibrated
+                    # FREE<->TIP relation is available.
+                    # ============================================
+
+                    if (
+                        free_source
+                        ==
+                        "DISPLAY_ONLY"
+                    ):
+
+                        samples = (
+                            tip_free_samples[
+                                camera
+                            ]
+                        )
+
+                        age = (
+                            now
+                            -
+                            last_measured_free_time[
+                                camera
+                            ]
+                        )
+
+                        if (
+                            tip_uv
+                            is not None
+                            and
+                            len(samples)
+                            >=
+                            3
+                            and
+                            0.0
+                            <=
+                            age
+                            <=
+                            TIP_FREE_FALLBACK_MAX_AGE_S
+                        ):
+
+                            ref = (
+                                np.median(
+                                    np.stack(
+                                        list(
+                                            samples
+                                        ),
+                                        axis=0,
+                                    ),
+                                    axis=0,
+                                )
+                            )
+
+                            predicted = (
+                                np.asarray(
+                                    tip_uv,
+                                    dtype=np.float64,
+                                )
+                                +
+                                ref
+                            )
+
+                            free_uv = (
+                                float(
+                                    predicted[0]
+                                ),
+                                float(
+                                    predicted[1]
+                                ),
+                            )
+
+                            free_source = (
+                                "TIP_RELATIVE_PRED"
+                            )
+
+
+                    # ============================================
+                    # FREE_CONTROL_HOLD_APPLY_V1
+                    #
+                    # Avoid source flapping:
+                    #
+                    # MEASURED / TIP_RELATIVE_PRED
+                    #     -> refresh last real control point
+                    #
+                    # short DISPLAY_ONLY / missing interval
+                    #     -> reuse last control FREE <= 0.25 s
+                    #
+                    # longer loss
+                    #     -> existing invalid / STOP behavior
+                    # ============================================
+
+                    if (
+                        free_uv is not None
+                        and
+                        free_source
+                        in (
+                            "MEASURED",
+                            "TIP_RELATIVE_PRED",
+                        )
+                    ):
+
+                        last_control_free_uv[
+                            camera
+                        ] = (
+                            float(
+                                free_uv[0]
+                            ),
+                            float(
+                                free_uv[1]
+                            ),
+                        )
+
+                        last_control_free_time[
+                            camera
+                        ] = now
+
+                    elif (
+                        free_source
+                        in (
+                            "DISPLAY_ONLY",
+                            None,
+                        )
+                    ):
+
+                        control_age = (
+                            now
+                            -
+                            last_control_free_time[
+                                camera
+                            ]
+                        )
+
+                        previous_control_free = (
+                            last_control_free_uv[
+                                camera
+                            ]
+                        )
+
+                        if (
+                            previous_control_free
+                            is not None
+                            and
+                            0.0
+                            <=
+                            control_age
+                            <=
+                            FREE_CONTROL_HOLD_S
+                        ):
+
+                            free_uv = (
+                                previous_control_free
+                            )
+
+                            free_source = (
+                                "MEASURED_HOLD"
+                            )
+
+
+                    latest_free_guidance[
+                        camera
+                    ] = {
+                        "uv":
+                            free_uv,
+
+                        "source":
+                            free_source,
+
+                        "tip_uv":
+                            tip_uv,
+                    }
+
+
+                # --------------------------------------------
+                # ====================================================
+                # INSERTION_DIRECT_FREE_TRACK_V1
+                #
+                # Existing ManualFreeTracker still runs for display,
+                # diagnostics, grasp compatibility, etc.
+                #
+                # During INSERTION only, External + Left Wrist robot
+                # control FREE position comes directly from CURRENT
+                # raw wire_path endpoints.
+                # ====================================================
+
+                if phase == PHASE_WAIT_HOLE:
+
+                    for camera in INSERTION_CONTROL_CAMERAS:
+
+                        insertion_direct_free_trackers[
+                            camera
+                        ].reset()
+
+
+                elif phase == PHASE_INSERTION:
+
+                    for camera in INSERTION_CONTROL_CAMERAS:
+
+                        old_info = (
+                            latest_free_guidance[
+                                camera
+                            ]
+                        )
+
+                        reference_uv = (
+                            measured_free_uv(
+                                geometries[
+                                    camera
+                                ]
+                            )
+                        )
+
+                        if reference_uv is None:
+
+                            reference_uv = (
+                                display_free_uv(
+                                    geometries[
+                                        camera
+                                    ]
+                                )
+                            )
+
+                        if (
+                            reference_uv is None
+                            and
+                            old_info.get(
+                                "uv"
+                            )
+                            is not None
+                        ):
+                            reference_uv = (
+                                old_info[
+                                    "uv"
+                                ]
+                            )
+
+
+                        direct_info = (
+                            insertion_direct_free_trackers[
+                                camera
+                            ].update(
+                                detections[
+                                    camera
+                                ].get(
+                                    "wire_path"
+                                ),
+                                reference_uv,
+                                time.time(),
+                                tip_uv=
+                                    old_info.get(
+                                        "tip_uv"
+                                    ),
+                            )
+                        )
+
+
+                        latest_free_guidance[
+                            camera
+                        ] = {
+                            "uv":
+                                direct_info.get(
+                                    "uv"
+                                ),
+
+                            "source":
+                                direct_info.get(
+                                    "source"
+                                ),
+
+                            "tip_uv":
+                                old_info.get(
+                                    "tip_uv"
+                                ),
+
+                            **direct_info,
+                        }
+
+
+                        if (
+                            direct_info.get(
+                                "source"
+                            )
+                            ==
+                            "MEASURED"
+                            and
+                            direct_info.get(
+                                "measurement_timestamp"
+                            )
+                            is not None
+                        ):
+
+                            insertion_free_measurement_time[
+                                camera
+                            ] = float(
+                                direct_info[
+                                    "measurement_timestamp"
+                                ]
+                            )
+
+
+                # --------------------------------------------
+                # Target freshness
+                # --------------------------------------------
+
+                # INSERTION_FIXED_HOLE_FAST_GUIDANCE_V1
+                #
+                # Only target-selection mode requires a fresh
+                # Hole U-Net measurement.
+                #
+                # During insertion the selected External/Left
+                # hole_uv is intentionally static and must NOT
+                # expire merely because time passes.
+                if phase == PHASE_WAIT_HOLE:
+
+                    for camera in INSERTION_CONTROL_CAMERAS:
+
+                        if target_valid[
+                            camera
+                        ]:
+
+                            age = (
+                                now
+                                -
+                                target_update_time[
+                                    camera
+                                ]
+                            )
+
+                            if (
+                                age
+                                >
+                                HOLE_FRESH_S
+                            ):
+
+                                target_valid[
+                                    camera
+                                ] = False
+
+
+                # --------------------------------------------
+                # WAIT_HOLE_TARGET:
+                # Never output motion.
+                # --------------------------------------------
+
+                if phase == PHASE_WAIT_HOLE:
+
+                    latest_external_guidance = (
+                        invalid_guidance(
+                            "external",
+                            phase,
+                            "WAITING_FOR_THREE_HOLE_TARGETS_AND_ENTER",
+                        )
+                    )
+
+                    latest_wrist_guidance = (
+                        invalid_guidance(
+                            "left_wrist",
+                            phase,
+                            "WAITING_FOR_THREE_HOLE_TARGETS_AND_ENTER",
+                        )
+                    )
+
+
+                # --------------------------------------------
+                # INSERTION:
+                # FREE -> selected HOLE
+                # --------------------------------------------
+
+                elif phase == PHASE_INSERTION:
+
+                    ext_free = (
+                        latest_free_guidance[
+                            "external"
+                        ]
+                    )
+
+                    left_free = (
+                        latest_free_guidance[
+                            "left_wrist"
+                        ]
+                    )
+
+
+                    latest_external_guidance = (
+                        insertion_guidance(
+                            "external",
+                            ext_free[
+                                "uv"
+                            ],
+                            ext_free[
+                                "source"
+                            ],
+                            target_uv[
+                                "external"
+                            ],
+                            ext_free[
+                                "tip_uv"
+                            ],
+                            target_valid[
+                                "external"
+                            ],
+                            measurement_timestamp=
+                                insertion_measurement_timestamp(
+                                    insertion_free_measurement_time[
+                                        "external"
+                                    ],
+                                    insertion_hole_measurement_time[
+                                        "external"
+                                    ],
+                                ),
+                            source_frame_seq=
+                                frame_counter,
+                        )
+                    )
+
+
+                    latest_wrist_guidance = (
+                        insertion_guidance(
+                            "left_wrist",
+                            left_free[
+                                "uv"
+                            ],
+                            left_free[
+                                "source"
+                            ],
+                            target_uv[
+                                "left_wrist"
+                            ],
+                            left_free[
+                                "tip_uv"
+                            ],
+                            target_valid[
+                                "left_wrist"
+                            ],
+                            measurement_timestamp=
+                                insertion_measurement_timestamp(
+                                    insertion_free_measurement_time[
+                                        "left_wrist"
+                                    ],
+                                    insertion_hole_measurement_time[
+                                        "left_wrist"
+                                    ],
+                                ),
+                            source_frame_seq=
+                                frame_counter,
+                        )
+                    )
+
+
+                    # =================================================
+                    # INSERTION_DIRECT_FREE_TRACK_V1
+                    #
+                    # Preserve direct FREE diagnostics in the two
+                    # actual control guidance JSON files.
+                    for (
+                        camera_name,
+                        guidance,
+                    ) in (
+                        (
+                            "external",
+                            latest_external_guidance,
+                        ),
+                        (
+                            "left_wrist",
+                            latest_wrist_guidance,
+                        ),
+                    ):
+
+                        direct_info = (
+                            latest_free_guidance[
+                                camera_name
+                            ]
+                        )
+
+                        for key in (
+                            "direct_state",
+                            "direct_raw_uv",
+                            "direct_filtered_uv",
+                            "direct_jump_px",
+                            "direct_identity_margin_px",
+                            "direct_reacquire_uv",
+                            "direct_reacquire_count",
+                            "direct_endpoints_uv",
+                        ):
+
+                            guidance[
+                                key
+                            ] = (
+                                direct_info.get(
+                                    key
+                                )
+                            )
+
+
+                    # INSERTION_PIXEL_OVERLAP_COMPLETE_V1
+                    #
+                    # Final visual completion condition:
+                    #
+                    #   External FREE cross == HOLE cross
+                    #                 AND
+                    #   Left Wrist FREE cross == HOLE cross
+                    #
+                    # on the same rendered pixel for 3 consecutive
+                    # NEW visual-control updates.
+                    # =================================================
+
+                    external_same_pixel = (
+                        insertion_same_pixel(
+                            latest_external_guidance
+                        )
+                    )
+
+                    left_same_pixel = (
+                        insertion_same_pixel(
+                            latest_wrist_guidance
+                        )
+                    )
+
+
+                    if (
+                        external_same_pixel
+                        and
+                        left_same_pixel
+                    ):
+
+                        insertion_aligned_streak += 1
+
+                    else:
+
+                        insertion_aligned_streak = 0
+
+
+                    if (
+                        insertion_aligned_streak
+                        >=
+                        INSERTION_ALIGN_HOLD_UPDATES
+                    ):
+
+                        insertion_aligned_latched = True
+
+
+                    for guidance in (
+                        latest_external_guidance,
+                        latest_wrist_guidance,
+                    ):
+
+                        guidance[
+                            "fixed_hole_target"
+                        ] = True
+
+                        guidance[
+                            "insertion_same_pixel"
+                        ] = bool(
+                            external_same_pixel
+                            if guidance
+                            is
+                            latest_external_guidance
+                            else
+                            left_same_pixel
+                        )
+
+                        guidance[
+                            "insertion_align_streak"
+                        ] = int(
+                            insertion_aligned_streak
+                        )
+
+                        guidance[
+                            "insertion_aligned"
+                        ] = bool(
+                            insertion_aligned_latched
+                        )
+
+
+                    if insertion_aligned_latched:
+
+                        for guidance in (
+                            latest_external_guidance,
+                            latest_wrist_guidance,
+                        ):
+
+                            guidance[
+                                "vx_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "vy_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "vz_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "proposed_vx_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "proposed_vy_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "proposed_vz_mm_s"
+                            ] = 0.0
+
+                            guidance[
+                                "tip_status"
+                            ] = (
+                                "INSERTION_ALIGNED"
+                            )
+
+
+                    # Rewrite the two phase-generic control
+                    # interfaces with alignment metadata.
+                    atomic_json(
+                        grasp.EXTERNAL_OUT,
+                        latest_external_guidance,
+                    )
+
+                    atomic_json(
+                        grasp.WRIST_OUT,
+                        latest_wrist_guidance,
+                    )
+
+
+                # ====================================================
+                # INSERTION_DATASET_RECORDER_INTEGRATION_V1
+                #
+                # Record existing camera frames + perception state.
+                #
+                # IMPORTANT:
+                #   - no camera is reopened here
+                #   - no robot command is published here
+                #   - writer thread only performs disk I/O
+                # ====================================================
+
+                recorder_selected_control = [
+                    camera
+                    for camera
+                    in INSERTION_CONTROL_CAMERAS
+                    if (
+                        target_selected[
+                            camera
+                        ]
+                        and
+                        target_uv[
+                            camera
+                        ]
+                        is not None
+                    )
+                ]
+
+                recorder_valid_control = [
+                    camera
+                    for camera
+                    in recorder_selected_control
+                    if target_valid[
+                        camera
+                    ]
+                ]
+
+                dataset_recorder.record(
+                    frame_counter=
+                        frame_counter,
+
+                    phase=
+                        phase,
+
+                    frames=
+                        frames,
+
+                    free_guidance=
+                        latest_free_guidance,
+
+                    target_uv=
+                        target_uv,
+
+                    target_selected=
+                        target_selected,
+
+                    target_valid=
+                        target_valid,
+
+                    external_guidance=
+                        latest_external_guidance,
+
+                    wrist_guidance=
+                        latest_wrist_guidance,
+
+                    extra={
+                        "target_confirmed":
+                            bool(
+                                target_confirmed
+                            ),
+
+                        "selected_control_cameras":
+                            list(
+                                recorder_selected_control
+                            ),
+
+                        "valid_control_cameras":
+                            list(
+                                recorder_valid_control
+                            ),
+
+                        "control_target_count":
+                            int(
+                                len(
+                                    recorder_valid_control
+                                )
+                            ),
+
+                        "degraded_single_view":
+                            bool(
+                                len(
+                                    recorder_valid_control
+                                )
+                                ==
+                                1
+                            ),
+                    },
+                )
+
+
+                # --------------------------------------------
+                # Handshake for Gate
+                # --------------------------------------------
+
+                all_selected = all(
+                    target_selected.values()
+                )
+
+                all_target_valid = all(
+                    target_valid.values()
+                )
+
+                # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+                #
+                # Keep all_selected / all_target_valid only as
+                # diagnostics.  They are no longer hard gates.
+                #
+                # Runtime insertion authority comes only from
+                # External / Left Wrist.
+
+                selected_control_cameras = [
+                    camera
+                    for camera
+                    in INSERTION_CONTROL_CAMERAS
+                    if (
+                        target_selected[
+                            camera
+                        ]
+                        and
+                        target_uv[
+                            camera
+                        ]
+                        is not None
+                    )
+                ]
+
+                valid_control_cameras = [
+                    camera
+                    for camera
+                    in selected_control_cameras
+                    if target_valid[
+                        camera
+                    ]
+                ]
+
+                control_target_count = (
+                    len(
+                        valid_control_cameras
+                    )
+                )
+
+                degraded_single_view = bool(
+                    control_target_count
+                    ==
+                    1
+                )
+
+                target_ready = bool(
+                    phase
+                    ==
+                    PHASE_INSERTION
+                    and
+                    target_confirmed
+                    and
+                    control_target_count
+                    ==
+                    len(
+                        INSERTION_CONTROL_CAMERAS
+                    )
+                )
+
+
+                atomic_json(
+                    TARGET_STATE_OUT,
+                    {
+                        "timestamp":
+                            now,
+
+                        "phase":
+                            phase,
+
+                        "target_ready":
+                            target_ready,
+
+                        "target_confirmed":
+                            bool(
+                                target_confirmed
+                            ),
+
+                        "fixed_hole_target":
+                            bool(
+                                phase
+                                ==
+                                PHASE_INSERTION
+                            ),
+
+                        "insertion_align_streak":
+                            int(
+                                insertion_aligned_streak
+                            ),
+
+                        "insertion_aligned":
+                            bool(
+                                insertion_aligned_latched
+                            ),
+
+
+                        "all_selected":
+                            bool(
+                                all_selected
+                            ),
+
+                        "all_target_valid":
+                            bool(
+                                all_target_valid
+                            ),
+
+                        # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+                        "selected_control_cameras":
+                            list(
+                                selected_control_cameras
+                            ),
+
+                        "valid_control_cameras":
+                            list(
+                                valid_control_cameras
+                            ),
+
+                        "control_target_count":
+                            int(
+                                control_target_count
+                            ),
+
+                        "degraded_single_view":
+                            bool(
+                                degraded_single_view
+                            ),
+
+                        "selected": {
+                            camera:
+                                bool(
+                                    target_selected[
+                                        camera
+                                    ]
+                                )
+                            for camera
+                            in CAMERA_ORDER
+                        },
+
+                        "valid": {
+                            camera:
+                                bool(
+                                    target_valid[
+                                        camera
+                                    ]
+                                )
+                            for camera
+                            in CAMERA_ORDER
+                        },
+
+                        "target_uv": {
+                            camera:
+                                (
+                                    list(
+                                        target_uv[
+                                            camera
+                                        ]
+                                    )
+                                    if
+                                    target_uv[
+                                        camera
+                                    ]
+                                    is not None
+                                    else
+                                    None
+                                )
+                            for camera
+                            in CAMERA_ORDER
+                        },
+                    },
+                )
+
+
+                atomic_json(
+                    PERCEPTION_STATE_OUT,
+                    {
+                        "timestamp":
+                            now,
+
+                        "phase":
+                            phase,
+
+                        "target_ready":
+                            target_ready,
+
+                        "cameras": {
+                            camera: {
+                                "free_uv":
+                                    (
+                                        list(
+                                            latest_free_guidance[
+                                                camera
+                                            ][
+                                                "uv"
+                                            ]
+                                        )
+                                        if
+                                        latest_free_guidance[
+                                            camera
+                                        ][
+                                            "uv"
+                                        ]
+                                        is not None
+                                        else
+                                        None
+                                    ),
+
+                                "free_source":
+                                    latest_free_guidance[
+                                        camera
+                                    ][
+                                        "source"
+                                    ],
+
+                                "tip_uv":
+                                    (
+                                        list(
+                                            latest_free_guidance[
+                                                camera
+                                            ][
+                                                "tip_uv"
+                                            ]
+                                        )
+                                        if
+                                        latest_free_guidance[
+                                            camera
+                                        ][
+                                            "tip_uv"
+                                        ]
+                                        is not None
+                                        else
+                                        None
+                                    ),
+
+                                "hole_uv":
+                                    (
+                                        list(
+                                            target_uv[
+                                                camera
+                                            ]
+                                        )
+                                        if
+                                        target_uv[
+                                            camera
+                                        ]
+                                        is not None
+                                        else
+                                        None
+                                    ),
+
+                                "hole_valid":
+                                    bool(
+                                        target_valid[
+                                            camera
+                                        ]
+                                    ),
+                            }
+                            for camera
+                            in CAMERA_ORDER
+                        },
+                    },
+                )
+
+
+            # =================================================
+            # Display
+            # =================================================
+
+            visuals = {}
+
+
+            for camera in CAMERA_ORDER:
+
+                vis = (
+                    grasp.draw_scene(
+                        frames[
+                            camera
+                        ],
+                        detections[
+                            camera
+                        ],
+                        tracks[
+                            camera
+                        ],
+                        geometries[
+                            camera
+                        ],
+                        camera.upper(),
+                        fps_values[
+                            camera
+                        ],
+                    )
+                )
+
+
+                vis = (
+                    grasp.draw_tip(
+                        vis,
+                        tip_results[
+                            camera
+                        ],
+                    )
+                )
+
+
+                if phase == PHASE_GRASP:
+
+                    if camera == "external":
+
+                        vis = (
+                            grasp.draw_guidance(
+                                vis,
+                                latest_external_guidance,
+                                "external",
+                            )
+                        )
+
+                    elif camera == "right_wrist":
+
+                        vis = (
+                            grasp.draw_guidance(
+                                vis,
+                                latest_wrist_guidance,
+                                "right_wrist",
+                            )
+                        )
+
+                    else:
+
+                        cv2.putText(
+                            vis,
+                            "LEFT WRIST: GRASP MONITOR",
+                            (
+                                12,
+                                178,
+                            ),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.46,
+                            (
+                                255,
+                                255,
+                                255,
+                            ),
+                            1,
+                            cv2.LINE_AA,
+                        )
+
+
+                else:
+
+                    vis = (
+                        draw_hole_overlay(
+                            vis,
+                            latest_hole_pred[
+                                camera
+                            ],
+                            latest_holes[
+                                camera
+                            ],
+                            target_uv[
+                                camera
+                            ],
+                            target_valid[
+                                camera
+                            ],
+                        )
+                    )
+
+
+                    f = (
+                        latest_free_guidance[
+                            camera
+                        ]
+                    )
+
+                    vis = (
+                        draw_insertion_free(
+                            vis,
+                            f[
+                                "uv"
+                            ],
+                            f[
+                                "source"
+                            ],
+                            (
+                                target_uv[
+                                    camera
+                                ]
+                                if
+                                target_selected[
+                                    camera
+                                ]
+                                else
+                                None
+                            ),
+                        )
+                    )
+
+
+
+
+                    if (
+                        phase
+                        ==
+                        PHASE_INSERTION
+                        and
+                        camera
+                        in
+                        INSERTION_CONTROL_CAMERAS
+                    ):
+
+                        vis = (
+                            draw_insertion_direct_free_status(
+                                vis,
+                                f,
+                            )
+                        )
+
+
+                    if phase == PHASE_WAIT_HOLE:
+
+                        cv2.putText(
+                            vis,
+                            (
+                                "CLICK TARGET HOLE"
+                                if
+                                not target_selected[
+                                    camera
+                                ]
+                                else
+                                "TARGET SELECTED"
+                            ),
+                            (
+                                12,
+                                178,
+                            ),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.52,
+                            (
+                                0,
+                                255,
+                                255,
+                            ),
+                            2,
+                            cv2.LINE_AA,
+                        )
+
+
+                    elif phase == PHASE_INSERTION:
+
+                        cv2.putText(
+                            vis,
+                            (
+                                "INSERTION: FREE -> HOLE"
+                            ),
+                            (
+                                12,
+                                178,
+                            ),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.50,
+                            (
+                                0,
+                                255,
+                                255,
+                            ),
+                            2,
+                            cv2.LINE_AA,
+                        )
+
+
+                vis = (
+                    draw_phase(
+                        vis,
+                        phase,
+                    )
+                )
+
+
+                visuals[
+                    camera
+                ] = vis
+
+
+            resized = {
+                camera:
+                    grasp.base.resize_panel(
+                        visuals[
+                            camera
+                        ]
+                    )
+                for camera
+                in CAMERA_ORDER
+            }
+
+
+            panel_layout.clear()
+
+            x0 = 0
+
+            for camera in CAMERA_ORDER:
+
+                h, w = (
+                    resized[
+                        camera
+                    ].shape[:2]
+                )
+
+                panel_layout[
+                    camera
+                ] = {
+                    "x0":
+                        x0,
+
+                    "x1":
+                        x0 + w,
+
+                    "w":
+                        w,
+
+                    "h":
+                        h,
+                }
+
+                x0 += w
+
+
+            panel = np.hstack(
+                [
+                    resized[
+                        camera
+                    ]
+                    for camera
+                    in CAMERA_ORDER
+                ]
+            )
+
+
+            cv2.imshow(
+                WINDOW,
+                panel,
+            )
+
+
+            # ------------------------------------------------
+            # Console status
+            # ------------------------------------------------
+
+            now_mono = (
+                time.monotonic()
+            )
+
+            if (
+                now_mono
+                -
+                last_print
+                >
+                1.0
+            ):
+
+                if phase == PHASE_GRASP:
+
+                    print(
+                        "[GRASP] "
+                        f"EXT valid={latest_external_guidance.get('guidance_valid')} "
+                        f"WRIST valid={latest_wrist_guidance.get('guidance_valid')}",
+                        flush=True,
+                    )
+
+                else:
+
+                    print(
+                        f"[{phase}] "
+                        f"target="
+                        f"E:{int(target_selected['external'])}/"
+                        f"{int(target_valid['external'])} "
+                        f"R:{int(target_selected['right_wrist'])}/"
+                        f"{int(target_valid['right_wrist'])} "
+                        f"L:{int(target_selected['left_wrist'])}/"
+                        f"{int(target_valid['left_wrist'])} | "
+                        f"FREE "
+                        f"E={latest_free_guidance['external']['source']} "
+                        f"R={latest_free_guidance['right_wrist']['source']} "
+                        f"L={latest_free_guidance['left_wrist']['source']}",
+                        flush=True,
+                    )
+
+                last_print = (
+                    now_mono
+                )
+
+
+            # ------------------------------------------------
+            # Keyboard
+            # ------------------------------------------------
+
+            key = (
+                cv2.waitKey(1)
+                &
+                0xFF
+            )
+
+
+            # ENTER
+            if key in (
+                10,
+                13,
+                32,
+                ord("e"),
+                ord("E"),
+            ):
+
+                if phase == PHASE_WAIT_HOLE:
+
+                    # OPTIONAL_CONTROL_CAMERA_HOLE_SELECTION_V1
+                    control_ready_cameras = [
+                        camera
+                        for camera
+                        in INSERTION_CONTROL_CAMERAS
+                        if (
+                            target_selected[
+                                camera
+                            ]
+                            and
+                            target_uv[
+                                camera
+                            ]
+                            is not None
+                            and
+                            target_valid[
+                                camera
+                            ]
+                        )
+                    ]
+
+                    if len(control_ready_cameras) == len(INSERTION_CONTROL_CAMERAS):
+
+                        target_confirmed = True
+
+                        phase = (
+                            PHASE_INSERTION
+                        )
+
+                        print()
+                        print(
+                            "=" * 90
+                        )
+
+                        print(
+                            "[PHASE] WAIT_HOLE_TARGET -> INSERTION_TRACKING"
+                        )
+
+                        print(
+                            "[PHASE] target confirmed by control camera(s): "
+                            +
+                            ",".join(
+                                control_ready_cameras
+                            )
+                        )
+
+                        print(
+                            "[PHASE] External + Left Wrist FREE->HOLE guidance ENABLED"
+                        )
+
+                        print(
+                            "=" * 90
+                        )
+                        print()
+
+                    else:
+
+                        print(
+                            "[HOLE CONFIRM] rejected: "
+                            "select valid targets in BOTH External and Left Wrist"
+                        )
+
+
+            # R = stop insertion and select again.
+            elif key in (
+                ord("r"),
+                ord("R"),
+            ):
+
+                if phase != PHASE_GRASP:
+
+                    phase = (
+                        PHASE_WAIT_HOLE
+                    )
+
+                    target_confirmed = False
+
+                    for camera in CAMERA_ORDER:
+
+                        target_selected[
+                            camera
+                        ] = False
+
+                        target_valid[
+                            camera
+                        ] = False
+
+                        target_uv[
+                            camera
+                        ] = None
+
+                        target_update_time[
+                            camera
+                        ] = 0.0
+
+                        insertion_hole_measurement_time[
+                            camera
+                        ] = 0.0
+
+                        insertion_free_measurement_time[
+                            camera
+                        ] = 0.0
+
+
+                    invalid_guidance(
+                        "external",
+                        phase,
+                        "TARGET_RESELECT",
+                    )
+
+                    invalid_guidance(
+                        "left_wrist",
+                        phase,
+                        "TARGET_RESELECT",
+                    )
+
+                    print(
+                        "[HOLE] targets cleared; motion guidance STOPPED"
+                    )
+
+
+            # P = diagnostic print
+            elif key in (
+                ord("p"),
+                ord("P"),
+            ):
+
+                print()
+                print(
+                    "[INSERTION STATE]"
+                )
+
+                print(
+                    json.dumps(
+                        read_json(
+                            PERCEPTION_STATE_OUT
+                        ),
+                        indent=2,
+                    )
+                )
+
+                print()
+
+
+            # Existing clear calibration only before grasp.
+            elif key in (
+                ord("c"),
+                ord("C"),
+            ):
+
+                if phase == PHASE_GRASP:
+
+                    for tracker in (
+                        free_trackers.values()
+                    ):
+
+                        tracker.clear()
+
+
+                    for tracker in (
+                        tip_trackers.values()
+                    ):
+
+                        tracker.clear()
+
+
+                    temporal_trackers = {
+                        camera:
+                            grasp.temporal.TemporalTracker(
+                                camera
+                            )
+                        for camera
+                        in CAMERA_ORDER
+                    }
+
+
+                    for camera in FIXED_WIRE_CAMERAS:
+
+                        locked[
+                            camera
+                        ] = False
+
+                        locked_tracks[
+                            camera
+                        ] = None
+
+                        locked_geometry[
+                            camera
+                        ] = None
+
+
+                    print(
+                        "[CLEAR] all GRASP calibration cleared"
+                    )
+
+
+            elif key in (
+                ord("q"),
+                ord("Q"),
+                27,
+            ):
+
+                break
+
+
+    except KeyboardInterrupt:
+
+        print(
+            "\n[INFO] Ctrl+C"
+        )
+
+
+    finally:
+
+        invalid_guidance(
+            "external",
+            "EXIT",
+            "VISUAL_PROGRAM_EXIT",
+        )
+
+        invalid_guidance(
+            "left_wrist",
+            "EXIT",
+            "VISUAL_PROGRAM_EXIT",
+        )
+
+
+        atomic_json(
+            TARGET_STATE_OUT,
+            {
+                "timestamp":
+                    time.time(),
+
+                "phase":
+                    "EXIT",
+
+                "target_ready":
+                    False,
+
+                "target_confirmed":
+                    False,
+            },
+        )
+
+
+        if external is not None:
+
+            try:
+                external.release()
+            except Exception:
+                pass
+
+
+        if right is not None:
+
+            try:
+                right.stop()
+            except Exception:
+                pass
+
+
+        if left is not None:
+
+            try:
+                left.stop()
+            except Exception:
+                pass
+
+
+        cv2.destroyAllWindows()
+
+        print(
+            "[INFO] Grasp -> Insertion Visual V1 stopped"
+        )
+
+
+if __name__ == "__main__":
+    main()
