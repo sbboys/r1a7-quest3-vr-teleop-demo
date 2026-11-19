@@ -1,3 +1,5 @@
+> **Required storage policy for ChatGPT/Codex and contributors:** Read [AGENTS.md](AGENTS.md) and [the data storage policy](docs/DATA_STORAGE_POLICY.md) before collection, annotation, training or evaluation. All task data, checkpoints, results, logs, caches and temporary data must be written to the mounted `/data` partition, normally under `/data/threading/`; never fall back to the system disk. Existing datasets: `/data/threading/r1a7_datasets`.
+
 <div align="center">
   <h1 align="center"> unitree_sim_isaaclab </h1>
   <h3 align="center"> Unitree Robotics </h3>

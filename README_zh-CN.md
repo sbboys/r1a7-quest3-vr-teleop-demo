@@ -1,3 +1,5 @@
+> **ChatGPT/Codex及协作者必须遵守的数据盘规则：** 每次开始采集、标注、训练或评估前先读 [AGENTS.md](AGENTS.md) 和[数据存储要求](docs/DATA_STORAGE_POLICY.md)。相关数据、权重、结果、日志、缓存和临时文件统一写入已挂载的 `/data`，默认放在 `/data/threading/`；不得回退到系统盘。现有数据集位于 `/data/threading/r1a7_datasets`。
+
 <div align="center">
   <h1 align="center"> unitree_sim_isaaclab </h1>
   <h3 align="center"> Unitree Robotics </h3>

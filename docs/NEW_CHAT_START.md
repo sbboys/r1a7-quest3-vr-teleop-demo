@@ -1,5 +1,9 @@
 # R1-A7 新对话与长对话恢复入口
 
+## 每次任务必读的数据盘要求
+
+必须读取 [DATA_STORAGE_POLICY.md](DATA_STORAGE_POLICY.md)。采集、标注、训练、评估及相关输出/缓存统一写入已挂载的 `/data/threading/`，不允许回退到系统盘。
+
 ## 新对话启动词
 
 复制下面内容到新的 ChatGPT/Codex 对话：
@@ -12,6 +16,11 @@
 docs/CURRENT_STATE.md
 docs/DECISIONS.md
 docs/VALIDATION_MATRIX.md
+docs/DATA_STORAGE_POLICY.md
+
+采集、标注、训练和评估相关数据/输出/缓存只写入已挂载的数据盘 /data/threading/。
+现有数据集为 /data/threading/r1a7_datasets，旧 /home/robot/r1a7_datasets 仅作软链接兼容。
+写入前检查真实落点、挂载、容量和权限；失败时停止，不回退到系统盘。
 
 先执行只读核对：git status、当前分支、HEAD，并在涉及设备或机器人时运行
 bash scripts/r1a7_context_snapshot.sh。
