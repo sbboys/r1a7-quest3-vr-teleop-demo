@@ -1,3 +1,5 @@
+> **Required storage policy for ChatGPT/Codex and contributors:** Read [AGENTS.md](AGENTS.md) and [the data storage policy](docs/DATA_STORAGE_POLICY.md) before collection, annotation, training or evaluation. All task data, checkpoints, results, logs, caches and temporary data must be written to the mounted `/data` partition, normally under `/data/threading/`; never fall back to the system disk. Existing datasets: `/data/threading/r1a7_datasets`.
+
 # R1-A7 Quest 3 VR Teleoperation Demo
 
 This private demo repository collects the working code and field documentation for R1-A7 teleoperation with Meta Quest 3.
